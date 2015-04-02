@@ -3,6 +3,7 @@
 #
 # This is a template starting point for making a game using malt
 
+import sys; sys.dont_write_bytecode = True
 import malt
 import game
 from objects import MaltLogicMishap
