@@ -77,6 +77,7 @@ def confirm(string):
     response = get_input(string + '\n' + 'Y/N: ')
     return response in ['YES', 'Y', 'YEAH', 'YEP', 'PLEASE']
 
+# Does not accept multiple arguments like print
 def out(data, format=''):
     if not format:
         print data
