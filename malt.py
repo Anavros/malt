@@ -1,92 +1,57 @@
+# coding=utf-8
 
 # Malt
-#
-# A simple, text-based game framework
+# boilerplate for interactive text loops in the console
 
-# TODO
-# Add proper documentation
-# Branch off into a more advanced version using curses
-import os  # Temporary for testing...
+import pprint
+pp = pprint.PrettyPrinter()
 
-MODES = {}
-ACTIVE = None
+# NEEDS:
+#   bad input validation
+#   number input
+#   message on bad input
+def limited_input(options, inFn=input):
+    """Get one of a limited set of commands from the user.
+    Return None if given bad input; e.g. an empty list or a scalar.
+    """
+    
+    if (type(options) is not list) or (len(options) < 1):
+        return None
+    
+    string = ""
+    lc_options = [x.lower() for x in options]
 
+    while not (string.lower() in lc_options):
+        string = inFn().strip().lower()
 
-def add_mode(name, mode):
-    # The first mode that is added will be the one in which the game starts.
-    global ACTIVE
-    if name not in MODES.keys():
-        MODES[name] = mode
-        if ACTIVE is None:
-            ACTIVE = name
-    else:
-        raise KeyError('%s is already a known mode!' % name)
+        if (string == "help") and ("help" not in lc_options): 
+            say("Malt: Help")
+            say("possible commands are: ")
+            say(options) # XXX
+        elif string in lc_options:
+            break
 
-
-def switch_mode(name):
-    global ACTIVE
-    if name in MODES.keys():
-        ACTIVE = name
-
-
-def get_input(string):
-    return raw_input(string).strip().upper()
-
-
-def command(mode):
-    # If multiple functions are linked with the same command,
-    # all will be called by that command, in order
-    response = get_input('>>> ')
-
-    # Special Cases
-    if response in ['QUIT', 'EXIT']:
-        import sys
-        sys.exit()
-    if response in ['HELP', 'LIST', 'LS']:
-        print mode.keys()
-
-    # For testing...
-    if response == 'MODE':
-        print ACTIVE
-    if response == 'CLEAR':
-        os.system('clear')
-
-    # Normal Conditions
-    for string in mode.keys():
-        synonyms = string.split('/')
-        if response in synonyms:
-            mode[string]()
-
-
-def loop():
-    while True:
-        command(MODES[ACTIVE])
-
-
-def prompt(string, options=[]):
-    string = string.upper() + ': '
-    response = get_input(string)
-    if options:
-        while response not in options:
-            response = get_input(string)
-            print response in options
-    return response
+    return string
 
 
 def confirm(string):
-    response = get_input(string + '\n' + 'Y/N: ')
-    return response in ['YES', 'Y', 'YEAH', 'YEP', 'PLEASE']
+    """Ask the user to confirm a yes or no decision using the prompt."""
 
-# Does not accept multiple arguments like print
-def out(data, format=''):
-    if not format:
-        print data
-    elif format == 'FANCY':
-        print '*** %s ***' % data
-    elif format == 'TITLE':
-        print '        ===%s===' % data
-    elif format == 'LIST':
-        print data
+
+def say(stuff):
+    """Print text to the console.
+    Questionable usefulness over print.
+    May be upgraded using pprint in the future.
+    """
+
+    if type(stuff) is str:
+        print(stuff)
     else:
-        print data
-        print 'Malt does not understand the %s format!' % format
+        pp.pprint(stuff)
+
+
+# NOTE: Might be better off in another library
+def peek(name, value):
+    """Print a variable's name and value to the console for easy debugging."""
+
+    say("{name}: {value}".format(name, value))

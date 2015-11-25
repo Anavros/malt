@@ -1,38 +1,20 @@
 
-# [GAME] -> Main
-#
-# This is a template starting point for making a game using malt
-
-import sys; sys.dont_write_bytecode = True
 import malt
-import game
-from objects import MaltLogicMishap
 
+def main():
+    malt.say("Welcome to Malt!")
+    
+    fruits = ["peaches", "apples", "mangos", "bananas"]
+    favorite = "bananas"
+    while "bananas are yummy":
+        malt.say("If you can guess my favorite fruit, I'll break this loop!")
+        guess = malt.limited_input(fruits)
 
-def MODE_SILLY():
-    def spam():
-        malt.out('Replace me with calls to your game logic!')
+        if guess == "bananas":
+            malt.say("You got it!")
+            break
+        else:
+            malt.say("Nope, try again.")
 
-    def eggs():
-        pass
-
-    def trip():
-        minister = game.minister
-        try:
-            game.push(minister)
-        except MaltLogicMishap:
-            malt.out('But you have already tripped the Minister ' +
-                     'of Silly Walks!')
-            return
-        malt.out('The minister walks with ' + minister.walk.description +
-                 ' and it is silly so you trip him.')
-        malt.out('You knock over the Minister of Silly Walks.')
-
-    return {"SPAM": spam,
-            "EGGS": eggs,
-            "PUSH/TRIP": trip}
-
-malt.add_mode('SILLY', MODE_SILLY())
-
-malt.switch_mode('SILLY')
-malt.loop()
+if __name__ == "__main__":
+    main()
