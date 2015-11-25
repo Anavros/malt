@@ -1,9 +1,8 @@
 
 #malt
-Malt is a simple, interactive text-based game engine made with python.
+Malt is getting an overhaul.
 
-In the future I hope to reuse Malt to quickly and efficiently prototype and design original games.
-
-#Instructions
-###How I use malt
-Ok admittedly this part is still in progress
+The original project never got much use--it was a little overcomplicated--but
+I still find myself implementing the same functionality in various python
+projects. I'm updating Malt to be more of a simple collection of commonly-used
+functions to include in my projects. Nothing too fancy.
