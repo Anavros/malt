@@ -5,80 +5,65 @@
 
 import pprint
 from subprocess import call
-pp = pprint.PrettyPrinter()
+pp = pprint.PrettyPrinter()  # TODO remove eventually
 
-MALT_CLEAR_BEFORE_PROMPT = False
-MALT_SHOW_TITLE_BAR = False
+# can be set by the user
+TITLE_BAR = " ===== Malt ===== "
+SHOW_TITLE_BAR = False
+DEFAULT_PROMPT = "> "
 
-malt_title_string = " ===== Malt ===== "
+EXIT_CODE = 'malt-exit'
+BUILT_IN_CODE = 'malt-built-in'
 
-# TODO: add built-in commands
-def limited_input(options):
+
+# TODO: integrate decorations
+def select(options=None):
     """Get one of a limited set of commands from the user.
     Matches are not case-sensitive, and returned strings are always lowercase.
     """
 
-    if (type(options) is not list) or (len(options) < 1):
-        raise TypeError("Options must be a non-empty list!")
-
-    string = input()
-    # check regardless of case or excess whitespace
-    if string.strip().lower() in [x.strip().lower() for x in options]:
-        return string.lower()
-    else:
-        return None
-
-
-# TODO: numerical mode?
-# TODO: special value when built-ins run?
-def ask(options, prompt="> "):
-    """Get one of a limited set of commands from the user.
-    Matches are not case-sensitive, and returned strings are always lowercase.
-    """
-
-    if type(options) is not list:
-        raise TypeError("Options must be a non-empty list!")
-
-    print(prompt, end='')
+    prompt()
     string = input().strip().lower()
 
-    if options == []:
+    if type(options) is not list:
         return string
     elif string in [o.strip().lower() for o in options]:
         return string
 
     # only use built-in functions if the string has not already been matched
     # this way the user can override built-ins at their discretion
-    elif string == 'help':
+    elif string in ["help", "options", "commands", "help me", "what"]:
         opt_string = ', '.join(options) # TODO: fancify
         print("malt: available commands are {}".format(opt_string))
         print("malt: built-in commands help and clear are also available at any time.")
-        return "malt-built-in"
+        return BUILT_IN_CODE
 
-    elif string == 'clear':
+    elif string in ["clear", "clean", "cls", "get this shit out of my face"]:
         clear()
-        return "malt-built-in"
+        return BUILT_IN_CODE
+
+    elif string in ["exit", "quit", "abandon ship"]:
+        return EXIT_CODE
 
     else:
         return None
 
 
-def numeral_input(lower, upper):
-    """Get a number between lower and upper from the console."""
+def numeral(low, high, cast=int):
+    """Get a number between low and high (inclusive) from the user."""
 
+    prompt()
+    number = input()
     try:
-        number = int(input())
+        number = cast(number)
     except ValueError:
-        raise TypeError("User did not give a useful number.")
+        # could not cast to a number
+        return None
 
-    if lower < number and number < upper:
+    if low <= number and number <= high:
         return number
     else:
-        raise ValueError("Given number does not fall within bounds.")
-
-
-def confirm(string):
-    """Ask the user to confirm a yes or no decision using the prompt."""
+        return None
 
 
 def show(stuff):
@@ -94,33 +79,25 @@ def show(stuff):
         pp.pprint(stuff)
 
 
-def show_help(options):
-    print("Malt: available commands are {}".format(options))
+def confirm(silent=False):
+    """Ask the user to confirm a yes or no decision using the prompt."""
+
+    if not silent:
+        print("malt: confirm? ", end='')
+    affirmations = [
+        "yes", "ye", "yeah", "y", "ok", "sure", "why not", "gimme", "hell yes",
+        "heck yes", "do it", "of course", "naturally", "let's go", "yep"
+    ]
+    return (input().strip().lower() in affirmations)
 
 
-def show_bad_input():
-    print("Malt: unknown command")
-    print("Malt: enter 'help' for a list of available commands")
-
-
-def prompt(token="> "):
-    if MALT_CLEAR_BEFORE_PROMPT:
-        clear()
-    if MALT_SHOW_TITLE_BAR: # BONUS: use colors 
-        print()
-        print(malt_title_string)
-
-    print(token, end='')
-
-
-# NOTE: Might be better off in another library
-def peek(name, value):
-    """Print a variable's name and value to the console for easy debugging."""
-
-    print("{name}: {value}".format(name, value))
+def prompt():
+    print(DEFAULT_PROMPT, end='')
 
 
 def clear():
     """Clear the screen. Multiplatform support not yet implemented."""
 
     call(["clear"])
+    if SHOW_TITLE_BAR:
+        print(TITLE_BAR)
