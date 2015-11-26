@@ -7,20 +7,24 @@ def main():
     malt.show("Let's modify a number for no ostensible reason!")
     malt.show("Ready to start?")
 
-    if not malt.confirm(silent=True):
-        return
+    #if not malt.confirm(silent=True):
+        #return
 
     malt.SHOW_TITLE_BAR = True
     malt.clear()
 
-    malt.show("What number would you like to start with?")
-    n = malt.numeral(1, 100)
-    if n is None:
-        malt.show("invalid number; using 100 instead")
-        n = 100
+    #malt.show("What number would you like to start with?")
+    #n = malt.numeral(1, 100)
+    #if n is None:
+        #malt.show("invalid number; using 100 instead")
+        #n = 100
+
+    n = 100
 
     malt.show("n: {}".format(n))
-    actions = ["add", "subtract", "halve", "double", "quit"]
+    #actions = ["add", "subtract", "halve", "double"]
+    actions = ["add", "subtract"]
+    #actions = ["add"]
 
     while "bananas are yummy":
         action = malt.select(actions) 

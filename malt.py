@@ -33,9 +33,16 @@ def select(options=None):
     # only use built-in functions if the string has not already been matched
     # this way the user can override built-ins at their discretion
     elif string in ["help", "options", "commands", "help me", "what"]:
-        opt_string = ', '.join(options) # TODO: fancify
-        print("malt: available commands are {}".format(opt_string))
-        print("malt: built-in commands help and clear are also available at any time.")
+        options = ["'{}'".format(o) for o in options]
+        if len(options) == 1:
+            opt_string = 'only ' + options[0]
+        elif len(options) == 2:
+            opt_string = options[0] + " and " + options[1]
+        elif len(options) > 2:
+            opt_string = ', '.join(options[:-1]) + ', and ' + options[-1]
+
+        print("[malt] available commands: {}".format(opt_string))
+        print("built-in functions 'help', 'clear', and 'quit' are available at any time")
         return BUILT_IN_CODE
 
     elif string in ["clear", "clean", "cls", "get this shit out of my face"]:
@@ -49,6 +56,7 @@ def select(options=None):
         return None
 
 
+#NOTE: does not accept normal built-in functions
 def numeral(low, high, cast=int):
     """Get a number between low and high (inclusive) from the user."""
 
@@ -83,7 +91,7 @@ def confirm(silent=False):
     """Ask the user to confirm a yes or no decision using the prompt."""
 
     if not silent:
-        print("malt: confirm? ", end='')
+        print("[malt] confirm? ", end='')
     affirmations = [
         "yes", "ye", "yeah", "y", "ok", "sure", "why not", "gimme", "hell yes",
         "heck yes", "do it", "of course", "naturally", "let's go", "yep"
