@@ -8,7 +8,14 @@ def main():
     favorite = "bananas"
     while "bananas are yummy":
         malt.say("If you can guess my favorite fruit, I'll break this loop!")
-        guess = malt.limited_input(fruits)
+        malt.prompt()
+        try:
+            guess = malt.limited_input(fruits)
+        except ValueError:
+            malt.say("Nope, try again.")
+        else:
+            malt.say("You got it!)
+            
 
         if guess == "bananas":
             malt.say("You got it!")

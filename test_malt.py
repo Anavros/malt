@@ -1,5 +1,6 @@
 
 import malt
+import pytest
 
 def test_success():
     assert True
@@ -18,9 +19,11 @@ def test_limited_input():
     assert malt.limited_input(uppercase_options, inFn=mock_inFn) == "my input!"
 
 
-def test_confirm():
-    pass
+def test_numeral_input():
+    normal_inFn = lambda: 55
+    string_inFn = lambda: "string"
 
+    assert malt.numeral_input(10, 100, normal_inFn) == 55
 
-def test_say():
-    pass
+    with pytest.raises(TypeError):
+        malt.numeral_input(10, 100, string_inFn)
