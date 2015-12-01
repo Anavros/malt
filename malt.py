@@ -3,111 +3,105 @@
 # Malt
 # boilerplate for interactive text loops in the console
 
-import pprint
+#import readline  # TODO: improve command history
 from subprocess import call
-pp = pprint.PrettyPrinter()  # TODO remove eventually
 
-# can be set by the user
+# Default Markings
 TITLE_BAR = " ===== Malt ===== "
 SHOW_TITLE_BAR = False
-DEFAULT_PROMPT = "> "
+PROMPT = "> "
+INDENT = ""
+LIST_TICK = "-"
+PAUSE = "... "
 
-# special codes returned from select()
+# Select() Codes
 EXIT_CODE = 'malt-exit'
 BUILT_IN_CODE = 'malt-built-in'
-# BACK_CODE?
+BACK_CODE = 'malt-back'
+
+# Keyword Sets
+HELP_KEYWORDS = ['help', 'options', 'commands', 'what', 'ls', 'dir']
+EXIT_KEYWORDS = ['exit', 'quit', 'abandon']
+BACK_KEYWORDS = ['back', 'return', 'done', 'finished']
+CLEAR_KEYWORDS = ['clear', 'clean', 'cls']
+AFFIRM_KEYWORDS = [ "yes", "ye", "yeah", "y", "ok", "sure", "why not", 
+    "gimme", "hell yes", "heck yes", "do it", "of course", "naturally", 
+    "let's go", "yep"
+]
+
+# Gen. TODO: integrate colors
+
+class AbandonShip(Exception): pass
 
 
-# TODO: implement parameters (e.g. "run 4")
 def select(options=None):
     """Get one of a limited set of commands from the user.
     Matches are not case-sensitive, and returned strings are always lowercase.
     """
 
     prompt()
+    result = None
     string = input().strip().lower()
 
-    # do not verify input if no options (or bad options) are given
-    # TODO: what about an empty list?
-    if type(options) is not list:
+    if __matches(string, options):
         return string
-
-    # match against options regardless of case
-    elif string in [o.strip().lower() for o in options]:
-        return string
-
-    # only use built-in functions if the string has not already been matched
-    # this way the user can override built-ins at their discretion
-    elif string in ["help", "options", "commands", "help me", "what", "ls", "dir"]:
-        options = ["'{}'".format(o) for o in options]
-        if len(options) == 1:
-            opt_string = 'only ' + options[0]
-        elif len(options) == 2:
-            opt_string = options[0] + " and " + options[1]
-        elif len(options) > 2:
-            opt_string = ', '.join(options[:-1]) + ', and ' + options[-1]
-
-        print("[malt] available commands: {}".format(opt_string))
-        print("built-in functions 'help', 'clear', and 'quit' are available at any time")
-        return BUILT_IN_CODE
-
-    elif string in ["clear", "clean", "cls", "get this shit out of my face"]:
-        clear()
-        return BUILT_IN_CODE
-
-    elif string in ["exit", "quit", "abandon ship", "this ship is going down"]:
-        return EXIT_CODE
-
     else:
-        return None
+        # Only use built-in functions if the string has not already been matched.
+        # This way the user can override built-ins at their discretion.
+        return __try_built_ins(string, options)
 
 
-# TODO: could be much better
+
+# NOTE: restricted for now to just two arguments
 def split_select(options=None):
-    """Get a list of multiple arguments split by whitespace from the user.
-    Matches are not case-sensitive, and returned strings are always lowercase.
-    """
+    """Get one of a limited set of commands with whitespace-delimited args."""
 
     prompt()
-    strings = input().strip().lower().split()
-    first = strings[0]
+    split_string = input().strip().lower().split('\w')
 
-    # do not verify input if no options (or bad options) are given
-    # TODO: what about an empty list?
-    if type(options) is not list:
-        return strings
+    head = split_string[0]
+    if len(split_string) > 1:
+        tail = split_string[1]
+    else:
+        tail = None   
 
-    # match against options regardless of case
-    elif first in [o.strip().lower() for o in options]:
-        return strings
+    if __matches(head, options):
+        return (head, tail)
+    else:
+        return (__try_built_ins(head, options), tail)
 
-    # only use built-in functions if the string has not already been matched
-    # this way the user can override built-ins at their discretion
-    elif first in ["help", "options", "commands", "help me", "what", "ls", "dir"]:
-        options = ["'{}'".format(o) for o in options]
-        if len(options) == 1:
-            opt_string = 'only ' + options[0]
-        elif len(options) == 2:
-            opt_string = options[0] + " and " + options[1]
-        elif len(options) > 2:
-            opt_string = ', '.join(options[:-1]) + ', and ' + options[-1]
 
-        print("[malt] available commands: {}".format(opt_string))
-        print("built-in functions 'help', 'clear', and 'quit' are available at any time")
+def __matches(string, options):
+    """Evaluate if string is in options regardless of case."""
+
+    # Only try to match input if 'options' is a valid list.
+    if (type(options) is not list) or (len(options) < 1):
+        return True
+    # Strings match regardless of case.
+    elif string in [o.strip().lower() for o in options]:
+        return True
+    else:
+        return False
+
+
+# TODO make help message callable
+def __try_built_ins(string, options):
+    if string in HELP_KEYWORDS:
+        hint(options)
         return BUILT_IN_CODE
-
-    elif first in ["clear", "clean", "cls", "get this shit out of my face"]:
+    elif string in CLEAR_KEYWORDS:
         clear()
         return BUILT_IN_CODE
-
-    elif first in ["exit", "quit", "abandon ship", "this ship is going down"]:
+    elif string in BACK_KEYWORDS:
+        return BACK_CODE
+    elif string in EXIT_KEYWORDS:
         return EXIT_CODE
-
     else:
         return None
-
+    
 
 #NOTE: does not accept normal built-in functions
+#NOTE: what happens if high is lower than low?
 def numeral(low, high, cast=int):
     """Get a number between low and high (inclusive) from the user."""
 
@@ -125,42 +119,93 @@ def numeral(low, high, cast=int):
         return None
 
 
-# TODO: improve type detection and formatting; remove pprint
-def show(stuff):
+def hint(options):
+    built_in_options = ['help', 'clear', 'back', 'exit']
+    show("[malt] available commands: ", nl='')
+    show(options, inline=True)
+    show("\nbuilt-in functions ", nl='')
+    show(built_in_options, inline=True)
+    show(" are available at any time")
+
+
+# TODO: improve type detection and formatting
+# TODO: add support for indenting
+# TODO: prevent test from passing 80 chars
+def show(stuff, nl='\n', inline=False):
     """Print things to the console.
     Check the type of each object to determine the best printing format.
     """
 
-    tp = type(stuff)
-    if tp is str:
-        print(stuff)
-    elif tp is list:
-        if len(stuff) < 1:
-            print("(empty list)")
+    stuff_t = type(stuff)
+    #print(INDENT, end='')
+
+    # Lists (with both item and sentence form)
+    if stuff_t is list:
+        # Empty List Marker
+        length = len(stuff)
+        if length < 1:
+            print("[malt] (empty list)")
+
+        # Sentence Style
+        if inline:
+
+            # Surround each item with single quotes.
+            length = len(stuff)
+            qt_stuff = ["'{}'".format(thing) for thing in stuff]
+
+            # Use different formatting for different length lists.
+            if length == 1:
+                final = "only " + qt_stuff[0]
+            elif length == 2:
+                final = qt_stuff[0] + " and " + qt_stuff[1]
+            elif length >= 3:
+                final = ', '.join(qt_stuff[:-1]) + ", and " + qt_stuff[-1]
+
+            print(final, end='')
+
+        # Item Style
         else:
             for thing in stuff:
-                print("-", end='') # TODO put in var
+                print(LIST_TICK, end='')
                 print(thing)
-    elif isinstance(stuff, object):
-        pp.pprint(stuff.__dict__)
+
+    # Dictionaries
+    elif stuff_t is dict:
+        print("{")
+        for (key, value) in stuff.items():
+            print("{}:".format(key), end=' ')
+            show(value)
+        print("}")
+    
+    # Basics & Exceptions
     else:
-        pp.pprint(stuff)
+        #print("[malt] warning: show does not catch type({})".format(type(stuff)))
+        print(stuff, end=nl)
+
+
+def indent():
+    pass
+
+
+def undent():
+    pass
 
 
 def confirm(silent=False):
     """Ask the user to confirm a yes or no decision using the prompt."""
 
     if not silent:
-        print("[malt] confirm? ", end='')
-    affirmations = [
-        "yes", "ye", "yeah", "y", "ok", "sure", "why not", "gimme", "hell yes",
-        "heck yes", "do it", "of course", "naturally", "let's go", "yep"
-    ]
-    return (input().strip().lower() in affirmations)
+        show("[malt] confirm? ", nl='')
+    return (input().strip().lower() in AFFIRM_KEYWORDS)
+
+
+def pause():
+    show(PAUSE, nl='')
+    input()
 
 
 def prompt():
-    print(DEFAULT_PROMPT, end='')
+    show(PROMPT, nl='')
 
 
 def clear():
@@ -168,4 +213,4 @@ def clear():
 
     call(["clear"])
     if SHOW_TITLE_BAR:
-        print(TITLE_BAR)
+        show(TITLE_BAR)
