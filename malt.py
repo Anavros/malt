@@ -14,6 +14,15 @@ INDENT = ""
 LIST_TICK = "-"
 PAUSE = "... "
 
+# Indentation Settings
+INDENT = 0
+MAX_INDENT = 4
+INDENT_WIDTH = 4
+FRESH_LINE = True
+# TODO
+MAX_TERM_WIDTH = 80
+
+
 # Select() Codes
 EXIT_CODE = 'malt-exit'
 BUILT_IN_CODE = 'malt-built-in'
@@ -24,16 +33,13 @@ HELP_KEYWORDS = ['help', 'options', 'commands', 'what', 'ls', 'dir']
 EXIT_KEYWORDS = ['exit', 'quit', 'abandon']
 BACK_KEYWORDS = ['back', 'return', 'done', 'finished']
 CLEAR_KEYWORDS = ['clear', 'clean', 'cls']
-AFFIRM_KEYWORDS = [ "yes", "ye", "yeah", "y", "ok", "sure", "why not", 
-    "gimme", "hell yes", "heck yes", "do it", "of course", "naturally", 
-    "let's go", "yep"
-]
+AFFIRM_KEYWORDS = [ "yes", "y", "ok", "sure", "hell yes", "do it", "yep"]
 
-# Gen. TODO: integrate colors
 
 class AbandonShip(Exception): pass
 
 
+# TODO: allow multiple keywords per option?
 def select(options=None):
     """Get one of a limited set of commands from the user.
     Matches are not case-sensitive, and returned strings are always lowercase.
@@ -41,7 +47,7 @@ def select(options=None):
 
     prompt()
     result = None
-    string = input().strip().lower()
+    string = __minput().strip().lower()
 
     if __matches(string, options):
         return string
@@ -53,17 +59,25 @@ def select(options=None):
 
 
 # NOTE: restricted for now to just two arguments
-def split_select(options=None):
-    """Get one of a limited set of commands with whitespace-delimited args."""
+def split_select(options=None, cast=None):
+    """Get a command and one arg from the console.
+    Optionally cast the argument to a given type.
+    """
 
     prompt()
-    split_string = input().strip().lower().split('\w')
+    split_string = __minput().strip().lower().split()
+    #print("string = {}".format(split_string))
 
-    head = split_string[0]
+    head = split_string[0].strip()
     if len(split_string) > 1:
-        tail = split_string[1]
+        tail = split_string[1].strip()
+        if cast is not None:
+            try: tail = cast(tail)
+            except ValueError:
+                show("[malt] unable to cast {} to {}".format(tail, cast))
+                tail = None
     else:
-        tail = None   
+        tail = None
 
     if __matches(head, options):
         return (head, tail)
@@ -85,6 +99,7 @@ def __matches(string, options):
 
 
 # TODO make help message callable
+# TODO: document and clean up
 def __try_built_ins(string, options):
     if string in HELP_KEYWORDS:
         hint(options)
@@ -98,7 +113,7 @@ def __try_built_ins(string, options):
         return EXIT_CODE
     else:
         return None
-    
+
 
 #NOTE: does not accept normal built-in functions
 #NOTE: what happens if high is lower than low?
@@ -106,7 +121,7 @@ def numeral(low, high, cast=int):
     """Get a number between low and high (inclusive) from the user."""
 
     prompt()
-    number = input()
+    number = __minput()
     try:
         number = cast(number)
     except ValueError:
@@ -119,32 +134,38 @@ def numeral(low, high, cast=int):
         return None
 
 
+# Gen. TODO: integrate colors
+# NOTE: should we let programs use colors?
+def enable_colors():
+    pass
+
+
 def hint(options):
     built_in_options = ['help', 'clear', 'back', 'exit']
     show("[malt] available commands: ", nl='')
     show(options, inline=True)
-    show("\nbuilt-in functions ", nl='')
+    show("")
+    show("built-in functions ", nl='')
     show(built_in_options, inline=True)
     show(" are available at any time")
 
 
-# TODO: improve type detection and formatting
-# TODO: add support for indenting
 # TODO: prevent test from passing 80 chars
+# TODO: add color support
+# TODO: improve unknown item support
+# TODO: print a newline if no args are given
 def show(stuff, nl='\n', inline=False):
     """Print things to the console.
     Check the type of each object to determine the best printing format.
     """
-
     stuff_t = type(stuff)
-    #print(INDENT, end='')
 
     # Lists (with both item and sentence form)
     if stuff_t is list:
         # Empty List Marker
         length = len(stuff)
         if length < 1:
-            print("[malt] (empty list)")
+            __mprint("[malt] (empty list)")
 
         # Sentence Style
         if inline:
@@ -161,34 +182,54 @@ def show(stuff, nl='\n', inline=False):
             elif length >= 3:
                 final = ', '.join(qt_stuff[:-1]) + ", and " + qt_stuff[-1]
 
-            print(final, end='')
+            __mprint(final, nl='')
 
         # Item Style
         else:
             for thing in stuff:
-                print(LIST_TICK, end='')
-                print(thing)
+                __mprint(LIST_TICK, nl='')
+                __mprint(thing)
 
     # Dictionaries
     elif stuff_t is dict:
-        print("{")
+        __mprint("{")
         for (key, value) in stuff.items():
-            print("{}:".format(key), end=' ')
+            __mprint("{}:".format(key), nl=' ')
             show(value)
-        print("}")
-    
+        __mprint("}")
+
     # Basics & Exceptions
     else:
         #print("[malt] warning: show does not catch type({})".format(type(stuff)))
-        print(stuff, end=nl)
+        __mprint(stuff, nl=nl)
+
+
+def __mprint(string, nl='\n'):
+    """Print a string to the console with indentation only if the string is on
+    a new line. Wrapper around print() to provide indentation functionality.
+    """
+    global FRESH_LINE
+    if FRESH_LINE:
+        indentation = ' '*INDENT*INDENT_WIDTH
+        print(indentation, end='')
+    print(string, end=nl)
+    FRESH_LINE = ('\n' in nl)
+
+
+def __minput():
+    global FRESH_LINE
+    FRESH_LINE = True
+    return input()
 
 
 def indent():
-    pass
+    global INDENT
+    INDENT = min(INDENT+1, MAX_INDENT)
 
 
 def undent():
-    pass
+    global INDENT
+    INDENT = max(INDENT-1, 0)
 
 
 def confirm(silent=False):
@@ -196,12 +237,12 @@ def confirm(silent=False):
 
     if not silent:
         show("[malt] confirm? ", nl='')
-    return (input().strip().lower() in AFFIRM_KEYWORDS)
+    return (__minput().strip().lower() in AFFIRM_KEYWORDS)
 
 
 def pause():
     show(PAUSE, nl='')
-    input()
+    __minput()
 
 
 def prompt():
