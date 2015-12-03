@@ -17,7 +17,7 @@ PAUSE = "... "
 # Indentation Settings
 INDENT = 0
 MAX_INDENT = 4
-INDENT_WIDTH = 4
+INDENT_WIDTH = 2
 FRESH_LINE = True
 # TODO
 MAX_TERM_WIDTH = 80
@@ -186,17 +186,25 @@ def show(stuff, nl='\n', inline=False):
 
         # Item Style
         else:
+            indent()
             for thing in stuff:
+                __ensure_newline()
                 __mprint(LIST_TICK, nl='')
                 __mprint(thing)
+            undent()
 
     # Dictionaries
     elif stuff_t is dict:
         __mprint("{")
+        indent()
         for (key, value) in stuff.items():
-            __mprint("{}:".format(key), nl=' ')
+            __mprint("{}:".format(key), nl='')
             show(value)
+        undent()
         __mprint("}")
+
+    elif hasattr(stuff, '__dict__'):
+        show(stuff.__dict__)
 
     # Basics & Exceptions
     else:
@@ -204,13 +212,13 @@ def show(stuff, nl='\n', inline=False):
         __mprint(stuff, nl=nl)
 
 
-def __mprint(string, nl='\n'):
+def __mprint(string='', nl='\n'):
     """Print a string to the console with indentation only if the string is on
     a new line. Wrapper around print() to provide indentation functionality.
     """
     global FRESH_LINE
     if FRESH_LINE:
-        indentation = ' '*INDENT*INDENT_WIDTH
+        indentation = ' '*min(INDENT, MAX_INDENT)*INDENT_WIDTH
         print(indentation, end='')
     print(string, end=nl)
     FRESH_LINE = ('\n' in nl)
@@ -222,9 +230,14 @@ def __minput():
     return input()
 
 
+def __ensure_newline():
+    if not FRESH_LINE:
+        __mprint()
+
+
 def indent():
     global INDENT
-    INDENT = min(INDENT+1, MAX_INDENT)
+    INDENT = INDENT+1
 
 
 def undent():
