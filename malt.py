@@ -40,6 +40,7 @@ class AbandonShip(Exception): pass
 
 
 # TODO: allow multiple keywords per option?
+# XXX: no built ins will run when passing empty list
 def select(options=None):
     """Get one of a limited set of commands from the user.
     Matches are not case-sensitive, and returned strings are always lowercase.
@@ -169,20 +170,8 @@ def show(stuff, nl='\n', inline=False):
 
         # Sentence Style
         if inline:
-
-            # Surround each item with single quotes.
-            length = len(stuff)
-            qt_stuff = ["'{}'".format(thing) for thing in stuff]
-
-            # Use different formatting for different length lists.
-            if length == 1:
-                final = "only " + qt_stuff[0]
-            elif length == 2:
-                final = qt_stuff[0] + " and " + qt_stuff[1]
-            elif length >= 3:
-                final = ', '.join(qt_stuff[:-1]) + ", and " + qt_stuff[-1]
-
-            __mprint(final, nl='')
+            fancy_string = english(stuff)
+            __mprint(fancy_string, nl='')
 
         # Item Style
         else:
@@ -203,13 +192,31 @@ def show(stuff, nl='\n', inline=False):
         undent()
         __mprint("}")
 
+    # anything that has a dictionary
     elif hasattr(stuff, '__dict__'):
         show(stuff.__dict__)
 
     # Basics & Exceptions
     else:
-        #print("[malt] warning: show does not catch type({})".format(type(stuff)))
         __mprint(stuff, nl=nl)
+
+
+def english(stuff):
+    if type(stuff) is list:
+        length = len(stuff)
+        qt_stuff = ["'{}'".format(thing) for thing in stuff]
+
+        # Use different formatting for different length lists.
+        if length == 1:
+            final = "only " + qt_stuff[0]
+        elif length == 2:
+            final = qt_stuff[0] + " and " + qt_stuff[1]
+        elif length >= 3:
+            final = ', '.join(qt_stuff[:-1]) + ", and " + qt_stuff[-1]
+        return final
+    else:
+        __mprint("[malt] can not english-ify a non list")
+        return stuff
 
 
 def __mprint(string='', nl='\n'):
