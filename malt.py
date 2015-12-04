@@ -149,10 +149,10 @@ def enable_colors():
 
 def hint(options):
     built_in_options = ['help', 'clear', 'back', 'exit']
-    show("[malt] available commands: ", nl='')
+    show("[malt] available commands: ", nl=False)
     show(options, inline=True)
     show("")
-    show("built-in functions ", nl='')
+    show("built-in functions ", nl=False)
     show(built_in_options, inline=True)
     show(" are available at any time")
 
@@ -161,7 +161,7 @@ def hint(options):
 # TODO: add color support
 # TODO: improve unknown item support
 # TODO: print a newline if no args are given
-def show(stuff, nl='\n', inline=False):
+def show(stuff='', nl=True, inline=False):
     """Print things to the console.
     Check the type of each object to determine the best printing format.
     """
@@ -177,14 +177,14 @@ def show(stuff, nl='\n', inline=False):
         # Sentence Style
         if inline:
             fancy_string = english(stuff)
-            __mprint(fancy_string, nl='')
+            __mprint(fancy_string, nl=False)
 
         # Item Style
         else:
             indent()
             for thing in stuff:
                 __ensure_newline()
-                __mprint(LIST_TICK, nl='')
+                __mprint(LIST_TICK, nl=False)
                 __mprint(thing)
             undent()
 
@@ -193,7 +193,7 @@ def show(stuff, nl='\n', inline=False):
         __mprint("{")
         indent()
         for (key, value) in stuff.items():
-            __mprint("{}:".format(key), nl='')
+            __mprint("{}:".format(key), nl=False)
             show(value)
         undent()
         __mprint("}")
@@ -225,7 +225,7 @@ def english(stuff):
         return stuff
 
 
-def __mprint(string='', nl='\n'):
+def __mprint(string='', nl=True):
     """Print a string to the console with indentation only if the string is on
     a new line. Wrapper around print() to provide indentation functionality.
     """
@@ -233,8 +233,9 @@ def __mprint(string='', nl='\n'):
     if FRESH_LINE:
         indentation = ' '*min(INDENT, MAX_INDENT)*INDENT_WIDTH
         print(indentation, end='')
-    print(string, end=nl)
-    FRESH_LINE = ('\n' in nl)
+    end_char = '\n' if nl else ''
+    print(string, end=end_char)
+    FRESH_LINE = nl
 
 
 def __minput():
@@ -262,17 +263,17 @@ def confirm(silent=False):
     """Ask the user to confirm a yes or no decision using the prompt."""
 
     if not silent:
-        show("[malt] confirm? ", nl='')
+        show("[malt] confirm? ", nl=False)
     return (__minput().strip().lower() in AFFIRM_KEYWORDS)
 
 
 def pause():
-    show(PAUSE, nl='')
+    show(PAUSE, nl=False)
     __minput()
 
 
 def prompt():
-    show(PROMPT, nl='')
+    show(PROMPT, nl=False)
 
 
 def clear():
