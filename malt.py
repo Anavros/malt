@@ -6,9 +6,11 @@
 #import readline  # TODO: improve command history
 from subprocess import call
 
+SHOW_TITLE_BAR = False
+THROW_EXIT_EXCEPTIONS = False
+
 # Default Markings
 TITLE_BAR = " ===== Malt ===== "
-SHOW_TITLE_BAR = False
 PROMPT = "> "
 INDENT = ""
 LIST_TICK = "-"
@@ -36,7 +38,8 @@ CLEAR_KEYWORDS = ['clear', 'clean', 'cls']
 AFFIRM_KEYWORDS = [ "yes", "y", "ok", "sure", "hell yes", "do it", "yep"]
 
 
-class AbandonShip(Exception): pass
+class AbandonShip(Exception): 
+    pass
 
 
 # TODO: allow multiple keywords per option?
@@ -111,7 +114,10 @@ def __try_built_ins(string, options):
     elif string in BACK_KEYWORDS:
         return BACK_CODE
     elif string in EXIT_KEYWORDS:
-        return EXIT_CODE
+        if THROW_EXIT_EXCEPTIONS:
+            raise AbandonShip()
+        else:
+            return EXIT_CODE
     else:
         return None
 
