@@ -31,11 +31,12 @@ BUILT_IN_CODE = 'malt-built-in'
 BACK_CODE = 'malt-back'
 
 # Keyword Sets
-HELP_KEYWORDS = ['help', 'options', 'commands', 'what', 'ls', 'dir']
+HELP_KEYWORDS = ['help', 'options', 'commands']
 EXIT_KEYWORDS = ['exit', 'quit', 'abandon']
 BACK_KEYWORDS = ['back', 'return', 'done', 'finished']
 CLEAR_KEYWORDS = ['clear', 'clean', 'cls']
-AFFIRM_KEYWORDS = [ "yes", "y", "ok", "sure", "hell yes", "do it", "yep"]
+AFFIRM_KEYWORDS = ["yes", "y", "ok", "sure", "hell yes"]
+NEGATE_KEYWORDS = ['no', 'n']
 
 
 class AbandonShip(Exception): 
@@ -44,6 +45,7 @@ class AbandonShip(Exception):
 
 # TODO: allow multiple keywords per option?
 # XXX: no built ins will run when passing empty list
+# TODO: consider adding "unknown command" line here
 def select(options=None):
     """Get one of a limited set of commands from the user.
     Matches are not case-sensitive, and returned strings are always lowercase.
@@ -63,16 +65,16 @@ def select(options=None):
 
 
 # NOTE: restricted for now to just two arguments
+# NOTE: all inputs are set to lowercase; this is not wanted
 def split_select(options=None, cast=None):
     """Get a command and one arg from the console.
     Optionally cast the argument to a given type.
     """
 
     prompt()
-    split_string = __minput().strip().lower().split()
-    #print("string = {}".format(split_string))
+    split_string = __minput().strip().split()
 
-    head = split_string[0].strip()
+    head = split_string[0].strip().lower()
     if len(split_string) > 1:
         tail = split_string[1].strip()
         if cast is not None:
@@ -100,6 +102,13 @@ def __matches(string, options):
         return True
     else:
         return False
+
+# TODO: implement multiple option options
+#    for opt in options:
+#        if type(opt) is list:
+#            return string in [o.strip().lower() for o in opt]
+#        else:
+#            return string == opt.strip().lower()
 
 
 # TODO make help message callable
@@ -147,6 +156,7 @@ def enable_colors():
     pass
 
 
+# TODO: implement multiple option options
 def hint(options):
     built_in_options = ['help', 'clear', 'back', 'exit']
     show("[malt] available commands: ", nl=False)
@@ -172,7 +182,7 @@ def show(stuff='', nl=True, inline=False):
         # Empty List Marker
         length = len(stuff)
         if length < 1:
-            __mprint("[malt] (empty list)")
+            __mprint("(empty list)")
 
         # Sentence Style
         if inline:
@@ -261,10 +271,18 @@ def undent():
 
 def confirm(silent=False):
     """Ask the user to confirm a yes or no decision using the prompt."""
-
-    if not silent:
-        show("[malt] confirm? ", nl=False)
-    return (__minput().strip().lower() in AFFIRM_KEYWORDS)
+    while True:
+        if not silent:
+            show("[malt] confirm? ", nl=False)
+        key = __minput().strip().lower()
+        if key in AFFIRM_KEYWORDS:
+            return True
+        elif key in NEGATE_KEYWORDS:
+            return False
+        else:
+            show("[malt] unknown keyword")
+            show()
+            continue
 
 
 def pause():
