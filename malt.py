@@ -6,8 +6,13 @@
 #import readline  # TODO: improve command history
 from subprocess import call
 
+#TODO: separate show function/option to set level of importance
+# so you can set a debug flag to mask level x and below
+# or, you know, proper logging
+
 SHOW_TITLE_BAR = False
-THROW_EXIT_EXCEPTIONS = False
+THROW_EXIT_EXCEPTIONS = True
+BUILT_IN_FUNCTIONS = True
 
 # Default Markings
 TITLE_BAR = " ===== Malt ===== "
@@ -57,15 +62,18 @@ def select(options=None):
 
     if __matches(string, options):
         return string
-    else:
+    elif BUILT_IN_FUNCTIONS:
         # Only use built-in functions if the string has not already been matched.
         # This way the user can override built-ins at their discretion.
         return __try_built_ins(string, options)
+    else:
+        return None
 
 
 
 # NOTE: restricted for now to just two arguments
 # NOTE: all inputs are set to lowercase; this is not wanted
+# XXX: crashes on empty input
 def split_select(options=None, cast=None):
     """Get a command and one arg from the console.
     Optionally cast the argument to a given type.
@@ -114,6 +122,7 @@ def __matches(string, options):
 # TODO make help message callable
 # TODO: document and clean up
 def __try_built_ins(string, options):
+    """Try to match a given string against built-in convienience functions."""
     if string in HELP_KEYWORDS:
         hint(options)
         return BUILT_IN_CODE
@@ -128,6 +137,7 @@ def __try_built_ins(string, options):
         else:
             return EXIT_CODE
     else:
+        show("[malt] unknown keyword")
         return None
 
 
