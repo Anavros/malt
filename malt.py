@@ -4,6 +4,7 @@
 # boilerplate for interactive text loops in the console
 
 #import readline  # TODO: improve command history
+from time import sleep
 from subprocess import call
 
 #TODO: separate show function/option to set level of importance
@@ -177,57 +178,90 @@ def hint(options):
     show(" are available at any time")
 
 
-# TODO: prevent test from passing 80 chars
 # TODO: add color support
-# TODO: improve unknown item support
-# TODO: print a newline if no args are given
-def show(stuff='', nl=True, inline=False):
+# TODO: prevent output from passing 80 chars
+def show(stuff='', nl=True, slow=0):
     """Print things to the console.
     Check the type of each object to determine the best printing format.
     """
     stuff_t = type(stuff)
-
-    # Lists (with both item and sentence form)
-    if stuff_t is list:
-        # Empty List Marker
-        length = len(stuff)
-        if length < 1:
-            __mprint("(empty list)")
-
-        # Sentence Style
-        if inline:
-            fancy_string = english(stuff)
-            __mprint(fancy_string, nl=False)
-
-        # Item Style
-        else:
-            indent()
-            for thing in stuff:
-                __ensure_newline()
-                __mprint(LIST_TICK, nl=False)
-                __mprint(thing)
-            undent()
-
-    # Dictionaries
+    if stuff_t is list or stuff_t is set:
+        __show_list(stuff, nl, slow)
     elif stuff_t is dict:
-        __mprint("{")
-        indent()
-        for (key, value) in stuff.items():
-            __mprint("{}:".format(key), nl=False)
-            show(value)
-        undent()
-        __mprint("}")
-
-    # anything that has a dictionary
+        __show_dict(stuff, nl, slow)
     elif hasattr(stuff, '__dict__'):
         show(stuff.__dict__)
-
-    # Basics & Exceptions
     else:
-        __mprint(stuff, nl=nl)
+        __mprint(stuff, nl, slow)
+
+
+def __show_list(stuff, nl, slow):
+    """Display a list as a series of newline-separated ticks."""
+    length = len(stuff)
+    if length < 1:
+        __mprint("(empty list)")
+
+    # Item Style
+    else:
+        indent()
+        for thing in stuff:
+            __ensure_newline()
+            __mprint(LIST_TICK, nl=False)
+            __mprint(thing)
+            sleep(slow)
+        undent()
+    
+
+def __show_dict(stuff, nl, slow, inline):
+    """Display dictionaries as key: value pairs where every value is fed back
+    through show() recursively to recieve the right formatting.
+    """
+    __mprint("{")
+    indent()
+    for (key, value) in stuff.items():
+        __mprint("{}: ".format(key), nl=False)
+        show(value)
+        sleep(slow)
+    undent()
+    __mprint("}")
+
+
+def __mprint(string='', nl=True, slow=0):
+    """Print output to the console with extra functionality.
+    Provides support for indentation and slowed printing.
+    """
+    global FRESH_LINE
+    if FRESH_LINE:
+        indentation = ' '*min(INDENT, MAX_INDENT)*INDENT_WIDTH
+        print(indentation, end='')
+    end_char = '\n' if nl else ''
+
+    if slow > 0:
+        for char in string:
+            print(char)
+            sleep(slow)
+        print('', end=end_char, flush=True)
+    else:
+        print(string, end=end_char)
+    FRESH_LINE = nl
+
+
+def __minput():
+    """Wrapper for input() to help provide indentation support."""
+    global FRESH_LINE
+    FRESH_LINE = True
+    return input()
+
+
+def __ensure_newline():
+    if not FRESH_LINE:
+        __mprint()
 
 
 def english(stuff):
+    """Compile a list into a string where every element is wrapped in single
+    quotes and written out in sentence form.
+    """
     if type(stuff) is list:
         length = len(stuff)
         qt_stuff = ["'{}'".format(thing) for thing in stuff]
@@ -243,30 +277,6 @@ def english(stuff):
     else:
         __mprint("[malt] can not english-ify a non list")
         return stuff
-
-
-def __mprint(string='', nl=True):
-    """Print a string to the console with indentation only if the string is on
-    a new line. Wrapper around print() to provide indentation functionality.
-    """
-    global FRESH_LINE
-    if FRESH_LINE:
-        indentation = ' '*min(INDENT, MAX_INDENT)*INDENT_WIDTH
-        print(indentation, end='')
-    end_char = '\n' if nl else ''
-    print(string, end=end_char)
-    FRESH_LINE = nl
-
-
-def __minput():
-    global FRESH_LINE
-    FRESH_LINE = True
-    return input()
-
-
-def __ensure_newline():
-    if not FRESH_LINE:
-        __mprint()
 
 
 def indent():
