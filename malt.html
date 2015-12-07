@@ -1,0 +1,201 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module malt</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>malt</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/john/projects/malt/malt.py">/home/john/projects/malt/malt.py</a></font></td></tr></table>
+    <p><tt>a&nbsp;collection&nbsp;of&nbsp;tools&nbsp;that&nbsp;make&nbsp;developing&nbsp;interactive&nbsp;text&nbsp;loops&nbsp;easier<br>
+&nbsp;<br>
+...<br>
+<a href="#-select">select</a>()&nbsp;is&nbsp;the&nbsp;most&nbsp;important&nbsp;function&nbsp;in&nbsp;the&nbsp;library.&nbsp;It&nbsp;allows&nbsp;the&nbsp;client<br>
+program&nbsp;to&nbsp;specify&nbsp;a&nbsp;list&nbsp;of&nbsp;keyword&nbsp;options&nbsp;for&nbsp;the&nbsp;user&nbsp;to&nbsp;enter.&nbsp;If&nbsp;the&nbsp;user<br>
+enters&nbsp;bad&nbsp;input,&nbsp;it&nbsp;is&nbsp;not&nbsp;returned.&nbsp;<a href="#-select">select</a>()&nbsp;also&nbsp;implements&nbsp;a&nbsp;few&nbsp;common<br>
+convienience&nbsp;functions,&nbsp;like&nbsp;printing&nbsp;help&nbsp;messages&nbsp;and&nbsp;clearing&nbsp;the&nbsp;screen.</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="builtins.html#Exception">builtins.Exception</a>(<a href="builtins.html#BaseException">builtins.BaseException</a>)
+</font></dt><dd>
+<dl>
+<dt><font face="helvetica, arial"><a href="malt.html#AbandonShip">AbandonShip</a>
+</font></dt></dl>
+</dd>
+</dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="AbandonShip">class <strong>AbandonShip</strong></a>(<a href="builtins.html#Exception">builtins.Exception</a>)</font></td></tr>
+    
+<tr bgcolor="#ffc8d8"><td rowspan=2><tt>&nbsp;&nbsp;&nbsp;</tt></td>
+<td colspan=2><tt>Throw&nbsp;when&nbsp;the&nbsp;user&nbsp;enters&nbsp;an&nbsp;exit&nbsp;command.<br>
+&nbsp;<br>
+When&nbsp;the&nbsp;user&nbsp;tries&nbsp;to&nbsp;exit&nbsp;the&nbsp;program,&nbsp;this&nbsp;exception&nbsp;will&nbsp;be&nbsp;raised&nbsp;and<br>
+propagate&nbsp;upwards&nbsp;to&nbsp;the&nbsp;main&nbsp;entry&nbsp;point,&nbsp;where&nbsp;it&nbsp;can&nbsp;be&nbsp;caught&nbsp;and&nbsp;the<br>
+program&nbsp;can&nbsp;be&nbsp;terminated.&nbsp;Including&nbsp;this&nbsp;feature&nbsp;as&nbsp;an&nbsp;exception&nbsp;makes&nbsp;it<br>
+easier&nbsp;to&nbsp;exit&nbsp;the&nbsp;program&nbsp;at&nbsp;any&nbsp;time;&nbsp;compared&nbsp;to&nbsp;returning&nbsp;from&nbsp;each<br>
+nested&nbsp;loop&nbsp;one&nbsp;by&nbsp;one;&nbsp;one&nbsp;exit&nbsp;command&nbsp;at&nbsp;a&nbsp;time.<br>
+&nbsp;<br>
+Does&nbsp;not&nbsp;need&nbsp;any&nbsp;special&nbsp;values&nbsp;or&nbsp;input.<br>&nbsp;</tt></td></tr>
+<tr><td>&nbsp;</td>
+<td width="100%"><dl><dt>Method resolution order:</dt>
+<dd><a href="malt.html#AbandonShip">AbandonShip</a></dd>
+<dd><a href="builtins.html#Exception">builtins.Exception</a></dd>
+<dd><a href="builtins.html#BaseException">builtins.BaseException</a></dd>
+<dd><a href="builtins.html#object">builtins.object</a></dd>
+</dl>
+<hr>
+Data descriptors defined here:<br>
+<dl><dt><strong>__weakref__</strong></dt>
+<dd><tt>list&nbsp;of&nbsp;weak&nbsp;references&nbsp;to&nbsp;the&nbsp;object&nbsp;(if&nbsp;defined)</tt></dd>
+</dl>
+<hr>
+Methods inherited from <a href="builtins.html#Exception">builtins.Exception</a>:<br>
+<dl><dt><a name="AbandonShip-__init__"><strong>__init__</strong></a>(self, /, *args, **kwargs)</dt><dd><tt>Initialize&nbsp;self.&nbsp;&nbsp;See&nbsp;help(type(self))&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<dl><dt><a name="AbandonShip-__new__"><strong>__new__</strong></a>(*args, **kwargs)<font color="#909090"><font face="helvetica, arial"> from <a href="builtins.html#type">builtins.type</a></font></font></dt><dd><tt>Create&nbsp;and&nbsp;return&nbsp;a&nbsp;new&nbsp;object.&nbsp;&nbsp;See&nbsp;help(type)&nbsp;for&nbsp;accurate&nbsp;signature.</tt></dd></dl>
+
+<hr>
+Methods inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><a name="AbandonShip-__delattr__"><strong>__delattr__</strong></a>(self, name, /)</dt><dd><tt>Implement&nbsp;delattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="AbandonShip-__getattribute__"><strong>__getattribute__</strong></a>(self, name, /)</dt><dd><tt>Return&nbsp;getattr(self,&nbsp;name).</tt></dd></dl>
+
+<dl><dt><a name="AbandonShip-__reduce__"><strong>__reduce__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="AbandonShip-__repr__"><strong>__repr__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;repr(self).</tt></dd></dl>
+
+<dl><dt><a name="AbandonShip-__setattr__"><strong>__setattr__</strong></a>(self, name, value, /)</dt><dd><tt>Implement&nbsp;setattr(self,&nbsp;name,&nbsp;value).</tt></dd></dl>
+
+<dl><dt><a name="AbandonShip-__setstate__"><strong>__setstate__</strong></a>(...)</dt></dl>
+
+<dl><dt><a name="AbandonShip-__str__"><strong>__str__</strong></a>(self, /)</dt><dd><tt>Return&nbsp;str(self).</tt></dd></dl>
+
+<dl><dt><a name="AbandonShip-with_traceback"><strong>with_traceback</strong></a>(...)</dt><dd><tt><a href="builtins.html#Exception">Exception</a>.<a href="#AbandonShip-with_traceback">with_traceback</a>(tb)&nbsp;--<br>
+set&nbsp;self.<strong>__traceback__</strong>&nbsp;to&nbsp;tb&nbsp;and&nbsp;return&nbsp;self.</tt></dd></dl>
+
+<hr>
+Data descriptors inherited from <a href="builtins.html#BaseException">builtins.BaseException</a>:<br>
+<dl><dt><strong>__cause__</strong></dt>
+<dd><tt>exception&nbsp;cause</tt></dd>
+</dl>
+<dl><dt><strong>__context__</strong></dt>
+<dd><tt>exception&nbsp;context</tt></dd>
+</dl>
+<dl><dt><strong>__dict__</strong></dt>
+</dl>
+<dl><dt><strong>__suppress_context__</strong></dt>
+</dl>
+<dl><dt><strong>__traceback__</strong></dt>
+</dl>
+<dl><dt><strong>args</strong></dt>
+</dl>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#eeaa77">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Functions</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#eeaa77"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl><dt><a name="-clear"><strong>clear</strong></a>()</dt><dd><tt>Clear&nbsp;the&nbsp;screen.<br>
+&nbsp;<br>
+Multiplatform&nbsp;support&nbsp;not&nbsp;yet&nbsp;implemented.&nbsp;If&nbsp;SHOW_TITLE_BAR&nbsp;is&nbsp;enabled,<br>
+print&nbsp;the&nbsp;title&nbsp;bar&nbsp;defined&nbsp;in&nbsp;TITLE_BAR&nbsp;as&nbsp;the&nbsp;first&nbsp;thing&nbsp;on&nbsp;the&nbsp;fresh<br>
+screen.</tt></dd></dl>
+ <dl><dt><a name="-confirm"><strong>confirm</strong></a>(silent=False)</dt><dd><tt>Receive&nbsp;a&nbsp;yes&nbsp;or&nbsp;no&nbsp;answer&nbsp;from&nbsp;the&nbsp;user.<br>
+&nbsp;<br>
+Loops&nbsp;until&nbsp;a&nbsp;yes&nbsp;or&nbsp;no&nbsp;has&nbsp;been&nbsp;given.&nbsp;Does&nbsp;not&nbsp;accept&nbsp;unknown&nbsp;input&nbsp;to<br>
+prevent&nbsp;accidental&nbsp;typing&nbsp;errors&nbsp;from&nbsp;causing&nbsp;problems.&nbsp;If&nbsp;silent,<br>
+<a href="#-confirm">confirm</a>()&nbsp;does&nbsp;not&nbsp;print&nbsp;its&nbsp;prompt.</tt></dd></dl>
+ <dl><dt><a name="-english"><strong>english</strong></a>(stuff)</dt><dd><tt>Compile&nbsp;a&nbsp;list&nbsp;into&nbsp;a&nbsp;string&nbsp;where&nbsp;every&nbsp;element&nbsp;is&nbsp;wrapped&nbsp;in&nbsp;single<br>
+quotes&nbsp;and&nbsp;written&nbsp;out&nbsp;in&nbsp;sentence&nbsp;form.</tt></dd></dl>
+ <dl><dt><a name="-hint"><strong>hint</strong></a>(options=None)</dt><dd><tt>Display&nbsp;a&nbsp;help&nbsp;message,&nbsp;optionally&nbsp;with&nbsp;a&nbsp;list&nbsp;of&nbsp;allowed&nbsp;commands.</tt></dd></dl>
+ <dl><dt><a name="-indent"><strong>indent</strong></a>()</dt><dd><tt>Increase&nbsp;the&nbsp;global&nbsp;indentation&nbsp;value&nbsp;by&nbsp;one.<br>
+&nbsp;<br>
+This&nbsp;value&nbsp;is&nbsp;independent&nbsp;of&nbsp;the&nbsp;actual&nbsp;indentation&nbsp;printed&nbsp;to&nbsp;the&nbsp;screen;<br>
+__mprint()&nbsp;handles&nbsp;the&nbsp;number&nbsp;of&nbsp;spaces&nbsp;that&nbsp;are&nbsp;actually&nbsp;printed.&nbsp;Callers<br>
+to&nbsp;<a href="#-indent">indent</a>()&nbsp;do&nbsp;not&nbsp;need&nbsp;to&nbsp;worry&nbsp;about&nbsp;spacing&nbsp;or&nbsp;going&nbsp;over&nbsp;maximum&nbsp;line<br>
+width.&nbsp;Calling&nbsp;malt.<a href="#-indent">indent</a>()&nbsp;is&nbsp;all&nbsp;that&nbsp;is&nbsp;needed.</tt></dd></dl>
+ <dl><dt><a name="-numeral"><strong>numeral</strong></a>(low, high, cast=<class 'int'>)</dt><dd><tt>Get&nbsp;a&nbsp;number&nbsp;between&nbsp;low&nbsp;and&nbsp;high&nbsp;(inclusive)&nbsp;from&nbsp;the&nbsp;user.</tt></dd></dl>
+ <dl><dt><a name="-pause"><strong>pause</strong></a>()</dt><dd><tt>Pause&nbsp;for&nbsp;dramatic&nbsp;effect.<br>
+&nbsp;<br>
+Displays&nbsp;a&nbsp;small&nbsp;string&nbsp;defined&nbsp;in&nbsp;PAUSE&nbsp;and&nbsp;waits&nbsp;until&nbsp;the&nbsp;user&nbsp;hits<br>
+enter.&nbsp;Input&nbsp;is&nbsp;not&nbsp;used.&nbsp;Built-in&nbsp;functions&nbsp;are&nbsp;also&nbsp;not&nbsp;available.</tt></dd></dl>
+ <dl><dt><a name="-prompt"><strong>prompt</strong></a>()</dt><dd><tt>Display&nbsp;PROMPT.</tt></dd></dl>
+ <dl><dt><a name="-select"><strong>select</strong></a>(options=None)</dt><dd><tt>Take&nbsp;user&nbsp;input&nbsp;and&nbsp;return&nbsp;it&nbsp;only&nbsp;if&nbsp;it&nbsp;matches&nbsp;a&nbsp;given&nbsp;set&nbsp;of&nbsp;options.<br>
+&nbsp;<br>
+If&nbsp;input&nbsp;is&nbsp;not&nbsp;in&nbsp;options,&nbsp;return&nbsp;None&nbsp;instead.&nbsp;This&nbsp;makes&nbsp;the&nbsp;return<br>
+value&nbsp;much&nbsp;easier&nbsp;to&nbsp;check&nbsp;in&nbsp;the&nbsp;client&nbsp;program.&nbsp;If&nbsp;BUILT_IN_FUNCTIONS&nbsp;is<br>
+enabled,&nbsp;run&nbsp;the&nbsp;input&nbsp;past&nbsp;internal&nbsp;convienience&nbsp;functions&nbsp;after&nbsp;checking<br>
+against&nbsp;the&nbsp;main&nbsp;options.&nbsp;If&nbsp;it&nbsp;matches&nbsp;an&nbsp;internal&nbsp;function,&nbsp;run&nbsp;that<br>
+instead.<br>
+&nbsp;<br>
+If&nbsp;the&nbsp;client&nbsp;passes&nbsp;in&nbsp;an&nbsp;option&nbsp;that&nbsp;is&nbsp;identical&nbsp;to&nbsp;a&nbsp;built-in&nbsp;keyword,<br>
+the&nbsp;associated&nbsp;built-in&nbsp;function&nbsp;will&nbsp;NOT&nbsp;run,&nbsp;and&nbsp;the&nbsp;keyword&nbsp;will&nbsp;be<br>
+returned&nbsp;as&nbsp;normal.&nbsp;This&nbsp;allows&nbsp;the&nbsp;client&nbsp;to&nbsp;overwrite&nbsp;built-ins&nbsp;at&nbsp;will.<br>
+&nbsp;<br>
+Matches&nbsp;are&nbsp;not&nbsp;case-sensitive,&nbsp;and&nbsp;returned&nbsp;strings&nbsp;are&nbsp;always&nbsp;lowercase.<br>
+&nbsp;<br>
+Optional&nbsp;Arguments:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;-&gt;&nbsp;options&nbsp;(default=None):&nbsp;if&nbsp;given&nbsp;a&nbsp;list&nbsp;of&nbsp;strings,&nbsp;select&nbsp;will<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;only&nbsp;return&nbsp;an&nbsp;input&nbsp;if&nbsp;it&nbsp;matches&nbsp;one&nbsp;of&nbsp;those&nbsp;strings.&nbsp;If&nbsp;absent,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;None,&nbsp;or&nbsp;empty,&nbsp;select&nbsp;will&nbsp;return&nbsp;any&nbsp;input.</tt></dd></dl>
+ <dl><dt><a name="-show"><strong>show</strong></a>(stuff='', nl=True, slow=0)</dt><dd><tt>Print&nbsp;stuff&nbsp;on&nbsp;the&nbsp;console&nbsp;with&nbsp;smart&nbsp;type&nbsp;formatting.<br>
+&nbsp;<br>
+Mainly&nbsp;a&nbsp;wrapper&nbsp;around&nbsp;print()&nbsp;to&nbsp;provide&nbsp;extra&nbsp;features&nbsp;that&nbsp;are&nbsp;helpful<br>
+when&nbsp;developing&nbsp;a&nbsp;simple&nbsp;console&nbsp;program.&nbsp;Dispatches&nbsp;lists&nbsp;and&nbsp;dicts&nbsp;into<br>
+hidden&nbsp;helper&nbsp;functions&nbsp;to&nbsp;keep&nbsp;the&nbsp;main&nbsp;declaration&nbsp;short&nbsp;and&nbsp;sweet.<br>
+&nbsp;<br>
+Optional&nbsp;Arguments:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;-&gt;&nbsp;stuff&nbsp;(default=''):&nbsp;the&nbsp;data&nbsp;to&nbsp;be&nbsp;printed&nbsp;(type&nbsp;will&nbsp;be&nbsp;detected)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;-&gt;&nbsp;nl&nbsp;(default=True):&nbsp;to&nbsp;print&nbsp;or&nbsp;not&nbsp;to&nbsp;print&nbsp;a&nbsp;newline<br>
+&nbsp;&nbsp;&nbsp;&nbsp;-&gt;&nbsp;slow&nbsp;(default=0):&nbsp;the&nbsp;delay&nbsp;in&nbsp;seconds&nbsp;between&nbsp;printing&nbsp;chars</tt></dd></dl>
+ <dl><dt><a name="-sleep"><strong>sleep</strong></a>(...)</dt><dd><tt><a href="#-sleep">sleep</a>(seconds)<br>
+&nbsp;<br>
+Delay&nbsp;execution&nbsp;for&nbsp;a&nbsp;given&nbsp;number&nbsp;of&nbsp;seconds.&nbsp;&nbsp;The&nbsp;argument&nbsp;may&nbsp;be<br>
+a&nbsp;floating&nbsp;point&nbsp;number&nbsp;for&nbsp;subsecond&nbsp;precision.</tt></dd></dl>
+ <dl><dt><a name="-split_select"><strong>split_select</strong></a>(options=None, cast=None)</dt><dd><tt>Get&nbsp;a&nbsp;command&nbsp;and&nbsp;one&nbsp;arg&nbsp;from&nbsp;the&nbsp;console.<br>
+Optionally&nbsp;cast&nbsp;the&nbsp;argument&nbsp;to&nbsp;a&nbsp;given&nbsp;type.</tt></dd></dl>
+ <dl><dt><a name="-undent"><strong>undent</strong></a>()</dt><dd><tt>Decrease&nbsp;the&nbsp;global&nbsp;indentation&nbsp;value&nbsp;by&nbsp;one.<br>
+&nbsp;<br>
+Like&nbsp;<a href="#-indent">indent</a>(),&nbsp;the&nbsp;value&nbsp;is&nbsp;independent&nbsp;of&nbsp;actual&nbsp;characters&nbsp;printed&nbsp;to<br>
+the&nbsp;screen.&nbsp;Guards&nbsp;against&nbsp;lower-than-zero&nbsp;indentation.</tt></dd></dl>
+</td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>AFFIRM_KEYWORDS</strong> = ['yes', 'y', 'ok', 'sure', 'hell yes']<br>
+<strong>BACK_CODE</strong> = 'malt-back'<br>
+<strong>BACK_KEYWORDS</strong> = ['back', 'return', 'done', 'finished']<br>
+<strong>BUILT_IN_CODE</strong> = 'malt-built-in'<br>
+<strong>BUILT_IN_FUNCTIONS</strong> = True<br>
+<strong>CLEAR_KEYWORDS</strong> = ['clear', 'clean', 'cls']<br>
+<strong>EXIT_CODE</strong> = 'malt-exit'<br>
+<strong>EXIT_KEYWORDS</strong> = ['exit', 'quit', 'abandon']<br>
+<strong>FRESH_LINE</strong> = True<br>
+<strong>HELP_KEYWORDS</strong> = ['help', 'options', 'commands']<br>
+<strong>INDENT</strong> = 0<br>
+<strong>INDENT_WIDTH</strong> = 2<br>
+<strong>LIST_TICK</strong> = '-'<br>
+<strong>MAX_INDENT</strong> = 4<br>
+<strong>MAX_TERM_WIDTH</strong> = 80<br>
+<strong>NEGATE_KEYWORDS</strong> = ['no', 'n']<br>
+<strong>PAUSE</strong> = '... '<br>
+<strong>PROMPT</strong> = '&gt; '<br>
+<strong>SHOW_TITLE_BAR</strong> = False<br>
+<strong>THROW_EXIT_EXCEPTIONS</strong> = True<br>
+<strong>TITLE_BAR</strong> = ' ===== Malt ===== '</td></tr></table>
+</body></html>
