@@ -12,6 +12,7 @@ convienience functions, like printing help messages and clearing the screen.
 # import readline  # TODO: improve command history
 from time import sleep
 from subprocess import call
+from collections import OrderedDict
 
 # TODO: separate show function/option to set level of importance
 # so you can set a debug flag to mask level x and below
@@ -94,6 +95,48 @@ def select(options):
         return None
 
 
+def _match_complex_options(args, prototype):
+    """boop"""
+    # First assert that the argument list is not empty.
+    if len(args) < 1:
+        return { 'action': None }
+
+    # If we have a single command, check it against the normal match function.
+    elif len(args) == 1:
+        act = args[0].strip()
+        if _match(act, list(prototype.keys())):
+            return { 'action': act }
+        elif BUILT_IN_FUNCTIONS:
+            return { 'action': _match_builtins(act, list(prototype.keys())) }
+        else:
+            return { 'action': None }
+
+    # Otherwise enter the complex solution.
+    else:
+        action = args.pop(0)
+        if action not in prototype.keys():
+            show('problem')
+            return { 'action': None }
+
+        response = { 'action': action }
+        # loop through all defined actions until we find the right one
+        for cmd, margs in prototype.items():
+            if cmd != action:
+                continue
+            if len(args) != len(list(margs.keys())):
+                break
+            for name, cast in margs.items():
+                try:
+                    response[name] = cast(args.pop())
+                except ValueError:
+                    show('casting error')
+                    # should return nothing if one fails
+                else:
+                    show("cast {} to {}".format(name, str(cast)))
+
+        return response
+
+
 def freeform(silent=False):
     """Get an unmodified string from the user.
 
@@ -105,47 +148,26 @@ def freeform(silent=False):
     return _minput().strip()
 
 
-# TODO: allow multiple keywords per option?
-# XXX: no built ins will run when passing empty list
-
-# NOTE: AdD Butts McGee 100 60.0
-# NOTE: should return
-# NOTE: add [Butts, McGee, int(100), float(60.0)]
-# but how to document, show help, etc?
-# should we have an advanced version?
-# pass in a list of prototypes
-# but that would have to be the same for each func in a tree
-# [str, str, int, float]
 def ultra_select(options):
+    if not options or type(options) is not list:
+        raise ValueError(
+            "select requires a list of options (use freeform for raw text)")
+    action_key = 'action'
     show(PROMPT, nl=False)
     string = _minput().strip().lower()
+    words = [w.strip() for w in string.split()]
+    # every argument has to be found and cast to the right type
+    argdict = _ultra_parse(options)
+    response = _match_complex_options(words, _ultra_parse(options))
+    return response
 
-    # ['add name age:int nums:int...']
-    for x in options:
-        x = x.split()
-        action = x[0]  # what if someone types add:str?
-
-
-
-
-    if _match(string, options):
-        return string
-    elif BUILT_IN_FUNCTIONS:
-        # Only use built-in funcs if the string has not already been matched.
-        # This way the user can override built-ins at their discretion.
-        return _match_builtins(string, options)
-    else:
-        return None
 
 
 # ex: ['add name val:int', 'remove name']
 # TODO: clean up
 def _ultra_parse(arguments):
-    # may not be necessary if select guards this
-    if not arguments or type(arguments) is not list:
-        raise ValueError()
-
-    struct = {}
+    struct = OrderedDict()
+    # for option?
     for arg in arguments:
         # ex: 'add name val:int'
         argparts = arg.strip().lower().split()
@@ -167,8 +189,27 @@ def _ultra_parse(arguments):
 
             struct[action][part_name] = part_type
 
-    show(struct)
-    return struct
+    #show(struct)
+    return _replace_casts(struct)
+
+
+def _replace_casts(argdict):
+    for (action, args) in argdict.items():
+        argdict[action] = { n:_string_to_type(s) for n, s in args.items() }
+    return argdict
+
+
+def _string_to_type(string):
+    if string == 'str':
+        return str
+    elif string == 'int':
+        return int
+    elif string == 'float':
+        return float
+    elif string == 'bool':
+        return bool
+    else:
+        raise ValueError("[malt] unknown cast ({})".format(string))
 
 
 # NOTE: restricted for now to just two arguments
@@ -226,10 +267,8 @@ def _match_builtins(string, options):
 
     if string in HELP_KEYWORDS:
         hint(options)
-        return BUILT_IN_CODE
     elif string in CLEAR_KEYWORDS:
         clear()
-        return BUILT_IN_CODE
     elif string in BACK_KEYWORDS:
         return BACK_CODE
     elif string in EXIT_KEYWORDS:
@@ -239,7 +278,6 @@ def _match_builtins(string, options):
             return EXIT_CODE
     else:
         show("[malt] unknown keyword")
-        return None
 
 
 # NOTE: does not accept normal built-in functions
@@ -277,6 +315,7 @@ def hint(options=None):
 # TODO: prevent output from passing 80 chars
 # TODO: allow multiple args like print()
 # TODO: add special display for empty string
+# NOTE: messes up on OrderedDict
 def show(stuff='', nl=True, slow=0):
     """Print stuff on the console with smart type formatting.
 

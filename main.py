@@ -28,9 +28,22 @@ def main():
 
 
 def register():
-    register_options = ['add name:str age:int', 'remove name:str'] 
-    malt._ultra_parse(register_options)
-
+    users = {}
+    register_options = ['add name:str age:int', 'remove name:str', 'check'] 
+    #malt._ultra_parse(register_options)
+    while True:
+        response = malt.ultra_select(register_options)
+        action = response['action']
+        if action == malt.BACK_CODE:
+            return
+        elif action == 'add':
+            malt.show(response)
+        elif action == 'remove':
+            malt.show(response)
+        elif action == 'check':
+            argdict = malt._ultra_parse(register_options)
+            malt.show(dict(argdict))
+            malt.show(malt._replace_casts(dict(argdict)))
 
 def display():
     pass
