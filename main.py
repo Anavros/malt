@@ -1,8 +1,11 @@
+#!/usr/bin/env python3
 
 import malt
 
 
 def main():
+    #malt.show("Enter your name.")
+    #name = malt.freeform()
     options = ["add", "subtract", "halve", "double"]
     while True:
         action = malt.select(options) 

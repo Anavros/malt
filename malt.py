@@ -9,18 +9,18 @@ enters bad input, it is not returned. select() also implements a few common
 convienience functions, like printing help messages and clearing the screen.
 """
 
-#import readline  # TODO: improve command history
+# import readline  # TODO: improve command history
 from time import sleep
 from subprocess import call
 
-#TODO: separate show function/option to set level of importance
+# TODO: separate show function/option to set level of importance
 # so you can set a debug flag to mask level x and below
 # or, you know, proper logging
 
 # Global Options
 SHOW_TITLE_BAR = False          # NOTE
 THROW_EXIT_EXCEPTIONS = True    # raise malt.AbandonShip() on exit keyword
-BUILT_IN_FUNCTIONS = True       # use built-in functions if input does not match
+BUILT_IN_FUNCTIONS = True       # use built-in funcs if input does not match
 
 # Default Markings
 # These can be set by the client program if desired.
@@ -44,7 +44,7 @@ MAX_TERM_WIDTH = 80  # TODO
 # the exit function will raise AbandonShip() instead of returning EXIT_CODE.
 # All built-in functionality is disabled if BUILT_IN_FUNCTIONS is False.
 EXIT_CODE = 'malt-exit'
-BUILT_IN_CODE = 'malt-built-in'
+BUILT_IN_CODE = 'malt-built-in'     # XXX might not need
 BACK_CODE = 'malt-back'
 
 # Keyword Sets
@@ -57,6 +57,7 @@ NEGATE_KEYWORDS = ['no', 'n']
 
 
 # TODO: could be renamed to be clearer
+# NOTE: should we change to built-in exception? like runtimerror?
 class AbandonShip(Exception):
     """Throw when the user enters an exit command.
 
@@ -71,7 +72,8 @@ class AbandonShip(Exception):
 
 
 # XXX: no built ins will run when passing empty list
-def select(options=None):
+# TODO: split into select() and freeform()
+def select(options):
     """Take user input and return it only if it matches a given set of options.
 
     If input is not in options, return None instead. This makes the return
@@ -86,24 +88,37 @@ def select(options=None):
 
     Matches are not case-sensitive, and returned strings are always lowercase.
 
-    Optional Arguments:
-        -> options (default=None): if given a list of strings, select will
-            only return an input if it matches one of those strings. If absent,
-            None, or empty, select will return any input.
+    Required Arguments:
+        -> options: only return input if included in this list of strings
     """
 
-    prompt()
-    result = None
+    if not options or type(options) is not list:
+        raise ValueError(
+            "select requires a list of options (use freeform for raw text)")
+
+    show(PROMPT, nl=False)
     string = _minput().strip().lower()
 
-    if _matches(string, options):
+    if _match(string, options):
         return string
     elif BUILT_IN_FUNCTIONS:
-        # Only use built-in functions if the string has not already been matched.
+        # Only use built-in funcs if the string has not already been matched.
         # This way the user can override built-ins at their discretion.
         return _match_builtins(string, options)
     else:
         return None
+
+
+def freeform(silent=False):
+    """Get an unmodified string from the user.
+
+    Input is taken through _minput() so indentation is preserved, and stripped
+    of extra whitespace, but otherwise raw.
+    """
+    if not silent:
+        _mprint('[malt] freeform input: ', nl=False)
+    return _minput().strip()
+
 
 # TODO: allow multiple keywords per option?
 # XXX: no built ins will run when passing empty list
@@ -117,14 +132,13 @@ def select(options=None):
 # but that would have to be the same for each func in a tree
 # [str, str, int, float]
 def ultra_select(options=None):
-    prompt()
-    result = None
+    show(PROMPT, nl=False)
     string = _minput().strip().lower()
 
-    if _matches(string, options):
+    if _match(string, options):
         return string
     elif BUILT_IN_FUNCTIONS:
-        # Only use built-in functions if the string has not already been matched.
+        # Only use built-in funcs if the string has not already been matched.
         # This way the user can override built-ins at their discretion.
         return _match_builtins(string, options)
     else:
@@ -141,37 +155,30 @@ def split_select(options=None, cast=None):
     """
 
     # TODO: factor out interfacing code so we can test the logic
-    prompt()
+    show(PROMPT, nl=False)
     split_string = _minput().strip().split()
 
     head = split_string[0].strip().lower()
     if len(split_string) > 1:
         tail = split_string[1].strip()
         if cast is not None:
-            try: tail = cast(tail)
+            try:
+                tail = cast(tail)
             except ValueError:
                 show("[malt] unable to cast {} to {}".format(tail, cast))
                 tail = None
     else:
         tail = None
 
-    if _matches(head, options):
+    if _match(head, options):
         return (head, tail)
     else:
         return (_match_builtins(head, options), tail)
 
 
-def _matches(string, options):
-    """Evaluate if string is in options regardless of case."""
-
-    # Only try to match input if 'options' is a valid list.
-    if (type(options) is not list) or (len(options) < 1):
-        return True
-    # Strings match regardless of case or whitespace.
-    elif string.strip().lower() in [o.strip().lower() for o in options]:
-        return True
-    else:
-        return False
+def _match(string, options):
+    """Evaluate if a string is in a list regardless of case or whitespace."""
+    return string.strip().lower() in [o.strip().lower() for o in options]:
 
 # TODO: implement multiple option options
 #    for opt in options:
@@ -209,13 +216,13 @@ def _match_builtins(string, options):
         return None
 
 
-#NOTE: does not accept normal built-in functions
-#NOTE: what happens if high is lower than low?
+# NOTE: does not accept normal built-in functions
+# NOTE: what happens if high is lower than low?
 # TODO: integrate with select
 def numeral(low, high, cast=int):
     """Get a number between low and high (inclusive) from the user."""
 
-    prompt()
+    show(PROMPT, nl=False)
     number = _minput()
     try:
         number = cast(number)
@@ -234,15 +241,15 @@ def hint(options=None):
     """Display a help message, optionally with a list of allowed commands."""
 
     if options:
-        opt_string = english(options)
         show("[malt] available commands: {}".format(english(options)))
 
-    built_ins = english(['help', 'clear', 'back', 'exit'])
-    show("[malt] built-in functions {} are available at any time".format(built_ins))
+    bifs = english(['help', 'clear', 'back', 'exit'])
+    show("[malt] built-in functions {} are available at any time".format(bifs))
 
 
 # TODO: add color support
 # TODO: prevent output from passing 80 chars
+# TODO: allow multiple args like print()
 def show(stuff='', nl=True, slow=0):
     """Print stuff on the console with smart type formatting.
 
@@ -338,6 +345,9 @@ def _ensure_newline():
 def english(stuff):
     """Compile a list into a string where every element is wrapped in single
     quotes and written out in sentence form.
+
+    Example:
+        english(['spam', 'spam', 'eggs']) -> \"'spam', 'spam', and 'eggs'\"
     """
     if type(stuff) is list:
         length = len(stuff)
@@ -407,13 +417,6 @@ def pause():
     """
     show(PAUSE, nl=False)
     _minput()
-
-
-# TODO: consider removing
-def prompt():
-    """Display PROMPT."""
-
-    show(PROMPT, nl=False)
 
 
 # TODO: consider removing title bar
