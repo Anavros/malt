@@ -17,11 +17,13 @@ from subprocess import call
 # so you can set a debug flag to mask level x and below
 # or, you know, proper logging
 
+# Global Options
 SHOW_TITLE_BAR = False          # NOTE
 THROW_EXIT_EXCEPTIONS = True    # raise malt.AbandonShip() on exit keyword
 BUILT_IN_FUNCTIONS = True       # use built-in functions if input does not match
 
 # Default Markings
+# These can be set by the client program if desired.
 TITLE_BAR = " ===== Malt ===== "
 PROMPT = "> "
 INDENT = ""
@@ -54,6 +56,7 @@ AFFIRM_KEYWORDS = ["yes", "y", "ok", "sure", "hell yes"]
 NEGATE_KEYWORDS = ['no', 'n']
 
 
+# TODO: could be renamed to be clearer
 class AbandonShip(Exception):
     """Throw when the user enters an exit command.
 
@@ -67,7 +70,6 @@ class AbandonShip(Exception):
     """
 
 
-# TODO: allow multiple keywords per option?
 # XXX: no built ins will run when passing empty list
 def select(options=None):
     """Take user input and return it only if it matches a given set of options.
@@ -92,17 +94,41 @@ def select(options=None):
 
     prompt()
     result = None
-    string = __minput().strip().lower()
+    string = _minput().strip().lower()
 
-    if __matches(string, options):
+    if _matches(string, options):
         return string
     elif BUILT_IN_FUNCTIONS:
         # Only use built-in functions if the string has not already been matched.
         # This way the user can override built-ins at their discretion.
-        return __try_built_ins(string, options)
+        return _match_builtins(string, options)
     else:
         return None
 
+# TODO: allow multiple keywords per option?
+# XXX: no built ins will run when passing empty list
+
+# NOTE: AdD Butts McGee 100 60.0
+# NOTE: should return
+# NOTE: add [Butts, McGee, int(100), float(60.0)]
+# but how to document, show help, etc?
+# should we have an advanced version?
+# pass in a list of prototypes
+# but that would have to be the same for each func in a tree
+# [str, str, int, float]
+def ultra_select(options=None):
+    prompt()
+    result = None
+    string = _minput().strip().lower()
+
+    if _matches(string, options):
+        return string
+    elif BUILT_IN_FUNCTIONS:
+        # Only use built-in functions if the string has not already been matched.
+        # This way the user can override built-ins at their discretion.
+        return _match_builtins(string, options)
+    else:
+        return None
 
 
 # NOTE: restricted for now to just two arguments
@@ -114,8 +140,9 @@ def split_select(options=None, cast=None):
     Optionally cast the argument to a given type.
     """
 
+    # TODO: factor out interfacing code so we can test the logic
     prompt()
-    split_string = __minput().strip().split()
+    split_string = _minput().strip().split()
 
     head = split_string[0].strip().lower()
     if len(split_string) > 1:
@@ -128,20 +155,20 @@ def split_select(options=None, cast=None):
     else:
         tail = None
 
-    if __matches(head, options):
+    if _matches(head, options):
         return (head, tail)
     else:
-        return (__try_built_ins(head, options), tail)
+        return (_match_builtins(head, options), tail)
 
 
-def __matches(string, options):
+def _matches(string, options):
     """Evaluate if string is in options regardless of case."""
 
     # Only try to match input if 'options' is a valid list.
     if (type(options) is not list) or (len(options) < 1):
         return True
-    # Strings match regardless of case.
-    elif string in [o.strip().lower() for o in options]:
+    # Strings match regardless of case or whitespace.
+    elif string.strip().lower() in [o.strip().lower() for o in options]:
         return True
     else:
         return False
@@ -155,7 +182,7 @@ def __matches(string, options):
 
 
 # TODO: rename
-def __try_built_ins(string, options):
+def _match_builtins(string, options):
     """Try to match a given string against built-in convienience functions.
 
     Called when user input does not match client-given options. These built-in
@@ -189,7 +216,7 @@ def numeral(low, high, cast=int):
     """Get a number between low and high (inclusive) from the user."""
 
     prompt()
-    number = __minput()
+    number = _minput()
     try:
         number = cast(number)
     except ValueError:
@@ -231,54 +258,54 @@ def show(stuff='', nl=True, slow=0):
 
     stuff_t = type(stuff)
     if stuff_t is list or stuff_t is set:
-        __show_list(stuff, nl, slow)
+        _show_list(stuff, nl, slow)
     elif stuff_t is dict:
-        __show_dict(stuff, nl, slow)
+        _show_dict(stuff, nl, slow)
     elif hasattr(stuff, '__dict__'):
         show(stuff.__dict__)
     else:
-        __mprint(stuff, nl, slow)
+        _mprint(stuff, nl, slow)
 
 
-def __show_list(stuff, nl, slow):
+def _show_list(stuff, nl, slow):
     """Display a list as a series of newline-separated ticks."""
     length = len(stuff)
     if length < 1:
-        __mprint("(empty list)")
+        _mprint("(empty list)")
 
     # Item Style
     else:
         indent()
         for thing in stuff:
-            __ensure_newline()
-            __mprint(LIST_TICK, nl=False)
-            __mprint(thing)
+            _ensure_newline()
+            _mprint(LIST_TICK, nl=False)
+            _mprint(thing)
             sleep(slow)
         undent()
 
 
-def __show_dict(stuff, nl, slow):
+def _show_dict(stuff, nl, slow):
     """Display dictionaries as key: value pairs.
 
-    Every value is fed back through show() recursively to recieve the right 
+    Every value is fed back through show() recursively to recieve the right
     formatting regardless of type.
     """
 
-    __mprint("{")
+    _mprint("{")
     indent()
     for (key, value) in stuff.items():
-        __mprint("{}: ".format(key), nl=False)
+        _mprint("{}: ".format(key), nl=False)
         show(value)
         sleep(slow)
     undent()
-    __mprint("}")
+    _mprint("}")
 
 
-def __mprint(string='', nl=True, slow=0):
+def _mprint(string='', nl=True, slow=0):
     """Print output to the console with extra functionality.
 
     Provides support for indentation and slowed printing. Every call should go
-    through __mprint() as it will ensure indentation will always be correct.
+    through _mprint() as it will ensure indentation will always be correct.
     """
     global FRESH_LINE
     if FRESH_LINE:
@@ -296,16 +323,16 @@ def __mprint(string='', nl=True, slow=0):
     FRESH_LINE = nl
 
 
-def __minput():
+def _minput():
     """Wrapper for input() to help provide indentation support."""
     global FRESH_LINE
     FRESH_LINE = True
     return input()
 
 
-def __ensure_newline():
+def _ensure_newline():
     if not FRESH_LINE:
-        __mprint()
+        _mprint()
 
 
 def english(stuff):
@@ -325,7 +352,7 @@ def english(stuff):
             final = ', '.join(qt_stuff[:-1]) + ", and " + qt_stuff[-1]
         return final
     else:
-        __mprint("[malt] can not english-ify a non list")
+        _mprint("[malt] can not english-ify a non list")
         return stuff
 
 
@@ -333,7 +360,7 @@ def indent():
     """Increase the global indentation value by one.
 
     This value is independent of the actual indentation printed to the screen;
-    __mprint() handles the number of spaces that are actually printed. Callers
+    _mprint() handles the number of spaces that are actually printed. Callers
     to indent() do not need to worry about spacing or going over maximum line
     width. Calling malt.indent() is all that is needed.
     """
@@ -361,7 +388,7 @@ def confirm(silent=False):
     while True:
         if not silent:
             show("[malt] confirm? ", nl=False)
-        key = __minput().strip().lower()
+        key = _minput().strip().lower()
         if key in AFFIRM_KEYWORDS:
             return True
         elif key in NEGATE_KEYWORDS:
@@ -379,7 +406,7 @@ def pause():
     enter. Input is not used. Built-in functions are also not available.
     """
     show(PAUSE, nl=False)
-    __minput()
+    _minput()
 
 
 # TODO: consider removing

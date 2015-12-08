@@ -3,58 +3,29 @@ import malt
 
 
 def main():
-    malt.show("Welcome to malt!")
-    malt.show("Let's modify a number for no ostensible reason!")
-    malt.show("Ready to start?")
-
-    #if not malt.confirm(silent=True):
-        #return
-
-    malt.SHOW_TITLE_BAR = True
-    malt.clear()
-
-    #malt.show("What number would you like to start with?")
-    #n = malt.numeral(1, 100)
-    #if n is None:
-        #malt.show("invalid number; using 100 instead")
-        #n = 100
-
-    n = 100
-
-    malt.show("n: {}".format(n))
-    #actions = ["add", "subtract", "halve", "double"]
-    actions = ["add", "subtract"]
-    #actions = ["add"]
-
-    while "bananas are yummy":
-        action = malt.select(actions) 
-        if action is None:
-            malt.show("unknown command")
-            continue
-
-        elif action == malt.BUILT_IN_CODE:
-            continue
-        
-        elif action == malt.EXIT_CODE:
+    options = ["add", "subtract", "halve", "double"]
+    while True:
+        action = malt.select(options) 
+        if action == malt.BACK_CODE:
+            malt.show("Are you sure you would like to exit?")
             if malt.confirm():
-                break
+                return
 
         elif action == "add":
-            n += 1
-
-        elif action == "subtract":
-            n -= 1
-
-        elif action == "halve":
-            n /= 2
-
-        elif action == "double":
-            n *= 2
-
-        else:
             pass
 
-        malt.show("n: {}".format(n))
+        elif action == "subtract":
+            pass
+
+        elif action == "halve":
+            pass
+
+        elif action == "double":
+            pass
 
 if __name__ == "__main__":
-    main()
+    # Malt will throw an exception if the user enters an exit command.
+    try:
+        main()
+    except malt.AbandonShip:
+        pass
