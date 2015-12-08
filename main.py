@@ -26,9 +26,15 @@ def main():
         elif action == "double":
             pass
 
+
+def register():
+    register_options = ['add name:str age:int', 'remove name:str'] 
+    malt._ultra_parse(register_options)
+
+
+def display():
+    pass
+
 if __name__ == "__main__":
-    # Malt will throw an exception if the user enters an exit command.
-    try:
-        main()
-    except SystemExit:
-        pass
+    #main()
+    register()

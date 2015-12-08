@@ -44,7 +44,7 @@ MAX_TERM_WIDTH = 80  # TODO
 # the exit function will raise SystemExit instead of returning EXIT_CODE.
 # All built-in functionality is disabled if BUILT_IN_FUNCTIONS is False.
 EXIT_CODE = 'malt-exit'
-BUILT_IN_CODE = 'malt-built-in'     # XXX might not need
+#BUILT_IN_CODE = 'malt-built-in'     # XXX might not need
 BACK_CODE = 'malt-back'
 
 # Keyword Sets
@@ -116,9 +116,17 @@ def freeform(silent=False):
 # pass in a list of prototypes
 # but that would have to be the same for each func in a tree
 # [str, str, int, float]
-def ultra_select(options=None):
+def ultra_select(options):
     show(PROMPT, nl=False)
     string = _minput().strip().lower()
+
+    # ['add name age:int nums:int...']
+    for x in options:
+        x = x.split()
+        action = x[0]  # what if someone types add:str?
+
+
+
 
     if _match(string, options):
         return string
@@ -128,6 +136,39 @@ def ultra_select(options=None):
         return _match_builtins(string, options)
     else:
         return None
+
+
+# ex: ['add name val:int', 'remove name']
+# TODO: clean up
+def _ultra_parse(arguments):
+    # may not be necessary if select guards this
+    if not arguments or type(arguments) is not list:
+        raise ValueError()
+
+    struct = {}
+    for arg in arguments:
+        # ex: 'add name val:int'
+        argparts = arg.strip().lower().split()
+        action = argparts.pop(0)
+        if ':' in action:
+            raise ValueError("option badly formatted (do not type first arg)")
+
+        struct[action] = {}
+        for part in argparts:
+            # ex: 'val:int'
+            part = part.strip()
+            pieces = part.split(':')
+            if len(pieces) == 1:
+                (part_name, part_type) = (part, 'str')
+            elif len(pieces) == 2:
+                (part_name, part_type) = part.split(':')
+            else:
+                raise ValueError("option badly formatted (name or name:type)")
+
+            struct[action][part_name] = part_type
+
+    show(struct)
+    return struct
 
 
 # NOTE: restricted for now to just two arguments
@@ -163,7 +204,7 @@ def split_select(options=None, cast=None):
 
 def _match(string, options):
     """Evaluate if a string is in a list regardless of case or whitespace."""
-    return string.strip().lower() in [o.strip().lower() for o in options]:
+    return string.strip().lower() in [o.strip().lower() for o in options]
 
 # TODO: implement multiple option options
 #    for opt in options:
@@ -235,6 +276,7 @@ def hint(options=None):
 # TODO: add color support
 # TODO: prevent output from passing 80 chars
 # TODO: allow multiple args like print()
+# TODO: add special display for empty string
 def show(stuff='', nl=True, slow=0):
     """Print stuff on the console with smart type formatting.
 
