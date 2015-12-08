@@ -30,5 +30,5 @@ if __name__ == "__main__":
     # Malt will throw an exception if the user enters an exit command.
     try:
         main()
-    except malt.AbandonShip:
+    except SystemExit:
         pass

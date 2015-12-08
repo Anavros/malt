@@ -19,7 +19,7 @@ from subprocess import call
 
 # Global Options
 SHOW_TITLE_BAR = False          # NOTE
-THROW_EXIT_EXCEPTIONS = True    # raise malt.AbandonShip() on exit keyword
+THROW_EXIT_EXCEPTIONS = True    # raise SystemExit on exit keyword
 BUILT_IN_FUNCTIONS = True       # use built-in funcs if input does not match
 
 # Default Markings
@@ -41,7 +41,7 @@ MAX_TERM_WIDTH = 80  # TODO
 # Select() Codes
 # These codes are returned from the select() function if the user triggers a
 # built-in function like 'exit' or 'clear'. If THROW_EXIT_EXCEPTIONS is true,
-# the exit function will raise AbandonShip() instead of returning EXIT_CODE.
+# the exit function will raise SystemExit instead of returning EXIT_CODE.
 # All built-in functionality is disabled if BUILT_IN_FUNCTIONS is False.
 EXIT_CODE = 'malt-exit'
 BUILT_IN_CODE = 'malt-built-in'     # XXX might not need
@@ -54,21 +54,6 @@ BACK_KEYWORDS = ['back', 'return', 'done', 'finished']
 CLEAR_KEYWORDS = ['clear', 'clean', 'cls']
 AFFIRM_KEYWORDS = ["yes", "y", "ok", "sure", "hell yes"]
 NEGATE_KEYWORDS = ['no', 'n']
-
-
-# TODO: could be renamed to be clearer
-# NOTE: should we change to built-in exception? like runtimerror?
-class AbandonShip(Exception):
-    """Throw when the user enters an exit command.
-
-    When the user tries to exit the program, this exception will be raised and
-    propagate upwards to the main entry point, where it can be caught and the
-    program can be terminated. Including this feature as an exception makes it
-    easier to exit the program at any time; compared to returning from each
-    nested loop one by one; one exit command at a time.
-
-    Does not need any special values or input.
-    """
 
 
 # XXX: no built ins will run when passing empty list
@@ -208,7 +193,7 @@ def _match_builtins(string, options):
         return BACK_CODE
     elif string in EXIT_KEYWORDS:
         if THROW_EXIT_EXCEPTIONS:
-            raise AbandonShip()
+            raise SystemExit()
         else:
             return EXIT_CODE
     else:
