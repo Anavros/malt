@@ -45,7 +45,6 @@ MAX_TERM_WIDTH = 80  # TODO
 # the exit function will raise SystemExit instead of returning EXIT_CODE.
 # All built-in functionality is disabled if BUILT_IN_FUNCTIONS is False.
 EXIT_CODE = 'malt-exit'
-#BUILT_IN_CODE = 'malt-built-in'     # XXX might not need
 BACK_CODE = 'malt-back'
 
 # Keyword Sets
@@ -57,8 +56,9 @@ AFFIRM_KEYWORDS = ["yes", "y", "ok", "sure", "hell yes"]
 NEGATE_KEYWORDS = ['no', 'n']
 
 
-# XXX: no built ins will run when passing empty list
-# TODO: split into select() and freeform()
+# could create prototype automatically?
+# what if the return was a complex object, where if you tried to match it
+# directly, it would just return the right thing?
 def select(options):
     """Take user input and return it only if it matches a given set of options.
 
@@ -82,89 +82,87 @@ def select(options):
         raise ValueError(
             "select requires a list of options (use freeform for raw text)")
 
-    show(PROMPT, nl=False)
-    string = _minput().strip().lower()
+    string = _prompt()
+    if _string_in_options(string, options):
+        return string.lower()
 
-    if _match(string, options):
-        return string
-    elif BUILT_IN_FUNCTIONS:
-        # Only use built-in funcs if the string has not already been matched.
-        # This way the user can override built-ins at their discretion.
-        return _match_builtins(string, options)
+    # Only try builtins if the string has not already been matched.
+    elif BUILT_IN_FUNCTIONS and _string_in_builtins(string):
+        if string in EXIT_KEYWORDS:
+            if THROW_EXIT_EXCEPTIONS:
+                raise SystemExit()
+            else:
+                return EXIT_CODE
+        elif string in BACK_KEYWORDS:
+            return BACK_CODE
+        elif string in HELP_KEYWORDS:
+            hint(options)
+        elif string in CLEAR_KEYWORDS:
+            clear()
     else:
+        show("[malt] unknown keyword")
         return None
 
 
-def _match_complex_options(args, prototype):
-    """boop"""
-    # First assert that the argument list is not empty.
-    if len(args) < 1:
-        return { 'action': None }
-
-    # If we have a single command, check it against the normal match function.
-    elif len(args) == 1:
-        act = args[0].strip()
-        if _match(act, list(prototype.keys())):
-            return { 'action': act }
-        elif BUILT_IN_FUNCTIONS:
-            return { 'action': _match_builtins(act, list(prototype.keys())) }
-        else:
-            return { 'action': None }
-
-    # Otherwise enter the complex solution.
-    else:
-        action = args.pop(0)
-        if action not in prototype.keys():
-            show('problem')
-            return { 'action': None }
-
-        response = { 'action': action }
-        # loop through all defined actions until we find the right one
-        for cmd, margs in prototype.items():
-            if cmd != action:
-                continue
-            if len(args) != len(list(margs.keys())):
-                break
-            for name, cast in margs.items():
-                try:
-                    response[name] = cast(args.pop())
-                except ValueError:
-                    show('casting error')
-                    # should return nothing if one fails
-                else:
-                    show("cast {} to {}".format(name, str(cast)))
-
-        return response
-
-
-def freeform(silent=False):
-    """Get an unmodified string from the user.
-
-    Input is taken through _minput() so indentation is preserved, and stripped
-    of extra whitespace, but otherwise raw.
-    """
-    if not silent:
-        _mprint('[malt] freeform input: ', nl=False)
+def _prompt():
+    show(PROMPT, nl=False)
     return _minput().strip()
 
 
-def ultra_select(options):
-    if not options or type(options) is not list:
-        raise ValueError(
-            "select requires a list of options (use freeform for raw text)")
-    action_key = 'action'
-    show(PROMPT, nl=False)
-    string = _minput().strip().lower()
+def _string_in_options(string, options):
+    """Evaluate if a string is in a list regardless of case or whitespace."""
+    return string.strip().lower() in [o.strip().lower() for o in options]
+
+
+def _string_in_builtins(string):
+    """Evaluate if a string is in any list of accepted built-in keywords."""
+    return _string_in_options(string,
+        HELP_KEYWORDS+CLEAR_KEYWORDS+BACK_KEYWORDS+EXIT_KEYWORDS)
+
+
+# NOTE: the name is still up for tweaking
+def complex_select(options):
+
+    # XXX: what happens if given a list of numbers?
+    empty_response = { 'action': None }
+    string = prompt()
+
+    prototype = _ultra_parse(options)
+    options = list(prototype.keys())
+
     words = [w.strip() for w in string.split()]
-    # every argument has to be found and cast to the right type
-    argdict = _ultra_parse(options)
-    response = _match_complex_options(words, _ultra_parse(options))
-    return response
+    head = words[0]
+    tail = words[1:]
+
+    if _string_in_options(head, options):
+        if _verify_arguments(tail, prototype):
+            argvalues = get_args(words, prototype)
+            response = { k:v for k, v in argvalues.items() }
+            response['action'] = head
+        else:
+            response = empty_response
+
+        return response
+
+    elif BUILT_IN_FUNCTIONS and _string_in_builtins(head, options):
+        if string in EXIT_KEYWORDS:
+            if THROW_EXIT_EXCEPTIONS:
+                raise SystemExit()
+            else:
+                return EXIT_CODE
+        elif string in BACK_KEYWORDS:
+            return BACK_CODE
+        elif string in HELP_KEYWORDS:
+            hint(options)
+        elif string in CLEAR_KEYWORDS:
+            clear()
+    else:
+        show("[malt] unknown keyword")
+        return empty_response
 
 
-
-# ex: ['add name val:int', 'remove name']
 # TODO: clean up
+# ex: ['add name val:int', 'remove name']
 def _ultra_parse(arguments):
     struct = OrderedDict()
     # for option?
@@ -212,95 +210,24 @@ def _string_to_type(string):
         raise ValueError("[malt] unknown cast ({})".format(string))
 
 
-# NOTE: restricted for now to just two arguments
-# NOTE: all inputs are set to lowercase; this is not wanted
-# XXX: crashes on empty input
-# TODO: merge with select
-def split_select(options=None, cast=None):
-    """Get a command and one arg from the console.
-    Optionally cast the argument to a given type.
+# combine with prompt
+def freeform(silent=False):
+    """Get an unmodified string from the user.
+
+    Input is taken through _minput() so indentation is preserved, and stripped
+    of extra whitespace, but otherwise raw.
     """
-
-    # TODO: factor out interfacing code so we can test the logic
-    show(PROMPT, nl=False)
-    split_string = _minput().strip().split()
-
-    head = split_string[0].strip().lower()
-    if len(split_string) > 1:
-        tail = split_string[1].strip()
-        if cast is not None:
-            try:
-                tail = cast(tail)
-            except ValueError:
-                show("[malt] unable to cast {} to {}".format(tail, cast))
-                tail = None
-    else:
-        tail = None
-
-    if _match(head, options):
-        return (head, tail)
-    else:
-        return (_match_builtins(head, options), tail)
+    if not silent:
+        _mprint('[malt] freeform input: ', nl=False)
+    return _minput().strip()
 
 
-def _match(string, options):
-    """Evaluate if a string is in a list regardless of case or whitespace."""
-    return string.strip().lower() in [o.strip().lower() for o in options]
-
-# TODO: implement multiple option options
-#    for opt in options:
-#        if type(opt) is list:
-#            return string in [o.strip().lower() for o in opt]
-#        else:
-#            return string == opt.strip().lower()
 
 
-# TODO: rename
-def _match_builtins(string, options):
-    """Try to match a given string against built-in convienience functions.
 
-    Called when user input does not match client-given options. These built-in
-    functions are for convieniece, so that the client program does not have to
-    define them itself. This function will not be called if BUILT_IN_FUNCTIONS
-    is disabled.
-    """
+### DISPLAY FUNCTIONS ###
+#########################
 
-    if string in HELP_KEYWORDS:
-        hint(options)
-    elif string in CLEAR_KEYWORDS:
-        clear()
-    elif string in BACK_KEYWORDS:
-        return BACK_CODE
-    elif string in EXIT_KEYWORDS:
-        if THROW_EXIT_EXCEPTIONS:
-            raise SystemExit()
-        else:
-            return EXIT_CODE
-    else:
-        show("[malt] unknown keyword")
-
-
-# NOTE: does not accept normal built-in functions
-# NOTE: what happens if high is lower than low?
-# TODO: integrate with select
-def numeral(low, high, cast=int):
-    """Get a number between low and high (inclusive) from the user."""
-
-    show(PROMPT, nl=False)
-    number = _minput()
-    try:
-        number = cast(number)
-    except ValueError:
-        # could not cast to a number
-        return None
-
-    if low <= number and number <= high:
-        return number
-    else:
-        return None
-
-
-# TODO: implement multiple option options
 def hint(options=None):
     """Display a help message, optionally with a list of allowed commands."""
 

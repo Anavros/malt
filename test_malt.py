@@ -74,3 +74,34 @@ def test_select_parse_bad_input():
 
     with pytest.raises(ValueError):
         malt._ultra_parse(['insert:name'])
+
+def test_complex_match():
+    args = ['remove', 'John']
+    prototype = {'add':{'name':'str', 'num':'int'}, 'remove':{'name':'str'}}
+    response = malt._match_complex_options(args, prototype)
+    assert response == { 'action': 'remove', 'name': 'John' }
+
+def test_complex_match_bad_action():
+    args = ['exploit', 'John']
+    prototype = {'add':{'name':'str', 'num':'int'}, 'remove':{'name':'str'}}
+    response = malt._match_complex_options(args, prototype)
+    assert response == { 'action': None }
+
+def test_complex_match_missing_arg():
+    args = ['add', 'John']  # forgot the number!
+    prototype = {'add':{'name':'str', 'num':'int'}, 'remove':{'name':'str'}}
+    response = malt._match_complex_options(args, prototype)
+    assert response == { 'action': None }
+
+def test_complex_match_too_many_args():
+    args = ['remove', 'John', 'Dongle']  # only needs two
+    prototype = {'add':{'name':'str', 'num':'int'}, 'remove':{'name':'str'}}
+    response = malt._match_complex_options(args, prototype)
+    assert response == { 'action': None }
+
+def test_complex_match_failed_cast():
+    args = ['add', 'John', 'Dongle']  # supposed to be add str int
+    prototype = {'add':{'name':'str', 'num':'int'}, 'remove':{'name':'str'}}
+    response = malt._match_complex_options(args, prototype)
+    assert response == { 'action': None }
+# maybe watch out for duplicates too (like "name name string")
