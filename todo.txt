@@ -1,14 +1,9 @@
 
 TODO
     -> clean up the new complex select function and helpers
-    -> refactor the bits and pieces behind the select functions to be sensible
-    -> split the project into two parts; one for input and one for output
     -> create a standalone gui version called gmalt
     -> implement logging errors to a file
     -> allow different levels of importance on outputs
     -> improve arrow history scrolling with readline
     -> prevent text from passing a certain number of characters in width
-    -> maybe have a simple, single-file version called single malt
     -> come up with some sweeter names
-    -> consider allowing multiple aliases for the same action
-    -> rewrite the hint function to use fancier args

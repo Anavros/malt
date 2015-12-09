@@ -19,13 +19,11 @@ from collections import OrderedDict
 # or, you know, proper logging
 
 # Global Options
-SHOW_TITLE_BAR = False          # NOTE
 THROW_EXIT_EXCEPTIONS = True    # raise SystemExit on exit keyword
 BUILT_IN_FUNCTIONS = True       # use built-in funcs if input does not match
 
 # Default Markings
 # These can be set by the client program if desired.
-TITLE_BAR = " ===== Malt ===== "
 PROMPT = "> "
 INDENT = ""
 LIST_TICK = "-"
@@ -36,14 +34,10 @@ INDENT = 0
 MAX_INDENT = 4
 INDENT_WIDTH = 2
 FRESH_LINE = True
+
 MAX_TERM_WIDTH = 80  # TODO
 
-
 # Select() Codes
-# These codes are returned from the select() function if the user triggers a
-# built-in function like 'exit' or 'clear'. If THROW_EXIT_EXCEPTIONS is true,
-# the exit function will raise SystemExit instead of returning EXIT_CODE.
-# All built-in functionality is disabled if BUILT_IN_FUNCTIONS is False.
 EXIT_CODE = 'malt-exit'
 BACK_CODE = 'malt-back'
 
@@ -54,17 +48,6 @@ BACK_KEYWORDS = ['back', 'return', 'done', 'finished']
 CLEAR_KEYWORDS = ['clear', 'clean', 'cls']
 AFFIRM_KEYWORDS = ["yes", "y", "ok", "sure", "hell yes"]
 NEGATE_KEYWORDS = ['no', 'n']
-
-
-class Response(object):
-    def __init__(self, command=None, args=None):
-        self.action = command
-        if args is not None:
-            for (key, value) in args:
-                self.__dict__[key] = value
-
-    def __eq__(self, string):
-        return string == self.action
 
 
 def select(options):
@@ -88,12 +71,12 @@ def select(options):
 
     if not options or type(options) is not list:
         raise ValueError(
-            "select requires a list of options (use freeform for raw text)")
+            "select requires a list of options (use freeform() for raw text)")
 
     prototype = _parse_options(options)
     allowed_commands = list(prototype.keys())
 
-    words = [w.strip() for w in _prompt().split()]
+    words = [w.strip() for w in freeform().split()]
     command = words.pop(0).lower()  # NOTE: remaining words are all args
 
     if _string_included(command, allowed_commands):
@@ -138,96 +121,14 @@ def select(options):
     return Response(None)
 
 
-def _prompt():
-    show(PROMPT, nl=False)
-    return _minput().strip()
-
-
-def _string_included(string, options):
-    """Evaluate if a string is in a list regardless of case or whitespace."""
-    return string.strip().lower() in [o.strip().lower() for o in options]
-
-
-def _validate_args(proto, given):
-    # we're assuming the two lists are lined up in the correct order
-    return [(name, cast(given.pop(0))) for name, cast in proto.items()]
-
-
-# TODO: clean up
-# ex: ['add name val:int', 'remove name']
-def _parse_options(arguments):
-    struct = OrderedDict()
-    # for option?
-    for arg in arguments:
-        # ex: 'add name val:int'
-        argparts = arg.strip().lower().split()
-        action = argparts.pop(0)
-        if ':' in action:
-            raise ValueError("option badly formatted (do not type first arg)")
-
-        struct[action] = {}
-        for part in argparts:
-            # ex: 'val:int'
-            part = part.strip()
-            pieces = part.split(':')
-            if len(pieces) == 1:
-                (part_name, part_type) = (part, 'str')
-            elif len(pieces) == 2:
-                (part_name, part_type) = part.split(':')
-            else:
-                raise ValueError("option badly formatted (name or name:type)")
-
-            struct[action][part_name] = part_type
-
-    #show(struct)
-    return _replace_casts(struct)
-
-
-def _replace_casts(argdict):
-    for (action, args) in argdict.items():
-        argdict[action] = { n:_string_to_type(s) for n, s in args.items() }
-    return argdict
-
-
-def _string_to_type(string):
-    if string == 'str':
-        return str
-    elif string == 'int':
-        return int
-    elif string == 'float':
-        return float
-    elif string == 'bool':
-        return bool
-    else:
-        raise ValueError("[malt] unknown cast ({})".format(string))
-
-
-# combine with prompt
-def freeform(silent=False):
+def freeform(prompt=PROMPT):
     """Get an unmodified string from the user.
 
     Input is taken through _minput() so indentation is preserved, and stripped
     of extra whitespace, but otherwise raw.
     """
-    if not silent:
-        _mprint('[malt] freeform input: ', nl=False)
+    show(prompt, nl=False)
     return _minput().strip()
-
-
-
-
-
-### DISPLAY FUNCTIONS ###
-#########################
-
-def hint(options=None):
-    """Display a help message, optionally with a list of allowed commands."""
-
-    if options:
-        show("[malt] available commands: {}".format(english(options)))
-
-    bifs = english(['help', 'clear', 'back', 'exit'])
-    show("[malt] built-in functions {} are available at any time".format(bifs))
 
 
 # TODO: add color support
@@ -259,74 +160,7 @@ def show(stuff='', nl=True, slow=0):
         _mprint(stuff, nl, slow)
 
 
-def _show_list(stuff, nl, slow):
-    """Display a list as a series of newline-separated ticks."""
-    length = len(stuff)
-    if length < 1:
-        _mprint("(empty list)")
-
-    # Item Style
-    else:
-        indent()
-        for thing in stuff:
-            _ensure_newline()
-            _mprint(LIST_TICK, nl=False)
-            _mprint(thing)
-            sleep(slow)
-        undent()
-
-
-def _show_dict(stuff, nl, slow):
-    """Display dictionaries as key: value pairs.
-
-    Every value is fed back through show() recursively to recieve the right
-    formatting regardless of type.
-    """
-
-    _mprint("{")
-    indent()
-    for (key, value) in stuff.items():
-        _mprint("{}: ".format(key), nl=False)
-        show(value)
-        sleep(slow)
-    undent()
-    _mprint("}")
-
-
-def _mprint(string='', nl=True, slow=0):
-    """Print output to the console with extra functionality.
-
-    Provides support for indentation and slowed printing. Every call should go
-    through _mprint() as it will ensure indentation will always be correct.
-    """
-    global FRESH_LINE
-    if FRESH_LINE:
-        indentation = ' '*min(INDENT, MAX_INDENT)*INDENT_WIDTH
-        print(indentation, end='')
-    end_char = '\n' if nl else ''
-
-    if slow > 0:
-        for char in string:
-            print(char)
-            sleep(slow)
-        print('', end=end_char, flush=True)
-    else:
-        print(string, end=end_char)
-    FRESH_LINE = nl
-
-
-def _minput():
-    """Wrapper for input() to help provide indentation support."""
-    global FRESH_LINE
-    FRESH_LINE = True
-    return input()
-
-
-def _ensure_newline():
-    if not FRESH_LINE:
-        _mprint()
-
-
+# TODO: rename
 def english(stuff):
     """Compile a list into a string where every element is wrapped in single
     quotes and written out in sentence form.
@@ -404,15 +238,147 @@ def pause():
     _minput()
 
 
-# TODO: consider removing title bar
 def clear():
     """Clear the screen.
 
-    Multiplatform support not yet implemented. If SHOW_TITLE_BAR is enabled,
-    print the title bar defined in TITLE_BAR as the first thing on the fresh
-    screen.
+    Multiplatform support not yet implemented.
     """
 
     call(["clear"])
-    if SHOW_TITLE_BAR:
-        show(TITLE_BAR)
+
+### INTERNAL UTILITIES ### These should have their own module but I want
+########################## to fit malt into a single file!
+
+class Response(object):
+    """..."""
+    def __init__(self, command=None, args=None):
+        self.action = command
+        if args is not None:
+            for (key, value) in args:
+                self.__dict__[key] = value
+
+    def __eq__(self, string):
+        return string == self.action
+
+
+def _show_list(stuff, nl, slow):
+    """Display a list as a series of newline-separated ticks."""
+    length = len(stuff)
+    if length < 1:
+        _mprint("(empty list)")
+
+    # Item Style
+    else:
+        indent()
+        for thing in stuff:
+            if not FRESH_LINE:
+                _mprint()
+            _mprint(LIST_TICK, nl=False)
+            _mprint(thing)
+            sleep(slow)
+        undent()
+
+
+def _show_dict(stuff, nl, slow):
+    """Display dictionaries as key: value pairs.
+
+    Every value is fed back through show() recursively to recieve the right
+    formatting regardless of type.
+    """
+
+    _mprint("{")
+    indent()
+    for (key, value) in stuff.items():
+        _mprint("{}: ".format(key), nl=False)
+        show(value)
+        sleep(slow)
+    undent()
+    _mprint("}")
+
+
+def _mprint(string='', nl=True, slow=0):
+    """Print output to the console with extra functionality.
+
+    Provides support for indentation and slowed printing. Every call should go
+    through _mprint() as it will ensure indentation will always be correct.
+    """
+    global FRESH_LINE
+    if FRESH_LINE:
+        indentation = ' '*min(INDENT, MAX_INDENT)*INDENT_WIDTH
+        print(indentation, end='')
+    end_char = '\n' if nl else ''
+
+    if slow > 0:
+        for char in string:
+            print(char)
+            sleep(slow)
+        print('', end=end_char, flush=True)
+    else:
+        print(string, end=end_char)
+    FRESH_LINE = nl
+
+
+def _minput():
+    """Wrapper for input() to help provide indentation support."""
+    global FRESH_LINE
+    FRESH_LINE = True
+    return input()
+
+
+def _string_included(string, options):
+    """Evaluate if a string is in a list regardless of case or whitespace."""
+    return string.strip().lower() in [o.strip().lower() for o in options]
+
+
+def _validate_args(proto, given):
+    # we're assuming the two lists are lined up in the correct order
+    return [(name, cast(given.pop(0))) for name, cast in proto.items()]
+
+
+# TODO: clean up
+# ex: ['add name val:int', 'remove name']
+def _parse_options(arguments):
+    struct = OrderedDict()
+    # for option?
+    for arg in arguments:
+        # ex: 'add name val:int'
+        argparts = arg.strip().lower().split()
+        action = argparts.pop(0)
+        if ':' in action:
+            raise ValueError("option badly formatted (do not type first arg)")
+
+        struct[action] = {}
+        for part in argparts:
+            # ex: 'val:int'
+            part = part.strip()
+            pieces = part.split(':')
+            if len(pieces) == 1:
+                (part_name, part_type) = (part, 'str')
+            elif len(pieces) == 2:
+                (part_name, part_type) = part.split(':')
+            else:
+                raise ValueError("option badly formatted (name or name:type)")
+
+            struct[action][part_name] = part_type
+
+    #show(struct)
+    return _replace_casts(struct)
+
+
+def _replace_casts(argdict):
+    for (action, args) in argdict.items():
+        argdict[action] = { n:_string_to_type(s) for n, s in args.items() }
+    return argdict
+
+
+def _string_to_type(string):
+    if string == 'str':
+        return str
+    elif string == 'int':
+        return int
+    elif string == 'float':
+        return float
+    elif string == 'bool':
+        return bool
+    else:
+        raise ValueError("[malt] unknown cast ({})".format(string))
