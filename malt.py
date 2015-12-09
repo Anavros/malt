@@ -13,6 +13,7 @@ convienience functions, like printing help messages and clearing the screen.
 from time import sleep
 from subprocess import call
 from collections import OrderedDict
+from contextlib import contextmanager
 
 # TODO: separate show function/option to set level of importance
 # so you can set a debug flag to mask level x and below
@@ -77,12 +78,13 @@ def select(options):
     allowed_commands = list(prototype.keys())
 
     words = [w.strip() for w in freeform().split()]
+    if len(words) < 1:
+        return Response(None)
     command = words.pop(0).lower()  # NOTE: remaining words are all args
 
     if _string_included(command, allowed_commands):
         proto_args = prototype[command]
         given_args = words
-
         need_len = len(list(proto_args.keys()))
         have_len = len(given_args)
 
@@ -112,7 +114,7 @@ def select(options):
         elif command in BACK_KEYWORDS:
             return Response(BACK_CODE)
         elif command in HELP_KEYWORDS:
-            hint(options)
+            show(options)  # TODO: polish and make pretty
             return Response(None)
         elif command in CLEAR_KEYWORDS:
             clear()
@@ -184,7 +186,7 @@ def english(stuff):
         _mprint("[malt] can not english-ify a non list")
         return stuff
 
-
+@contextmanager
 def indent():
     """Increase the global indentation value by one.
 
@@ -195,16 +197,10 @@ def indent():
     """
     global INDENT
     INDENT = INDENT+1
-
-
-def undent():
-    """Decrease the global indentation value by one.
-
-    Like indent(), the value is independent of actual characters printed to
-    the screen. Guards against lower-than-zero indentation.
-    """
-    global INDENT
-    INDENT = max(INDENT-1, 0)
+    try:
+        yield
+    finally:
+        INDENT = max(INDENT-1, 0)
 
 
 def confirm(silent=False):
@@ -269,14 +265,13 @@ def _show_list(stuff, nl, slow):
 
     # Item Style
     else:
-        indent()
-        for thing in stuff:
-            if not FRESH_LINE:
-                _mprint()
-            _mprint(LIST_TICK, nl=False)
-            _mprint(thing)
-            sleep(slow)
-        undent()
+        with indent():
+            for thing in stuff:
+                if not FRESH_LINE:
+                    _mprint()
+                _mprint(LIST_TICK, nl=False)
+                _mprint(thing)
+                sleep(slow)
 
 
 def _show_dict(stuff, nl, slow):
@@ -287,12 +282,11 @@ def _show_dict(stuff, nl, slow):
     """
 
     _mprint("{")
-    indent()
-    for (key, value) in stuff.items():
-        _mprint("{}: ".format(key), nl=False)
-        show(value)
-        sleep(slow)
-    undent()
+    with indent():
+        for (key, value) in stuff.items():
+            _mprint("{}: ".format(key), nl=False)
+            show(value)
+            sleep(slow)
     _mprint("}")
 
 
