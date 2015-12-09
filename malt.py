@@ -56,9 +56,17 @@ AFFIRM_KEYWORDS = ["yes", "y", "ok", "sure", "hell yes"]
 NEGATE_KEYWORDS = ['no', 'n']
 
 
-# could create prototype automatically?
-# what if the return was a complex object, where if you tried to match it
-# directly, it would just return the right thing?
+class Response(object):
+    def __init__(self, command=None, args=None):
+        self.action = command
+        if args is not None:
+            for (key, value) in args:
+                self.__dict__[key] = value
+
+    def __eq__(self, string):
+        return string == self.action
+
+
 def select(options):
     """Take user input and return it only if it matches a given set of options.
 
@@ -82,26 +90,52 @@ def select(options):
         raise ValueError(
             "select requires a list of options (use freeform for raw text)")
 
-    string = _prompt()
-    if _string_in_options(string, options):
-        return string.lower()
+    prototype = _parse_options(options)
+    allowed_commands = list(prototype.keys())
+
+    words = [w.strip() for w in _prompt().split()]
+    command = words.pop(0).lower()  # NOTE: remaining words are all args
+
+    if _string_included(command, allowed_commands):
+        proto_args = prototype[command]
+        given_args = words
+
+        need_len = len(list(proto_args.keys()))
+        have_len = len(given_args)
+
+        if need_len > have_len:
+            show("[malt] missing arguments")
+            return Response(None)
+        elif need_len < have_len:
+            show("[malt] too many arguments")
+            return Response(None)
+
+        try:
+            valid_args = _validate_args(proto_args, given_args)
+        except ValueError:
+            show("[malt] invalid argument type")
+            return Response(None)
+        else:
+            return Response(command, valid_args)
 
     # Only try builtins if the string has not already been matched.
-    elif BUILT_IN_FUNCTIONS and _string_in_builtins(string):
-        if string in EXIT_KEYWORDS:
+    # XXX: built ins ignore extra arguments
+    elif BUILT_IN_FUNCTIONS:
+        if command in EXIT_KEYWORDS:
             if THROW_EXIT_EXCEPTIONS:
                 raise SystemExit()
             else:
-                return EXIT_CODE
-        elif string in BACK_KEYWORDS:
-            return BACK_CODE
-        elif string in HELP_KEYWORDS:
+                return Response(EXIT_CODE)
+        elif command in BACK_KEYWORDS:
+            return Response(BACK_CODE)
+        elif command in HELP_KEYWORDS:
             hint(options)
-        elif string in CLEAR_KEYWORDS:
+            return Response(None)
+        elif command in CLEAR_KEYWORDS:
             clear()
-    else:
-        show("[malt] unknown keyword")
-        return None
+            return Response(None)
+    show("[malt] unknown keyword")
+    return Response(None)
 
 
 def _prompt():
@@ -109,61 +143,19 @@ def _prompt():
     return _minput().strip()
 
 
-def _string_in_options(string, options):
+def _string_included(string, options):
     """Evaluate if a string is in a list regardless of case or whitespace."""
     return string.strip().lower() in [o.strip().lower() for o in options]
 
 
-def _string_in_builtins(string):
-    """Evaluate if a string is in any list of accepted built-in keywords."""
-    return _string_in_options(string,
-        HELP_KEYWORDS+CLEAR_KEYWORDS+BACK_KEYWORDS+EXIT_KEYWORDS)
-
-
-# NOTE: the name is still up for tweaking
-def complex_select(options):
-
-    # XXX: what happens if given a list of numbers?
-    empty_response = { 'action': None }
-    string = prompt()
-
-    prototype = _ultra_parse(options)
-    options = list(prototype.keys())
-
-    words = [w.strip() for w in string.split()]
-    head = words[0]
-    tail = words[1:]
-
-    if _string_in_options(head, options):
-        if _verify_arguments(tail, prototype):
-            argvalues = get_args(words, prototype)
-            response = { k:v for k, v in argvalues.items() }
-            response['action'] = head
-        else:
-            response = empty_response
-
-        return response
-
-    elif BUILT_IN_FUNCTIONS and _string_in_builtins(head, options):
-        if string in EXIT_KEYWORDS:
-            if THROW_EXIT_EXCEPTIONS:
-                raise SystemExit()
-            else:
-                return EXIT_CODE
-        elif string in BACK_KEYWORDS:
-            return BACK_CODE
-        elif string in HELP_KEYWORDS:
-            hint(options)
-        elif string in CLEAR_KEYWORDS:
-            clear()
-    else:
-        show("[malt] unknown keyword")
-        return empty_response
+def _validate_args(proto, given):
+    # we're assuming the two lists are lined up in the correct order
+    return [(name, cast(given.pop(0))) for name, cast in proto.items()]
 
 
 # TODO: clean up
 # ex: ['add name val:int', 'remove name']
-def _ultra_parse(arguments):
+def _parse_options(arguments):
     struct = OrderedDict()
     # for option?
     for arg in arguments:

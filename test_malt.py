@@ -105,3 +105,9 @@ def test_complex_match_failed_cast():
     response = malt._match_complex_options(args, prototype)
     assert response == { 'action': None }
 # maybe watch out for duplicates too (like "name name string")
+
+def test_validate_args():
+    given_args = ['John', '10']
+    proto_args = {'name':str, 'num':int}
+    valid_args = malt._validate_args(proto_args, given_args)
+    assert valid_args == ['John', 10]
