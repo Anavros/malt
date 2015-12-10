@@ -203,7 +203,7 @@ def indent():
         INDENT = max(INDENT-1, 0)
 
 
-def confirm(silent=False):
+def confirm(prompt="[malt] confirm? "):
     """Receive a yes or no answer from the user.
 
     Loops until a yes or no has been given. Does not accept unknown input to
@@ -211,8 +211,7 @@ def confirm(silent=False):
     confirm() does not print its prompt.
     """
     while True:
-        if not silent:
-            show("[malt] confirm? ", nl=False)
+        show(prompt, nl=False)
         key = _minput().strip().lower()
         if key in AFFIRM_KEYWORDS:
             return True
