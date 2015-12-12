@@ -85,7 +85,7 @@ def select(options):
     if _string_included(command, allowed_commands):
         proto_args = prototype[command]
         given_args = words
-        need_len = len(list(proto_args.keys()))
+        need_len = len(proto_args)
         have_len = len(given_args)
 
         if need_len > have_len:
@@ -325,42 +325,33 @@ def _string_included(string, options):
 
 def _validate_args(proto, given):
     # we're assuming the two lists are lined up in the correct order
-    return [(name, cast(given.pop(0))) for name, cast in proto.items()]
+    return [(name, cast(given.pop(0))) for name, cast in proto]
 
 
-# TODO: clean up
-# ex: ['add name val:int', 'remove name']
-def _parse_options(arguments):
-    struct = OrderedDict()
-    # for option?
-    for arg in arguments:
-        # ex: 'add name val:int'
-        argparts = arg.strip().lower().split()
-        action = argparts.pop(0)
-        if ':' in action:
+def _parse_options(option_list):
+    prototype = {}
+    for option in option_list:
+        words = option.strip().lower().split()
+        command = words.pop(0)
+        if ':' in command:
             raise ValueError("option badly formatted (do not type first arg)")
 
-        struct[action] = {}
-        for part in argparts:
-            # ex: 'val:int'
-            part = part.strip()
-            pieces = part.split(':')
-            if len(pieces) == 1:
-                (part_name, part_type) = (part, 'str')
-            elif len(pieces) == 2:
-                (part_name, part_type) = part.split(':')
-            else:
-                raise ValueError("option badly formatted (name or name:type)")
+        prototype[command] = _parse_arg_list(words)
+    return _replace_casts(prototype)
 
-            struct[action][part_name] = part_type
 
-    #show(struct)
-    return _replace_casts(struct)
+def _parse_arg_list(words):
+    proto_args = []
+    for word in words:
+        if len(word.split(':')) == 1:
+            word = word + ':str'
+        proto_args.append(word.split(':'))
+    return proto_args
 
 
 def _replace_casts(argdict):
     for (action, args) in argdict.items():
-        argdict[action] = { n:_string_to_type(s) for n, s in args.items() }
+        argdict[action] = [ (n, _string_to_type(s)) for n, s in args ]
     return argdict
 
 
