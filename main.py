@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-import malt
+import gmalt as malt
+
+USE_GUI = True
 
 
 def main():
-    #malt.show("Enter your name.")
-    #name = malt.freeform()
     options = ["add n:int", "subtract", "halve", "double"]
     while True:
         response = malt.select(options) 
@@ -50,4 +50,6 @@ def display():
     pass
 
 if __name__ == "__main__":
+    if USE_GUI:
+        malt.init_gui()
     main()
