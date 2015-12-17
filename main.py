@@ -4,7 +4,7 @@ import malt
 
 
 def main():
-    options = ["add n:int", "subtract", "halve", "double"]
+    options = ["add n:int", "subtract", "halve", "double", "echo string"]
     while True:
         response = malt.select(options) 
         if response == malt.BACK_CODE:
@@ -25,6 +25,9 @@ def main():
             malt.show("This is a really, really, really long string that I want to "
             + "print out to the console and honestly I'm not sure just how long I can "
             + "make this thing.")
+
+        elif response == "echo":
+            malt.show(response.string)
 
 
 def register():

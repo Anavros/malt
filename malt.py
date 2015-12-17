@@ -33,7 +33,7 @@ PAUSE = "... "
 INDENT = 0
 MAX_INDENT = 4
 INDENT_WIDTH = 2
-MAX_LINE_WIDTH = 20
+MAX_LINE_WIDTH = 80
 FRESH_LINE = True
 
 # Select() Codes
@@ -132,8 +132,6 @@ def freeform(prompt=PROMPT):
 
 
 # TODO: add color support
-# TODO: allow multiple args like print()
-# TODO: add special display for empty string
 # NOTE: messes up on OrderedDict
 def show(stuff='', nl=True):
     """Print stuff on the console with smart type formatting.
@@ -148,14 +146,17 @@ def show(stuff='', nl=True):
     """
 
     stuff_t = type(stuff)
-    if stuff_t is list or stuff_t is set:
+    if stuff_t in [list, set, frozenset]:
         _show_list(stuff, nl)
     elif stuff_t is dict:
         _show_dict(stuff, nl)
     elif hasattr(stuff, '__dict__'):
         show(stuff.__dict__)
-    else:
+    elif stuff_t in [str, int, float, bin, oct]:
         _mprint(stuff, nl)
+    else:
+        show("[malt] unhandled show type")
+        print(stuff, nl)
 
 
 # TODO: rename
@@ -243,29 +244,28 @@ def clear():
 class Response(object):
     """..."""
     def __init__(self, command=None, args=None):
-        self.action = command
+        self.command = command
         if args is not None:
             for (key, value) in args:
                 self.__dict__[key] = value
 
     def __eq__(self, string):
-        return string == self.action
+        return string == self.command
 
 
 def _show_list(stuff, nl):
     """Display a list as a series of newline-separated ticks."""
-    length = len(stuff)
-    if length < 1:
-        _mprint("(empty list)")
 
-    # Item Style
-    else:
-        with indent():
-            for thing in stuff:
-                if not FRESH_LINE:
-                    _mprint()
-                _mprint(LIST_TICK, nl=False)
-                _mprint(thing)
+    if len(stuff) < 1:
+        _mprint("(empty list)")
+        return
+
+    with indent():
+        for thing in stuff:
+            if not FRESH_LINE:
+                _mprint()
+            _mprint(LIST_TICK, nl=False)
+            _mprint(thing)
 
 
 def _show_dict(stuff, nl):
@@ -274,11 +274,14 @@ def _show_dict(stuff, nl):
     Every value is fed back through show() recursively to recieve the right
     formatting regardless of type.
     """
+    if len(stuff.items()) < 1:
+        _mprint("(empty dict)")
+        return
 
     _mprint("{")
     with indent():
         for (key, value) in stuff.items():
-            _mprint("{}: ".format(key), nl=False)
+            _mprint("{0}: ".format(key), nl=False)
             show(value)
     _mprint("}")
 
@@ -299,6 +302,7 @@ def _mprint(string='', nl=True):
         already_printed = len(indentation)
         print(indentation, end='')
 
+    string = str(string)  # cast ints and anything else just to make sure
     end_char = '\n' if nl else ''
 
     # Wrap the line via recursion if it is too long.
