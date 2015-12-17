@@ -207,8 +207,7 @@ def confirm(prompt="[malt] confirm? "):
     """Receive a yes or no answer from the user.
 
     Loops until a yes or no has been given. Does not accept unknown input to
-    prevent accidental typing errors from causing problems. If silent,
-    confirm() does not print its prompt.
+    prevent accidental typing errors from causing problems.
     """
     while True:
         show(prompt, nl=False)
@@ -237,6 +236,7 @@ def clear():
     """Clear the screen.
 
     Multiplatform support not yet implemented.
+    os.system('cls if os.something=='nt' etc etc)
     """
 
     call(["clear"])
