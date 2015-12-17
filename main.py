@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-import gmalt as malt
-
-USE_GUI = True
+import malt
 
 
 def main():
@@ -24,7 +22,9 @@ def main():
             pass
 
         elif response == "double":
-            pass
+            malt.show("This is a really, really, really long string that I want to "
+            + "print out to the console and honestly I'm not sure just how long I can "
+            + "make this thing.")
 
 
 def register():
@@ -50,6 +50,4 @@ def display():
     pass
 
 if __name__ == "__main__":
-    if USE_GUI:
-        malt.init_gui()
     main()

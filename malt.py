@@ -12,7 +12,6 @@ convienience functions, like printing help messages and clearing the screen.
 # import readline  # TODO: improve command history
 from time import sleep
 from subprocess import call
-from collections import OrderedDict
 from contextlib import contextmanager
 
 # TODO: separate show function/option to set level of importance
@@ -34,9 +33,8 @@ PAUSE = "... "
 INDENT = 0
 MAX_INDENT = 4
 INDENT_WIDTH = 2
+MAX_LINE_WIDTH = 20
 FRESH_LINE = True
-
-MAX_TERM_WIDTH = 80  # TODO
 
 # Select() Codes
 EXIT_CODE = 'malt-exit'
@@ -134,11 +132,10 @@ def freeform(prompt=PROMPT):
 
 
 # TODO: add color support
-# TODO: prevent output from passing 80 chars
 # TODO: allow multiple args like print()
 # TODO: add special display for empty string
 # NOTE: messes up on OrderedDict
-def show(stuff='', nl=True, slow=0):
+def show(stuff='', nl=True):
     """Print stuff on the console with smart type formatting.
 
     Mainly a wrapper around print() to provide extra features that are helpful
@@ -148,18 +145,17 @@ def show(stuff='', nl=True, slow=0):
     Optional Arguments:
         -> stuff (default=''): the data to be printed (type will be detected)
         -> nl (default=True): to print or not to print a newline
-        -> slow (default=0): the delay in seconds between printing chars
     """
 
     stuff_t = type(stuff)
     if stuff_t is list or stuff_t is set:
-        _show_list(stuff, nl, slow)
+        _show_list(stuff, nl)
     elif stuff_t is dict:
-        _show_dict(stuff, nl, slow)
+        _show_dict(stuff, nl)
     elif hasattr(stuff, '__dict__'):
         show(stuff.__dict__)
     else:
-        _mprint(stuff, nl, slow)
+        _mprint(stuff, nl)
 
 
 # TODO: rename
@@ -256,7 +252,7 @@ class Response(object):
         return string == self.action
 
 
-def _show_list(stuff, nl, slow):
+def _show_list(stuff, nl):
     """Display a list as a series of newline-separated ticks."""
     length = len(stuff)
     if length < 1:
@@ -270,10 +266,9 @@ def _show_list(stuff, nl, slow):
                     _mprint()
                 _mprint(LIST_TICK, nl=False)
                 _mprint(thing)
-                sleep(slow)
 
 
-def _show_dict(stuff, nl, slow):
+def _show_dict(stuff, nl):
     """Display dictionaries as key: value pairs.
 
     Every value is fed back through show() recursively to recieve the right
@@ -285,30 +280,45 @@ def _show_dict(stuff, nl, slow):
         for (key, value) in stuff.items():
             _mprint("{}: ".format(key), nl=False)
             show(value)
-            sleep(slow)
     _mprint("}")
 
 
-def _mprint(string='', nl=True, slow=0):
+def _mprint(string='', nl=True):
     """Print output to the console with extra functionality.
 
-    Provides support for indentation and slowed printing. Every call should go
+    Provides support for indentation and line truncation. Every call should go
     through _mprint() as it will ensure indentation will always be correct.
     """
-    global FRESH_LINE
+    global FRESH_LINE, MAX_LINE_WIDTH
+    global INDENT, MAX_INDENT, INDENT_WIDTH
+    already_printed = 0
+
+    # Add indentation to the beginning of every new line.
     if FRESH_LINE:
         indentation = ' '*min(INDENT, MAX_INDENT)*INDENT_WIDTH
+        already_printed = len(indentation)
         print(indentation, end='')
+
     end_char = '\n' if nl else ''
 
-    if slow > 0:
-        for char in string:
-            print(char)
-            sleep(slow)
-        print('', end=end_char, flush=True)
+    # Wrap the line via recursion if it is too long.
+    if already_printed + len(string) > MAX_LINE_WIDTH:
+        remaining = MAX_LINE_WIDTH-already_printed
+        cut = MAX_LINE_WIDTH  # not 0 to prevent infinite loops on long words
+        # should get the whitespace closest to the maximum allowed length
+        for i in range(remaining):
+            if string[i].isspace():
+                cut = i
+        print(string[:cut], end='\n')
+        FRESH_LINE = True
+        _mprint(string[cut:].strip(), nl)
     else:
         print(string, end=end_char)
+
+    # The next line will be 'fresh' if it follows a newline.
+    # NOTE: maybe this *variable* should not be all caps like a constant
     FRESH_LINE = nl
+
 
 
 def _minput():
