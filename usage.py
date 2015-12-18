@@ -23,7 +23,7 @@ while True:
     # conditional tree and go right back up to the top.
     # This way you will never get bad, partially-completed input.
     # You don't even need to worry about type checking.
-    response = malt.select(options)
+    response = malt.select(user_options)
 
     # Once you have your response, you can check it against each option from
     # the original list. The response behaves like a string in equality checks,
@@ -35,7 +35,7 @@ while True:
         # 'response' behaves like a string in equality checks, but it is 
         # actually a complex data type. It stores any additional parameters
         # that you've asked for, which are accessible by dot notation.
-        num_copies = response.n
+        num_copies = response.copies
         price_per = 0.0
 
         malt.show("That will be ${0}.".format(num_copies*price_per))
@@ -47,7 +47,6 @@ while True:
         # There is no need to error check; when you pass in a string parameter,
         # like "buy copies:int", you are guaranteed that 'response' will have
         # a parameter named 'copies' and that 'copies' will be an int.
-        n += 4  # Typesafe!
 
     elif response == 'complain':
         malt.show("What exactly are you having trouble with?")

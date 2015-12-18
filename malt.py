@@ -10,7 +10,6 @@ convienience functions, like printing help messages and clearing the screen.
 """
 
 # import readline  # TODO: improve command history
-from time import sleep
 from subprocess import call
 from contextlib import contextmanager
 
