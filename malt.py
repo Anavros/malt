@@ -111,7 +111,7 @@ def select(options):
         elif command in BACK_KEYWORDS:
             return Response(BACK_CODE)
         elif command in HELP_KEYWORDS:
-            show(options)  # TODO: polish and make pretty
+            _help(options)
             return Response(None)
         elif command in CLEAR_KEYWORDS:
             clear()
@@ -339,6 +339,26 @@ def _string_included(string, options):
 def _validate_args(proto, given):
     # we're assuming the two lists are lined up in the correct order
     return [(name, cast(given.pop(0))) for name, cast in proto]
+
+
+# TODO: refactor with parsing functions
+def _help(options):
+    with indent():
+        show("[malt] Available Commands:")
+        for string in options:
+            words = string.split()
+            command = words.pop(0)
+            _mprint("- {} ".format(command), nl=False)
+            for arg in words:
+                parts = arg.split(':')
+                if len(parts) == 2:
+                    name = parts[0]
+                    cast = parts[1]
+                elif len(parts) == 1:
+                    name = parts[0]
+                    cast = 'str'
+                _mprint("[{} {}]".format(cast, name), nl=False)
+            _mprint()
 
 
 def _parse_options(option_list):

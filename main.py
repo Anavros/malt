@@ -4,7 +4,7 @@ import malt
 
 
 def main():
-    options = ["add n:int", "subtract", "halve", "double", "echo string"]
+    options = ["add n:int m:int", "subtract", "halve", "double", "echo string"]
     while True:
         response = malt.select(options) 
         if response == malt.BACK_CODE:
@@ -13,7 +13,7 @@ def main():
                 return
 
         elif response == "add":
-            malt.show(response.n)
+            malt.show(response.n + response.m)
 
         elif response == "subtract":
             malt.show("---")
