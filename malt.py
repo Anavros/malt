@@ -9,33 +9,23 @@ enters bad input, it is not returned. select() also implements a few common
 convienience functions, like printing help messages and clearing the screen.
 """
 
-# import readline  # TODO: improve command history
-from subprocess import call
-from contextlib import contextmanager
+# TODO:
+# import logging
 import os
+from contextlib import contextmanager
 
-# TODO: separate show function/option to set level of importance
-# so you can set a debug flag to mask level x and below
-# or, you know, proper logging
-
-# Global Options
-THROW_EXIT_EXCEPTIONS = True    # raise SystemExit on exit keyword
-BUILT_IN_FUNCTIONS = True       # use built-in funcs if input does not match
-
-# Default Markings
-# These can be set by the client program if desired.
+RAISE_SYSTEM_EXIT = True
+AUTOCLEAR = False
 PREFIX = "[malt] "
-
-# Indentation Settings
-INDENT = 0
 MAX_INDENT = 4
 INDENT_WIDTH = 2
-MAX_LINE_WIDTH = 80  # overflow
-#OVERFLOW = 80
-# constant for height
-FRESH_LINE = True  # XXX shouldn't be a global (and def not all caps)
 
-BACK_CODE = 'temp'
+_indent = 0
+_fresh_line = True  # XXX shouldn't be a global (and def not all caps)
+
+OVERFLOW = 80
+# constant for height
+# Sink depth? rinse depth, soak length?
 
 # NOTE: Theme Words:
 # response, answer, extract, fill, supply, satisfy, overflow, flow, pour,
@@ -66,13 +56,19 @@ def fill(options):
     """
 
     if not options or type(options) is not list:
-        raise ValueError(
-            "select requires a list of options (use freeform() for raw text)")
+        raise ValueError("A list of options is required.")
 
     prototype = _parse_options(options)
     allowed_commands = list(prototype.keys())
 
+    if AUTOCLEAR:
+        _mprint("="*(OVERFLOW-(_indent*INDENT_WIDTH)))
+
     words = [w.strip() for w in freefill().split()]
+
+    if AUTOCLEAR:
+        rinse()
+
     if len(words) < 1:
         return Response(None)
     command = words.pop(0).lower()  # NOTE: remaining words are all args
@@ -100,20 +96,17 @@ def fill(options):
 
     # Only try builtins if the string has not already been matched.
     # XXX: built ins ignore extra arguments
-    elif BUILT_IN_FUNCTIONS:
-        if command == 'quit':
-            if THROW_EXIT_EXCEPTIONS:
-                raise SystemExit()
-            else:
-                return Response('quit')
-        elif command == 'back':
-            return Response('back')
-        elif command == 'help':
-            _help(options)
-            return Response(None)
-        elif command == 'clear':
-            rinse()
-            return Response(None)
+    elif command == 'help':
+        _help(options)
+        return Response(None)
+    elif command == 'clear':
+        rinse()
+        return Response(None)
+    elif command == 'quit':
+        if RAISE_SYSTEM_EXIT:
+            raise SystemExit()
+        else:
+            return Response('quit')
     serve(PREFIX + "unknown keyword")
     return Response(None)
 
@@ -164,7 +157,7 @@ def serve(output='', nl=True):
         _mprint('[', nl=output)
         with indent():
             for i, item in enumerate(output):
-                if not FRESH_LINE:
+                if not _fresh_line:
                     _mprint()
                 #_mprint(LIST_TICK, nl=False)
                 _mprint("[{}] ".format(i), nl=False)
@@ -205,12 +198,12 @@ def indent():
     to indent() do not need to worry about spacing or going over maximum line
     width. Calling malt.indent() is all that is needed.
     """
-    global INDENT
-    INDENT = INDENT+1
+    global _indent
+    _indent = _indent+1
     try:
         yield
     finally:
-        INDENT = max(INDENT-1, 0)
+        _indent = max(_indent-1, 0)
 
 
 def confirm(prompt=PREFIX + "confirm? "):
@@ -230,6 +223,17 @@ def confirm(prompt=PREFIX + "confirm? "):
             serve(PREFIX + "unknown keyword (use 'yes' or 'no')")
             serve()
             continue
+
+
+# TODO: name needs some thinking
+def prepare_stockpile(filename):
+    """Set up a log file for malt.stash() to use."""
+    pass
+
+
+def stash(message, level=0):
+    """Print a message to a log file."""
+    pass
 
 
 # XXX Temporary Redirection
@@ -254,8 +258,10 @@ def clear():
 # if we switch to newlines then yes
 def rinse():
     """Clear the screen."""
-    os.system("cls" if os.name == "nt" else "clear")
-    #print('\n'*120)
+    if not AUTOCLEAR:
+        os.system("cls" if os.name == "nt" else "clear")
+    else:
+        print('\n'*120)
 
 ### INTERNAL UTILITIES ### These should have their own module but I want
 ########################## to fit malt into a single file!
@@ -279,13 +285,13 @@ def _mprint(string='', nl=True):
     Provides support for indentation and line truncation. Every call should go
     through _mprint() as it will ensure indentation will always be correct.
     """
-    global FRESH_LINE, MAX_LINE_WIDTH
-    global INDENT, MAX_INDENT, INDENT_WIDTH
+    global _fresh_line, OVERFLOW
+    global _indent, MAX_INDENT, INDENT_WIDTH
     already_printed = 0
 
     # Add indentation to the beginning of every new line.
-    if FRESH_LINE:
-        indentation = ' '*min(INDENT, MAX_INDENT)*INDENT_WIDTH
+    if _fresh_line:
+        indentation = ' '*min(_indent, MAX_INDENT)*INDENT_WIDTH
         already_printed = len(indentation)
         print(indentation, end='')
 
@@ -293,29 +299,29 @@ def _mprint(string='', nl=True):
     end_char = '\n' if nl else ''
 
     # Wrap the line via recursion if it is too long.
-    if already_printed + len(string) > MAX_LINE_WIDTH:
-        remaining = MAX_LINE_WIDTH-already_printed
-        cut = MAX_LINE_WIDTH  # not 0 to prevent infinite loops on long words
+    if already_printed + len(string) > OVERFLOW:
+        remaining = OVERFLOW-already_printed
+        cut = OVERFLOW  # not 0 to prevent infinite loops on long words
         # should get the whitespace closest to the maximum allowed length
         for i in range(remaining):
             if string[i].isspace():
                 cut = i
         print(string[:cut], end='\n')
-        FRESH_LINE = True
+        _fresh_line = True
         _mprint(string[cut:].strip(), nl)
     else:
         print(string, end=end_char)
 
     # The next line will be 'fresh' if it follows a newline.
     # NOTE: maybe this *variable* should not be all caps like a constant
-    FRESH_LINE = nl
+    _fresh_line = nl
 
 
 
 def _minput():
     """Wrapper for input() to help provide indentation support."""
-    global FRESH_LINE
-    FRESH_LINE = True
+    global _fresh_line
+    _fresh_line = True
     return input()
 
 

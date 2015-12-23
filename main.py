@@ -6,7 +6,7 @@ def main():
     options = ["add n:int m:int", "subtract", "halve", "double", "echo string"]
     while True:
         response = malt.select(options) 
-        if response == malt.BACK_CODE:
+        if response == 'back':
             malt.show("Are you sure you would like to exit?")
             if malt.confirm():
                 return
@@ -18,7 +18,15 @@ def main():
             malt.show("---")
 
         elif response == "halve":
-            pass
+            with malt.indent():
+                malt.serve("I'm indented!")
+                malt.fill(['test'])
+                with malt.indent():
+                    malt.serve("Me too!")
+                    malt.fill(['test'])
+                    with malt.indent():
+                        malt.serve("That makes three of us!")
+                        malt.fill(['test'])
 
         elif response == "double":
             malt.show("This is a really, really, really long string that I want to "
@@ -52,4 +60,10 @@ def display():
     pass
 
 if __name__ == "__main__":
+    malt.AUTOCLEAR = True
+    malt.INDENT_WIDTH = 4
+    malt.PREFIX = '[main] '
+    malt.OVERFLOW = 40
+    malt.rinse()
     main()
+    malt.rinse()
