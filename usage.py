@@ -9,7 +9,11 @@
 
 import malt
 
-user_options = ['try', 'buy copies:int', 'complain']
+options = [
+    'try',
+    'buy copies:int',
+    'complain',
+]
 
 # Menus are usually orgainized into loops.
 # The user can take as much time as they need to enter good commands: all input
@@ -23,7 +27,7 @@ while True:
     # conditional tree and go right back up to the top.
     # This way you will never get bad, partially-completed input.
     # You don't even need to worry about type checking.
-    response = malt.select(user_options)
+    response = malt.fill(user_options)
 
     # Once you have your response, you can check it against each option from
     # the original list. The response behaves like a string in equality checks,

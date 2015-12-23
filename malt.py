@@ -32,14 +32,14 @@ PAUSE = "... "
 INDENT = 0
 MAX_INDENT = 4
 INDENT_WIDTH = 2
-MAX_LINE_WIDTH = 80
-FRESH_LINE = True
+MAX_LINE_WIDTH = 80  # overflow
+FRESH_LINE = True  # XXX shouldn't be a global (and def not all caps)
 
-# Select() Codes
+# Select() Codes  # XXX consider removing
 EXIT_CODE = 'malt-exit'
 BACK_CODE = 'malt-back'
 
-# Keyword Sets
+# Keyword Sets XXX consider reducing to one keyword each
 HELP_KEYWORDS = ['help', 'options', 'commands']
 EXIT_KEYWORDS = ['exit', 'quit', 'abandon']
 BACK_KEYWORDS = ['back', 'return', 'done', 'finished']
@@ -47,8 +47,16 @@ CLEAR_KEYWORDS = ['clear', 'clean', 'cls']
 AFFIRM_KEYWORDS = ["yes", "y", "ok", "sure", "hell yes"]
 NEGATE_KEYWORDS = ['no', 'n']
 
+# NOTE: Theme Words:
+# response, answer, extract, fill, supply, satisfy, overflow, flow, pour,
+# glass, provide, dispense, serve,
 
+# XXX Temporary Redirection
 def select(options):
+    return fill(options)
+
+
+def fill(options):
     """Take user input and return it only if it matches a given set of options.
 
     If input is not in options, return None instead. This makes the return
@@ -121,6 +129,9 @@ def select(options):
 
 
 def freeform(prompt=PROMPT):
+    return freefill(prompt)
+
+def freefill(prompt="> "):
     """Get an unmodified string from the user.
 
     Input is taken through _minput() so indentation is preserved, and stripped
@@ -130,9 +141,13 @@ def freeform(prompt=PROMPT):
     return _minput().strip()
 
 
+# XXX Temporary Redirection
+def show(stuff='', nl=True):
+    return serve(stuff, nl)
+
 # TODO: add color support
 # NOTE: messes up on OrderedDict
-def show(stuff='', nl=True):
+def serve(output='', nl=True):
     """Print stuff on the console with smart type formatting.
 
     Mainly a wrapper around print() to provide extra features that are helpful
@@ -144,43 +159,19 @@ def show(stuff='', nl=True):
         -> nl (default=True): to print or not to print a newline
     """
 
-    stuff_t = type(stuff)
-    if stuff_t in [list, set, frozenset]:
-        _show_list(stuff, nl)
-    elif stuff_t is dict:
-        _show_dict(stuff, nl)
-    elif hasattr(stuff, '__dict__'):
-        show(stuff.__dict__)
-    elif stuff_t in [str, int, float, bin, oct]:
-        _mprint(stuff, nl)
+    cast = type(output)
+    if cast in [list, set, frozenset]:
+        _show_list(output, nl)
+    elif cast is dict:
+        _show_dict(output, nl)
+    elif hasattr(output, '__dict__'):
+        serve(output.__dict__)
+    elif cast in [str, int, float, bin, oct]:
+        _mprint(output, nl)
     else:
-        show("[malt] unhandled show type")
-        print(stuff, nl)
+        serve("[malt] unhandled serve type")
+        print(output, nl)
 
-
-# TODO: rename
-def english(stuff):
-    """Compile a list into a string where every element is wrapped in single
-    quotes and written out in sentence form.
-
-    Example:
-        english(['spam', 'spam', 'eggs']) -> \"'spam', 'spam', and 'eggs'\"
-    """
-    if type(stuff) is list:
-        length = len(stuff)
-        qt_stuff = ["'{}'".format(thing) for thing in stuff]
-
-        # Use different formatting for different length lists.
-        if length == 1:
-            final = "only " + qt_stuff[0]
-        elif length == 2:
-            final = qt_stuff[0] + " and " + qt_stuff[1]
-        elif length >= 3:
-            final = ', '.join(qt_stuff[:-1]) + ", and " + qt_stuff[-1]
-        return final
-    else:
-        _mprint("[malt] can not english-ify a non list")
-        return stuff
 
 @contextmanager
 def indent():
@@ -218,7 +209,11 @@ def confirm(prompt="[malt] confirm? "):
             continue
 
 
+# XXX Temporary Redirection
 def pause():
+    return savor()
+
+def savor():
     """Pause for dramatic effect.
 
     Displays a small string defined in PAUSE and waits until the user hits
@@ -228,7 +223,11 @@ def pause():
     _minput()
 
 
+# XXX Temporary Redirection
 def clear():
+    return rinse()
+
+def rinse():
     """Clear the screen.
 
     Multiplatform support not yet implemented.
@@ -240,6 +239,7 @@ def clear():
 ### INTERNAL UTILITIES ### These should have their own module but I want
 ########################## to fit malt into a single file!
 
+# ideas: glass, brew
 class Response(object):
     """..."""
     def __init__(self, command=None, args=None):

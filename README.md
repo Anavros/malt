@@ -2,37 +2,41 @@
 # malt
 a tiny toolkit for making simple interactive text loops
 
-## usage
+## Purpose
+Malt provides a set of tools to help deal with common problems when building
+interactive loops on the command prompt.
+
+## Usage
 
 ```python
 import malt
 
-while 1:
-    response = malt.select(['try', 'buy n:int', 'complain'])
+while True:
+    glass = malt.fill(['try', 'buy n:int', 'complain'])
 
-    if response == 'try':
+    if glass == 'try':
         with malt.indent():
-            malt.show("Try it, you'll like it!")
+            malt.serve("Try it, you'll like it!")
 
-    elif response == 'buy':
+    elif glass == 'buy':
         num_copies = response.n
         price_per = 0.0
 
-        malt.show("That will be ${0}.".format(num_copies*price_per))
+        malt.serve("That will be ${0}.".format(num_copies*price_per))
         if malt.confirm("Is that ok? "):
-            malt.show("You have purchased {0} copies of this software.".format(num_copies))
+            malt.serve("You have purchased {0} copies of this software.".format(num_copies))
         else:
-            malt.show("Come back later; we are having a sale.")
+            malt.serve("Come back later; we are having a sale.")
 
-    elif response == 'complain':
-        malt.show("What exactly are you having trouble with?")
+    elif glass == 'complain':
+        malt.serve("What exactly are you having trouble with?")
         with malt.indent():
-            complaint = malt.freeform()
-        malt.show("I see, you're having trouble with {0}.".format(complaint))
-        malt.show("I'll send that right in and have a look at it soon.")
+            complaint = malt.freefill()
+        malt.serve("I see, you're having trouble with {0}.".format(complaint))
+        malt.serve("I'll send that right in and have a look at it soon.")
         del complaint
 
-    elif response == malt.BACK_CODE:
+    elif glass == malt.BACK_CODE:
         if malt.confirm("Are you sure you want to exit? "):
             break
         else:
@@ -40,6 +44,8 @@ while 1:
 ```
 
 ## Reasoning
+TODO: all this nonsense
+
 Malt provides a delectable set of tools that make designing keyword-based 
 interactive menus fast and easy.
 
@@ -81,26 +87,36 @@ Malt is especially good for prototyping simplified versions of more complex
 games or applications. Its stripped-down philosophy leads to straightforward
 and simple code and fast to develop interfaces.
 
-## Details
-select
-confirm
-indent
-show
+
+## Tools
+* `fill`: Provide a list of options and in return get the user's choice.
+* `freefill`: Get an unprocessed string from the user.
+* `serve`: Display a message (print with extra functionality).
+* `confirm`: Ask a yes or no question and receive a boolean.
+* `indent`: Increase the indentation of the output (used as a contextmanager).
+* `savor`: Pause for a moment and let everyone process their thoughts.
+* `rinse`: Clear the screen and start anew with a fresh prompt.
+
+### Features
+* Input Verification
+* Built-in Common Functions
+* Flow Control
 
 ### options
-built-in option handling
-keywords
-indentation settings
-codes
+See [DETAILS](DETAILS.md) for information on specific features.
 
-### importing into a project
-no official build system yet
-just drag and drop
 
-## Questions
-will malt buy my groceries for me?
+## Installation
+Malt keeps it simple. Drag and drop `malt.py` into your project directory and
+`import malt`.
 
-### contact/contributions/concerns
-Malt was written by John Dobbs and released under the MIT license.
+In the future there will likely be a more formal build system; notably to
+release onto the PyPi. However malt is purposefully a single file so that it is
+easy to install either way.
+
+
+## Miscellaneous
+Malt was written by John Dobbs and is released under the MIT license.
+
 Send me an email if you have any ideas for improvements, and feel free to fork
 the repository and send a pull request.
