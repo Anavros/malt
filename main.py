@@ -2,7 +2,6 @@
 
 import malt
 
-
 def main():
     options = ["add n:int m:int", "subtract", "halve", "double", "echo string"]
     while True:

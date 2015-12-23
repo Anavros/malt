@@ -12,6 +12,7 @@ convienience functions, like printing help messages and clearing the screen.
 # import readline  # TODO: improve command history
 from subprocess import call
 from contextlib import contextmanager
+import os
 
 # TODO: separate show function/option to set level of importance
 # so you can set a debug flag to mask level x and below
@@ -23,29 +24,18 @@ BUILT_IN_FUNCTIONS = True       # use built-in funcs if input does not match
 
 # Default Markings
 # These can be set by the client program if desired.
-PROMPT = "> "
-INDENT = ""
-LIST_TICK = "-"
-PAUSE = "... "
+PREFIX = "[malt] "
 
 # Indentation Settings
 INDENT = 0
 MAX_INDENT = 4
 INDENT_WIDTH = 2
 MAX_LINE_WIDTH = 80  # overflow
+#OVERFLOW = 80
+# constant for height
 FRESH_LINE = True  # XXX shouldn't be a global (and def not all caps)
 
-# Select() Codes  # XXX consider removing
-EXIT_CODE = 'malt-exit'
-BACK_CODE = 'malt-back'
-
-# Keyword Sets XXX consider reducing to one keyword each
-HELP_KEYWORDS = ['help', 'options', 'commands']
-EXIT_KEYWORDS = ['exit', 'quit', 'abandon']
-BACK_KEYWORDS = ['back', 'return', 'done', 'finished']
-CLEAR_KEYWORDS = ['clear', 'clean', 'cls']
-AFFIRM_KEYWORDS = ["yes", "y", "ok", "sure", "hell yes"]
-NEGATE_KEYWORDS = ['no', 'n']
+BACK_CODE = 'temp'
 
 # NOTE: Theme Words:
 # response, answer, extract, fill, supply, satisfy, overflow, flow, pour,
@@ -82,7 +72,7 @@ def fill(options):
     prototype = _parse_options(options)
     allowed_commands = list(prototype.keys())
 
-    words = [w.strip() for w in freeform().split()]
+    words = [w.strip() for w in freefill().split()]
     if len(words) < 1:
         return Response(None)
     command = words.pop(0).lower()  # NOTE: remaining words are all args
@@ -94,16 +84,16 @@ def fill(options):
         have_len = len(given_args)
 
         if need_len > have_len:
-            show("[malt] missing arguments")
+            serve(PREFIX + "missing arguments")
             return Response(None)
         elif need_len < have_len:
-            show("[malt] too many arguments")
+            serve(PREFIX + "too many arguments")
             return Response(None)
 
         try:
             valid_args = _validate_args(proto_args, given_args)
         except ValueError:
-            show("[malt] invalid argument type")
+            serve(PREFIX + "invalid argument type")
             return Response(None)
         else:
             return Response(command, valid_args)
@@ -111,24 +101,24 @@ def fill(options):
     # Only try builtins if the string has not already been matched.
     # XXX: built ins ignore extra arguments
     elif BUILT_IN_FUNCTIONS:
-        if command in EXIT_KEYWORDS:
+        if command == 'quit':
             if THROW_EXIT_EXCEPTIONS:
                 raise SystemExit()
             else:
-                return Response(EXIT_CODE)
-        elif command in BACK_KEYWORDS:
-            return Response(BACK_CODE)
-        elif command in HELP_KEYWORDS:
+                return Response('quit')
+        elif command == 'back':
+            return Response('back')
+        elif command == 'help':
             _help(options)
             return Response(None)
-        elif command in CLEAR_KEYWORDS:
-            clear()
+        elif command == 'clear':
+            rinse()
             return Response(None)
-    show("[malt] unknown keyword")
+    serve(PREFIX + "unknown keyword")
     return Response(None)
 
 
-def freeform(prompt=PROMPT):
+def freeform(prompt="> "):
     return freefill(prompt)
 
 def freefill(prompt="> "):
@@ -137,7 +127,7 @@ def freefill(prompt="> "):
     Input is taken through _minput() so indentation is preserved, and stripped
     of extra whitespace, but otherwise raw.
     """
-    show(prompt, nl=False)
+    serve(prompt, nl=False)
     return _minput().strip()
 
 
@@ -145,8 +135,6 @@ def freefill(prompt="> "):
 def show(stuff='', nl=True):
     return serve(stuff, nl)
 
-# TODO: add color support
-# NOTE: messes up on OrderedDict
 def serve(output='', nl=True):
     """Print stuff on the console with smart type formatting.
 
@@ -155,22 +143,57 @@ def serve(output='', nl=True):
     hidden helper functions to keep the main declaration short and sweet.
 
     Optional Arguments:
-        -> stuff (default=''): the data to be printed (type will be detected)
+        -> output (default=''): the data to be printed (type will be detected)
         -> nl (default=True): to print or not to print a newline
     """
-
-    cast = type(output)
-    if cast in [list, set, frozenset]:
-        _show_list(output, nl)
-    elif cast is dict:
-        _show_dict(output, nl)
-    elif hasattr(output, '__dict__'):
-        serve(output.__dict__)
-    elif cast in [str, int, float, bin, oct]:
+    if type(output) in [str, int, float]:
         _mprint(output, nl)
+
+    # NOTE: nested tuples render as str(tuple)
+    elif type(output) is tuple:
+        if not output:
+            _mprint('()')
+        else:
+            _mprint('(', nl=False)
+            for item in output[:-1]:
+                _mprint(str(item)+', ', nl=False)
+            _mprint(str(output[-1]), nl=False)
+            _mprint(')', nl)
+
+    elif type(output) in [list, set, frozenset]:
+        _mprint('[', nl=output)
+        with indent():
+            for i, item in enumerate(output):
+                if not FRESH_LINE:
+                    _mprint()
+                #_mprint(LIST_TICK, nl=False)
+                _mprint("[{}] ".format(i), nl=False)
+                serve(item)
+        _mprint(']', nl)
+
+    elif type(output) is dict:
+        _mprint("{", nl=output)
+        with indent():
+            for (key, value) in output.items():
+                _mprint("{}: ".format(key), nl=False)
+                serve(value)
+        _mprint("}")
+
+    # Helps with OrderedDict.
+    elif hasattr(output, 'items'):
+        serve(list(output.items()))
+
+    # Stops objects like str from spewing everywhere.
+    elif hasattr(output, '__dict__') and type(output.__dict__) is dict:
+    #elif hasattr(output, '__dict__'):
+        serve(output.__dict__, nl)
+
+    elif hasattr(output, '_get_args()'):
+        serve(list(output._get_args()))
+
+    # When in doubt, use repr.
     else:
-        serve("[malt] unhandled serve type")
-        print(output, nl)
+        _mprint(repr(output), nl)
 
 
 @contextmanager
@@ -190,22 +213,22 @@ def indent():
         INDENT = max(INDENT-1, 0)
 
 
-def confirm(prompt="[malt] confirm? "):
+def confirm(prompt=PREFIX + "confirm? "):
     """Receive a yes or no answer from the user.
 
     Loops until a yes or no has been given. Does not accept unknown input to
     prevent accidental typing errors from causing problems.
     """
     while True:
-        show(prompt, nl=False)
+        serve(prompt, nl=False)
         key = _minput().strip().lower()
-        if key in AFFIRM_KEYWORDS:
+        if key == 'yes':
             return True
-        elif key in NEGATE_KEYWORDS:
+        elif key == 'no':
             return False
         else:
-            show("[malt] unknown keyword")
-            show()
+            serve(PREFIX + "unknown keyword (use 'yes' or 'no')")
+            serve()
             continue
 
 
@@ -219,7 +242,7 @@ def savor():
     Displays a small string defined in PAUSE and waits until the user hits
     enter. Input is not used. Built-in functions are also not available.
     """
-    show(PAUSE, nl=False)
+    serve(PAUSE, nl=False)
     _minput()
 
 
@@ -227,14 +250,12 @@ def savor():
 def clear():
     return rinse()
 
+# debatable whether rinse is better than clear
+# if we switch to newlines then yes
 def rinse():
-    """Clear the screen.
-
-    Multiplatform support not yet implemented.
-    os.system('cls if os.something=='nt' etc etc)
-    """
-
-    call(["clear"])
+    """Clear the screen."""
+    os.system("cls" if os.name == "nt" else "clear")
+    #print('\n'*120)
 
 ### INTERNAL UTILITIES ### These should have their own module but I want
 ########################## to fit malt into a single file!
@@ -250,39 +271,6 @@ class Response(object):
 
     def __eq__(self, string):
         return string == self.command
-
-
-def _show_list(stuff, nl):
-    """Display a list as a series of newline-separated ticks."""
-
-    if len(stuff) < 1:
-        _mprint("(empty list)")
-        return
-
-    with indent():
-        for thing in stuff:
-            if not FRESH_LINE:
-                _mprint()
-            _mprint(LIST_TICK, nl=False)
-            _mprint(thing)
-
-
-def _show_dict(stuff, nl):
-    """Display dictionaries as key: value pairs.
-
-    Every value is fed back through show() recursively to recieve the right
-    formatting regardless of type.
-    """
-    if len(stuff.items()) < 1:
-        _mprint("(empty dict)")
-        return
-
-    _mprint("{")
-    with indent():
-        for (key, value) in stuff.items():
-            _mprint("{0}: ".format(key), nl=False)
-            show(value)
-    _mprint("}")
 
 
 def _mprint(string='', nl=True):
@@ -344,7 +332,7 @@ def _validate_args(proto, given):
 # TODO: refactor with parsing functions
 def _help(options):
     with indent():
-        show("[malt] Available Commands:")
+        serve(PREFIX + "Available Commands:")
         for string in options:
             words = string.split()
             command = words.pop(0)
@@ -398,4 +386,4 @@ def _string_to_type(string):
     elif string == 'bool':
         return bool
     else:
-        raise ValueError("[malt] unknown cast ({})".format(string))
+        raise ValueError(PREFIX + "unknown cast ({})".format(string))
