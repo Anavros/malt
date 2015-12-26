@@ -79,12 +79,11 @@ def fill(options):
         final_args = []
         for (given, (label, cast)) in zip(arguments, proto_args):
             try:
-                final = cast(given)
+                final = (label, cast(given))
             except ValueError:
                 serve(PREFIX + "invalid type")
                 return Response(None)
-            else:
-                final_args.append(final)
+            final_args.append(final)
         return Response(command, final_args)
 
     # Only try built-ins if the string has not already been matched.

@@ -2,79 +2,62 @@
 # malt for python 3
 # written by John Dobbs
 
-# TODO: short and catchy! Catchy!
-# The fastest way to include malt in your project is to drop the malt.py file into your project directory.
-# The entire library is contained in one (relatively) short module ready to use.
-# You also have the option to install it normally using the setup.py script.
-
+# Malt is contained in a single file: simply drag and drop into your project.
 import malt
 
+# Provide a list of commands for the user to choose from.
 options = [
-    'try',
-    'buy copies:int',
-    'complain',
+    'menu',         # commands can be simple, with no arguments
+    'order drink',  # or more complicated, with one or more string args
+    'tip n:int'     # and can even specify types
 ]
 
-# Menus are usually orgainized into loops.
-# The user can take as much time as they need to enter good commands: all input
-# will be validated and vetted by malt. Putting your menu code in a loop allows
-# the user to make mistakes.
+# Typically menus like this are organized into infinite loops, where the user
+# enters a command every iteration. If the command is missing arguments, badly
+# typed, or just plain wrong, malt will return an empty response, which will
+# fall through the if/else tree and be discarded by the next time around.
 while True:
-    # The big hitter that malt provides is the select() function.
-    # It ensures that user input will only be returned if it perfectly matches.
-    # If the user tries to enter a bad keyword, too few or too many options, or
-    # badly typed options, select() will return None, which will skip over the
-    # conditional tree and go right back up to the top.
-    # This way you will never get bad, partially-completed input.
-    # You don't even need to worry about type checking.
-    response = malt.fill(user_options)
+    response = malt.fill(options)
 
-    # Once you have your response, you can check it against each option from
-    # the original list. The response behaves like a string in equality checks,
-    # but also stores any additional parameters that you have asked for.
-    if response == 'try':
-        malt.show("Try it, you'll like it!")
-
-    elif response == 'buy':
-        # 'response' behaves like a string in equality checks, but it is 
-        # actually a complex data type. It stores any additional parameters
-        # that you've asked for, which are accessible by dot notation.
-        num_copies = response.copies
-        price_per = 0.0
-
-        malt.show("That will be ${0}.".format(num_copies*price_per))
-        if malt.confirm("Is that ok? "):
-            malt.show("You have purchased {0} copies of this software.".format(num_copies))
-        else:
-            malt.show("Come back later; we are having a sale.")
-
-        # There is no need to error check; when you pass in a string parameter,
-        # like "buy copies:int", you are guaranteed that 'response' will have
-        # a parameter named 'copies' and that 'copies' will be an int.
-
-    elif response == 'complain':
-        malt.show("What exactly are you having trouble with?")
+    # Responses can be checked against normal strings.
+    if response == 'menu':
+        # malt.serve() is a wrapper around print() with support for nested
+        # indentation and easy-to-read complex object formatting.
+        malt.serve("Our menu includes:")
+        # Using malt.indent() will increase the level of indentation for every
+        # serving within its block. Indentation can be nested multiple times.
         with malt.indent():
-            complaint = malt.freeform()
-        malt.show("I see, you're having trouble with {0}.".format(complaint))
-        malt.show("I'll send that right in and have a look at it soon.")
-        del complaint
+            malt.serve("malt.fill()     - Get a valid command.")
+            malt.serve("malt.freefill() - Get an unchecked string.")
+            malt.serve("malt.serve()    - Show nicely formatted output.")
+            malt.serve("malt.confirm()  - Ask a yes or no question.")
+            malt.serve("malt.indent()   - Increase the output indentation.")
 
-    elif response == malt.BACK_CODE:
-        if malt.confirm("Are you sure you want to exit? "):
-            break
+    elif response == 'order':
+        # Responses are a little more interesting that normal strings.
+        # They also hold any extra parameters you've requested from the user.
+        drink = response.drink
+        if drink in ['fill', 'freefill', 'serve', 'confirm', 'indent']:
+            malt.serve("One malt.{}() right away.".format(drink))
         else:
-            continue
+            malt.serve("I'm not sure I know how to make that.")
 
-    # The final 'else:' clause is unnecessary and can safely be omitted.
-    # If the user enteres a keyword that is not included in the original user_options
-    # list, malt will automatcially print out a '[malt] unknown keyword' message.
+    elif response == 'tip':
+        # Because we specified that n is supposed to be an int, a 'tip'
+        # response will only ever be returned if n can safely be cast to int.
+        # There is no need to type-check or existence-check at all.
+        n = response.n
+        if n < 0:
+            malt.serve("Very funny. Get out of my example.")
+            # Of course the simplest way to exit our loop is to break.
+            # Malt also offers a built-in 'quit' command, which allows the user
+            # to exit immediately from anywhere (by raising SystemExit).
+            break
+        elif n < 10:
+            malt.serve("Thank you for the tip.")
+        else:
+            malt.serve("Oh mama! You can come back anytime.")
+    # The final else clause is not necessary. If anything is wrong with the
+    # user input, malt will print an appropriate error message automatically.
     else:
         pass
-
-# All of this works together to make it very fast and easy to develop interactive
-# keyword menus. What you decide to make is up to you: I personally use malt to
-# prototype game ideas quickly. Malt was born from writing the same error-checking
-# interface code over and over and over again in different projects.
-
-# Malt also has a few settings and options that can be tweaked as module-level variables... TODO
