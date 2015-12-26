@@ -15,7 +15,6 @@ import os
 from contextlib import contextmanager
 
 RAISE_SYSTEM_EXIT = True
-AUTOCLEAR = False
 PREFIX = "[malt] "
 MAX_INDENT = 4
 INDENT_WIDTH = 2
@@ -51,54 +50,53 @@ def fill(options):
     Required Arguments:
         -> options: only return input if included in this list of strings
     """
-
     if not options or type(options) is not list:
-        raise ValueError("A list of options is required.")
+        raise ValueError("malt.fill requires a list of string options.")
 
-    prototype = _parse_options(options)
+    # Convert the option strings into a dict with (name, type) pairs.
+    prototype = _construct_prototype(options)
     allowed_commands = list(prototype.keys())
 
-    if AUTOCLEAR:
-        _mprint("="*(OVERFLOW-(_indent*INDENT_WIDTH)))
-
+    # Every word given on the console is split and stripped.
     words = [w.strip() for w in freefill().split()]
 
-    if AUTOCLEAR:
-        clear()
-
+    # Skip empty inputs.
     if len(words) < 1:
         return Response(None)
-    command = words.pop(0).lower()  # NOTE: remaining words are all args
 
-    if _string_included(command, allowed_commands):
+    # Split the input into one command and zero+ arguments.
+    command = words[0].lower()
+    try:
+        arguments = words[1:]
+    except IndexError:
+        arguments = []
+
+    if command in allowed_commands:  # NOTE: removed the case guard
         proto_args = prototype[command]
-        given_args = words
-        need_len = len(proto_args)
-        have_len = len(given_args)
 
-        if need_len > have_len:
-            serve(PREFIX + "missing arguments")
-            return Response(None)
-        elif need_len < have_len:
+        # Every response must be perfectly typed. No partial input.
+        if len(arguments) > len(proto_args):
             serve(PREFIX + "too many arguments")
             return Response(None)
-
-        try:
-            valid_args = _validate_args(proto_args, given_args)
-        except ValueError:
-            serve(PREFIX + "invalid argument type")
+        elif len(arguments) < len(proto_args):
+            serve(PREFIX + "missing arguments")
             return Response(None)
-        else:
-            return Response(command, valid_args)
 
-    # Only try builtins if the string has not already been matched.
-    # XXX: built ins ignore extra arguments
+        # We have the right number of args; now we try to cast.
+        final_args = []
+        for (given, (label, cast)) in zip(arguments, proto_args):
+            try:
+                final = cast(given)
+            except ValueError:
+                serve(PREFIX + "invalid type")
+                return Response(None)
+            else:
+                final_args.append(final)
+        return Response(command, final_args)
+
+    # Only try built-ins if the string has not already been matched.
     elif command == 'help':
-        if words:
-            help_arg = words[0]
-            if help_arg in prototype.keys():
-                pass
-        _help(options)
+        explain(prototype, focus=arguments[0] if arguments else None)
         return Response(None)
 
     elif command == 'clear':
@@ -245,27 +243,40 @@ def stash(message, level=0):
     pass
 
 
-# XXX Temporary Redirection
 def pause():
-    return savor()
+    """Pause for dramatic effect."""
 
-def savor():
-    """Pause for dramatic effect.
-
-    Displays a small string defined in PAUSE and waits until the user hits
-    enter. Input is not used. Built-in functions are also not available.
-    """
     serve('...', nl=False)
     _minput()
 
 
-# XXX Temporary Redirection
 def clear():
     """Clear the screen."""
-    if not AUTOCLEAR:
-        os.system("cls" if os.name == "nt" else "clear")
-    else:
-        print('\n'*120)
+
+    os.system("cls" if os.name == "nt" else "clear")
+
+
+# XXX: doesn't maintain order any more
+def explain(prototype, focus=None):
+    """Serve a help message with all available commands."""
+    with indent():
+        if focus is not None:
+            if focus in prototype.keys():
+                serve(PREFIX + "Usage:")
+                with indent():
+                    serve(focus + ' ', nl=False)
+                    args = prototype[focus]
+                    for name, cast in args:
+                        serve("[{} {}] ".format(str(cast)[8:-2], name), nl=False)
+                    serve(nl=True)
+            else:
+                serve(PREFIX + "Unknown Command: '{}'".format(focus))
+        else:
+            serve(PREFIX + "Available Commands:")
+            for command in prototype.keys():
+                serve("'{}' ".format(command), nl=False)
+            serve(nl=True)
+            serve("'help', 'clear', 'back', and 'quit' are always available.")
 
 
 
@@ -335,71 +346,44 @@ def _minput():
         return x
 
 
-def _string_included(string, options):
-    """Evaluate if a string is in a list regardless of case or whitespace."""
-    return string.strip().lower() in [o.strip().lower() for o in options]
-
-
 def _validate_args(proto, given):
     # we're assuming the two lists are lined up in the correct order
     return [(name, cast(given.pop(0))) for name, cast in proto]
 
 
-# TODO: refactor with parsing functions
-def _help(options):
-    serve(PREFIX + "Available Commands:")
-    with indent():
-        for string in options:
-            words = string.split()
-            command = words.pop(0)
-            _mprint("> {} ".format(command), nl=False)
-            for arg in words:
-                parts = arg.split(':')
-                if len(parts) == 2:
-                    name = parts[0]
-                    cast = parts[1]
-                elif len(parts) == 1:
-                    name = parts[0]
-                    cast = 'str'
-                _mprint("[{} {}]".format(cast, name), nl=False)
-            _mprint()
+def _construct_prototype(option_list):
+    """Converts option strings into a dict with types."""
 
-
-def _parse_options(option_list):
     prototype = {}
     for option in option_list:
-        words = option.strip().lower().split()
-        command = words.pop(0)
-        if ':' in command:
-            raise ValueError("option badly formatted (do not type first arg)")
+        # Each option takes the form: "command arg1 arg2:type".
+        parts = [o.strip().lower() for o in option.split()]
+        command = parts[0]
+        try:  # Pythonic!
+            arguments = parts[1:]
+        except IndexError:
+            arguments = []
 
-        prototype[command] = _parse_arg_list(words)
-    return _replace_casts(prototype)
-
-
-def _parse_arg_list(words):
-    proto_args = []
-    for word in words:
-        if len(word.split(':')) == 1:
-            word = word + ':str'
-        proto_args.append(word.split(':'))
-    return proto_args
-
-
-def _replace_casts(argdict):
-    for (action, args) in argdict.items():
-        argdict[action] = [ (n, _string_to_type(s)) for n, s in args ]
-    return argdict
-
-
-def _string_to_type(string):
-    if string == 'str':
-        return str
-    elif string == 'int':
-        return int
-    elif string == 'float':
-        return float
-    elif string == 'bool':
-        return bool
-    else:
-        raise ValueError(PREFIX + "unknown cast ({})".format(string))
+        arg_list = []
+        for arg in arguments:
+            # Take each "name:type" pair and convert it to a (name,type) tuple.
+            split = arg.split(':')
+            name = split[0]
+            try:
+                cast_string = split[1]
+            except IndexError:
+                # If an arg is not typed, assume it should be a string.
+                cast = str
+            else:
+                cast_string = split[1]
+                if cast_string == 'int':
+                    cast = int
+                elif cast_string == 'float':
+                    cast = float
+                elif cast_string == 'bool':
+                    cast = bool
+                else:  # any unknown types should just stay as strings
+                    cast = str
+            arg_list.append((name, cast))
+        prototype[command] = arg_list
+    return prototype

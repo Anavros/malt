@@ -36,35 +36,8 @@ def main():
         elif response == "echo":
             malt.show(response.string)
 
-
-def register():
-    users = {}
-    register_options = ['add name:str age:int', 'remove name:str', 'check'] 
-    #malt._ultra_parse(register_options)
-    while True:
-        response = malt.ultra_select(register_options)
-        if response == malt.BACK_CODE:
-            return
-        elif response == 'add':
-            malt.show(response.name)
-            malt.show(response.age)
-            malt.show(response)
-        elif response == 'remove':
-            malt.show(response)
-        elif response == 'check':
-            argdict = malt._ultra_parse(register_options)
-            malt.show(dict(argdict))
-            malt.show(malt._replace_casts(dict(argdict)))
-
-def display():
-    pass
-
 if __name__ == "__main__":
-    malt.AUTOCLEAR = True
-    malt.INDENT_WIDTH = 4
     malt.PREFIX = '[main] '
+    malt.INDENT_WIDTH = 4
     malt.OVERFLOW = 40
-    malt.clear()
-    malt.savor()
     main()
-    malt.clear()
