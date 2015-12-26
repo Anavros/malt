@@ -19,13 +19,10 @@ AUTOCLEAR = False
 PREFIX = "[malt] "
 MAX_INDENT = 4
 INDENT_WIDTH = 2
+OVERFLOW = 80
 
 _indent = 0
-_fresh_line = True  # XXX shouldn't be a global (and def not all caps)
-
-OVERFLOW = 80
-# constant for height
-# Sink depth? rinse depth, soak length?
+_fresh_line = True
 
 # NOTE: Theme Words:
 # response, answer, extract, fill, supply, satisfy, overflow, flow, pour,
@@ -67,7 +64,7 @@ def fill(options):
     words = [w.strip() for w in freefill().split()]
 
     if AUTOCLEAR:
-        rinse()
+        clear()
 
     if len(words) < 1:
         return Response(None)
@@ -97,18 +94,30 @@ def fill(options):
     # Only try builtins if the string has not already been matched.
     # XXX: built ins ignore extra arguments
     elif command == 'help':
+        if words:
+            help_arg = words[0]
+            if help_arg in prototype.keys():
+                pass
         _help(options)
         return Response(None)
+
     elif command == 'clear':
-        rinse()
+        clear()
         return Response(None)
-    elif command == 'quit':
-        if RAISE_SYSTEM_EXIT:
-            raise SystemExit()
-        else:
-            return Response('quit')
-    serve(PREFIX + "unknown keyword")
-    return Response(None)
+
+    elif command == 'back':
+        return Response("back")
+
+#    elif command == 'quit':
+#        if words:
+#            immediate = (words[0].strip().lower() == 'now')
+#            if immediate:
+#                raise SystemExit()
+#        return Response('quit')
+
+    else:
+        serve(PREFIX + "unknown keyword")
+        return Response(None)
 
 
 def freeform(prompt="> "):
@@ -246,27 +255,23 @@ def savor():
     Displays a small string defined in PAUSE and waits until the user hits
     enter. Input is not used. Built-in functions are also not available.
     """
-    serve(PAUSE, nl=False)
+    serve('...', nl=False)
     _minput()
 
 
 # XXX Temporary Redirection
 def clear():
-    return rinse()
-
-# debatable whether rinse is better than clear
-# if we switch to newlines then yes
-def rinse():
     """Clear the screen."""
     if not AUTOCLEAR:
         os.system("cls" if os.name == "nt" else "clear")
     else:
         print('\n'*120)
 
+
+
 ### INTERNAL UTILITIES ### These should have their own module but I want
 ########################## to fit malt into a single file!
 
-# ideas: glass, brew
 class Response(object):
     """..."""
     def __init__(self, command=None, args=None):
@@ -322,7 +327,12 @@ def _minput():
     """Wrapper for input() to help provide indentation support."""
     global _fresh_line
     _fresh_line = True
-    return input()
+
+    x = input()
+    if x.strip().lower() == 'quit':
+        raise SystemExit
+    else:
+        return x
 
 
 def _string_included(string, options):
@@ -337,12 +347,12 @@ def _validate_args(proto, given):
 
 # TODO: refactor with parsing functions
 def _help(options):
+    serve(PREFIX + "Available Commands:")
     with indent():
-        serve(PREFIX + "Available Commands:")
         for string in options:
             words = string.split()
             command = words.pop(0)
-            _mprint("- {} ".format(command), nl=False)
+            _mprint("> {} ".format(command), nl=False)
             for arg in words:
                 parts = arg.split(':')
                 if len(parts) == 2:

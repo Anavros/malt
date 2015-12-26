@@ -64,6 +64,7 @@ if __name__ == "__main__":
     malt.INDENT_WIDTH = 4
     malt.PREFIX = '[main] '
     malt.OVERFLOW = 40
-    malt.rinse()
+    malt.clear()
+    malt.savor()
     main()
-    malt.rinse()
+    malt.clear()
