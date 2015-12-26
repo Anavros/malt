@@ -1,12 +1,9 @@
 # coding=utf-8
 """
-a collection of tools that make developing interactive text loops easier
+Malt
+a tiny toolkit for making interactive loops
 
 ...
-select() is the most important function in the library. It allows the client
-program to specify a list of keyword options for the user to enter. If the user
-enters bad input, it is not returned. select() also implements a few common
-convienience functions, like printing help messages and clearing the screen.
 """
 
 # TODO:
@@ -15,7 +12,7 @@ import os
 from contextlib import contextmanager
 
 RAISE_SYSTEM_EXIT = True
-PREFIX = "[malt] "
+PREFIX = "[malt] "  # may tweak output style
 MAX_INDENT = 4
 INDENT_WIDTH = 2
 OVERFLOW = 80
@@ -24,31 +21,27 @@ _indent = 0
 _fresh_line = True
 
 # NOTE: Theme Words:
-# response, answer, extract, fill, supply, satisfy, overflow, flow, pour,
-# glass, provide, dispense, serve,
-
-# XXX Temporary Redirection
-def select(options):
-    return fill(options)
+# answer, extract, supply, satisfy, flow, pour, glass, provide, dispense
 
 
 def fill(options):
-    """Take user input and return it only if it matches a given set of options.
+    """Get a valid command from the user.
 
-    If input is not in options, return None instead. This makes the return
-    value much easier to check in the client program. If BUILT_IN_FUNCTIONS is
-    enabled, run the input past internal convienience functions after checking
-    against the main options. If it matches an internal function, run that
-    instead.
+    Returns a special Response() object which can be printed and compared like
+    a string. If the user provides extra arguments, they will be accessible
+    through dot notation (e.g. response.arg1). Will only prompt the user once,
+    so control flow is left to the client programmer. If the user provides
+    bad input, a message will print to the console and an empty response will
+    be returned. Neither type-checking or existence-checking is necessary in
+    the client program: if either fails, malt will automatically print an error
+    message and return an empty object. Bad or partial input is never returned.
 
-    If the client passes in an option that is identical to a built-in keyword,
-    the associated built-in function will NOT run, and the keyword will be
-    returned as normal. This allows the client to overwrite built-ins at will.
-
-    Matches are not case-sensitive, and returned strings are always lowercase.
-
-    Required Arguments:
-        -> options: only return input if included in this list of strings
+    Requires a list of option strings. Each option string is a prototype for a
+    valid command the user may enter: for example: 'add x:int y:int' requires
+    that the user enter 'add', followed by two int-castable numbers. If extra
+    arguments are omitted, only the command will match; and if args are given
+    with no casts, they are assumed to be str. 'start' and 'register name' are
+    both valid option strings.
     """
     if not options or type(options) is not list:
         raise ValueError("malt.fill requires a list of string options.")
@@ -118,33 +111,22 @@ def fill(options):
         return Response(None)
 
 
-def freeform(prompt="> "):
-    return freefill(prompt)
-
 def freefill(prompt="> "):
-    """Get an unmodified string from the user.
+    """Get a string from the user.
 
-    Input is taken through _minput() so indentation is preserved, and stripped
-    of extra whitespace, but otherwise raw.
+    Displays an optional prompt. Strips extra whitespace. Preserves indentation.
     """
     serve(prompt, nl=False)
     return _minput().strip()
 
 
-# XXX Temporary Redirection
-def show(stuff='', nl=True):
-    return serve(stuff, nl)
-
 def serve(output='', nl=True):
-    """Print stuff on the console with smart type formatting.
+    """Print something to the console with smart formatting.
 
-    Mainly a wrapper around print() to provide extra features that are helpful
-    when developing a simple console program. Dispatches lists and dicts into
-    hidden helper functions to keep the main declaration short and sweet.
-
-    Optional Arguments:
-        -> output (default=''): the data to be printed (type will be detected)
-        -> nl (default=True): to print or not to print a newline
+    Accepts one item at a time to print to the console. Items are checked by
+    type and available attributes to determine the best way to format them.
+    Generally speaking, output should be much more readable that the basic
+    print function. Supports indentation.
     """
     if type(output) in [str, int, float]:
         _mprint(output, nl)
@@ -198,12 +180,13 @@ def serve(output='', nl=True):
 
 @contextmanager
 def indent():
-    """Increase the global indentation value by one.
+    """Increase the indentation level for all output.
 
-    This value is independent of the actual indentation printed to the screen;
-    _mprint() handles the number of spaces that are actually printed. Callers
-    to indent() do not need to worry about spacing or going over maximum line
-    width. Calling malt.indent() is all that is needed.
+    Used with a context manager: 'with malt.indent(): ...'. Indentation levels
+    are error-checked to prevent excessive or invalid levels. Client
+    programmers do not need to error check use of this function. Set the
+    malt.OVERFLOW global variable to set the maximum line width including
+    indentation.
     """
     global _indent
     _indent = _indent+1
@@ -214,7 +197,7 @@ def indent():
 
 
 def confirm(prompt=PREFIX + "confirm? "):
-    """Receive a yes or no answer from the user.
+    """Get a boolean yes or no from the console.
 
     Loops until a yes or no has been given. Does not accept unknown input to
     prevent accidental typing errors from causing problems.
@@ -278,13 +261,14 @@ def explain(prototype, focus=None):
             serve(nl=True)
             serve("'help', 'clear', 'back', and 'quit' are always available.")
 
-
-
-### INTERNAL UTILITIES ### These should have their own module but I want
-########################## to fit malt into a single file!
+# Internal Functions #
 
 class Response(object):
-    """..."""
+    """A faux-string with additional parameters.
+
+    Used by malt.fill(). Can be compared and printed like a normal string; but
+    also contains extra parameters accessible by dot notation.
+    """
     def __init__(self, command=None, args=None):
         self.command = command
         if args is not None:
@@ -344,11 +328,6 @@ def _minput():
         raise SystemExit
     else:
         return x
-
-
-def _validate_args(proto, given):
-    # we're assuming the two lists are lined up in the correct order
-    return [(name, cast(given.pop(0))) for name, cast in proto]
 
 
 def _construct_prototype(option_list):
