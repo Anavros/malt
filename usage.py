@@ -36,6 +36,7 @@ while True:
     elif response == 'order':
         # Responses are a little more interesting that normal strings.
         # They also hold any extra parameters you've requested from the user.
+        # 'order drink' -> response == 'order'; response.drink == [user input]
         drink = response.drink
         if drink in ['fill', 'freefill', 'serve', 'confirm', 'indent']:
             malt.serve("One malt.{}() right away.".format(drink))

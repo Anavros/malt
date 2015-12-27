@@ -4,13 +4,17 @@ TODO:
     * malt.stash?
     * malt.prepare_stockpile (filename)
 -> add coloring support (maybe post-0.1)
--> improve auto-clearing feature
--> allow help on individual commands
--> think about having simplified general help
--> remove redirections
--> rewrite documentation
--> refactor parsing functions with _help
--> polish malt.fill more
 -> allow optional arguments on built-ins
 -> think about allowing user-supplied global functions
     * operate like built-ins
+
+v0.2:
+-> Built-in Coloring
+-> Color Printing Options
+-> File Logging
+-> Cleaner Built-in Functions
+    * think about when to raise SystemExit
+    * consider an option to set global commands
+    * generally simplify and clean up
+-> More Versatile Built-in Functions
+-> Multiplatform Testing
