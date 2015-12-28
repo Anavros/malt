@@ -238,6 +238,18 @@ def clear():
     os.system("cls" if os.name == "nt" else "clear")
 
 
+def line(char='=', insert=None):
+    """Print a line of characters exactly as wide as the window."""
+
+    if len(char) > 1:
+        char = char[0]
+    length = OVERFLOW-(min(_indent, MAX_INDENT) * INDENT_WIDTH)
+    string = char*length
+    if insert is not None:
+        pass
+    _mprint(string)
+
+
 # XXX: doesn't maintain order any more
 def explain(prototype, focus=None):
     """Serve a help message with all available commands."""
@@ -312,7 +324,6 @@ def _mprint(string='', nl=True):
         print(string, end=end_char)
 
     # The next line will be 'fresh' if it follows a newline.
-    # NOTE: maybe this *variable* should not be all caps like a constant
     _fresh_line = nl
 
 

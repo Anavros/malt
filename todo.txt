@@ -2,11 +2,12 @@
 TODO:
 -> implement logging errors to a file (maybe post-0.1)
     * malt.stash?
-    * malt.prepare_stockpile (filename)
+    * malt.prepare_stockpile(filename)
 -> add coloring support (maybe post-0.1)
 -> allow optional arguments on built-ins
 -> think about allowing user-supplied global functions
     * operate like built-ins
+-> add malt.line(char) function to print a dividing line of the perfect length
 
 v0.2:
 -> Built-in Coloring
@@ -18,3 +19,6 @@ v0.2:
     * generally simplify and clean up
 -> More Versatile Built-in Functions
 -> Multiplatform Testing
+
+Future:
+-> C/Cython Port
