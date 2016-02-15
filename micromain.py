@@ -2,7 +2,6 @@
 
 import micromalt as malt
 
-
 def main():
     options = [
         'test',
@@ -12,7 +11,7 @@ def main():
     test_list = "eggs spam sausage bacon ham".split()
     test_dict = {x:i for i,x in enumerate(test_list)}
     while 1:
-        response = malt.fill(options)
+        response = malt.offer(options)
         if response == 'test':
             malt.serve("it works!")
         elif response == 'list':

@@ -1,23 +1,43 @@
 
 TODO:
--> implement logging errors to a file (maybe post-0.1)
-    * malt.stash?
-    * malt.prepare_stockpile(filename)
--> add coloring support (maybe post-0.1)
--> allow optional arguments on built-ins
--> think about allowing user-supplied global functions
-    * operate like built-ins
--> add malt.line(char) function to print a dividing line of the perfect length
 
 v0.2:
--> Built-in Coloring
--> Color Printing Options
+-> Modulize
+-> split everything up into modules
+    * malt.py
+        * offer
+        * accept
+        * confirm
+        * response
+    * malt_output.py?--
+        * indent
+        * serve
+        * pause
+        * clear
+        * line
+    * malt_readline.py
+    * malt_stash.py
+        * 
+        * stash
+
+v0.3:
+-> Stash Functions
+-> Readline Support
 -> File Logging
+
+v0.4:
+-> More Versatile Built-in Functions
 -> Cleaner Built-in Functions
     * think about when to raise SystemExit
     * consider an option to set global commands
     * generally simplify and clean up
--> More Versatile Built-in Functions
+-> allow optional arguments on built-ins
+-> think about allowing user-supplied global functions
+    * operate like built-ins
+
+v0.5:
+-> Built-in Coloring
+-> Color Printing Options
 -> Multiplatform Testing
 
 Future:

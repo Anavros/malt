@@ -8,10 +8,12 @@ a tiny toolkit for making interactive loops
 
 # TODO:
 # import logging
+# import readline
 import os
 from contextlib import contextmanager
 
 RAISE_SYSTEM_EXIT = True
+STASH_FILE = './maltstash.txt'
 PREFIX = "[malt] "  # may tweak output style
 MAX_INDENT = 4
 INDENT_WIDTH = 2
@@ -24,6 +26,10 @@ _fresh_line = True
 # answer, extract, supply, satisfy, flow, pour, glass, provide, dispense
 
 
+# offer like a menu
+# make menus more formal too
+def offer(options):
+    return fill(options)
 def fill(options):
     """Get a valid command from the user.
 
