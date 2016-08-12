@@ -5,12 +5,19 @@ a tiny toolkit for making interactive loops
 
 ...
 """
-
 # TODO:
 # import logging
 # import readline
 import os
 from contextlib import contextmanager
+
+try:
+    from malt_ext_output import *
+except ImportError:
+    pass
+else:
+    print = _mprint
+    input = _minput
 
 RAISE_SYSTEM_EXIT = True
 STASH_FILE = './maltstash.txt'

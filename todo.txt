@@ -1,24 +1,34 @@
 
 TODO:
-
 v0.2:
--> Modulize
--> split everything up into modules
-    * malt.py
+-> Modularize
+    * classic.py
+    * micromalt.py
         * offer
         * accept
         * confirm
-        * response
-    * malt_output.py?--
-        * indent
-        * serve
-        * pause
-        * clear
-        * line
-    * malt_readline.py
-    * malt_stash.py
-        * 
-        * stash
+    * malt/
+        * input.py
+            * offer
+            * accept
+        * output.py
+            * confirm
+            * indent
+            * serve
+        * internal.py
+            * _minput
+            * _mprint
+            * _construct_prototype
+            * response
+        * extra.py
+            * pause
+            * clear
+            * line
+        * auto.py
+            * readline
+        * stash.py
+            * stash
+        * color.py
 
 v0.3:
 -> Stash Functions
@@ -26,7 +36,6 @@ v0.3:
 -> File Logging
 
 v0.4:
--> More Versatile Built-in Functions
 -> Cleaner Built-in Functions
     * think about when to raise SystemExit
     * consider an option to set global commands
