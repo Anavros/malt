@@ -11,6 +11,8 @@ A tiny toolkit for structured input and output.
 
 PREFIX = '[malt] '
 PROMPT = '> '
+COMMENT = '#'
+SYNTAX = '?'
 INCLUDED_FUNCTIONS = [
     'help',
     'clear',
@@ -36,7 +38,6 @@ def offer(options):
         print()
         raise SystemExit # doesn't print stack trace
 
-
     if cmd in _firsts(INCLUDED_FUNCTIONS):
         # divert to included convenience functions
         _redirect(Response(cmd, args), options)
@@ -49,17 +50,19 @@ def harvest(filepath, options=None):
     """Load a config file matching syntax against given options."""
 
     lines = []
-    if options is None: # must be in lang file
-        options = []
+    if not options: # must be in lang file
+        options = _harvest_syntax(filepath)
+        if not options: # still
+            raise Exception("Language syntax not provided or found in file.")
+
     with open(filepath, 'r') as f:
         for raw_line in f:
             # clear out any comments or empty lines
-            line = raw_line.split('#')[0].strip()
+            line = raw_line.split(COMMENT)[0].strip()
             if not line:
                 continue
 
-            if '?' in line:
-                options.append(line.strip('?').strip())
+            if line[0] == SYNTAX:
                 continue
 
             # start doing things?
@@ -68,31 +71,39 @@ def harvest(filepath, options=None):
     return lines
 
 
-def serve(content='', end='\n', indent=0):
+def _harvest_syntax(filepath):
+    syntax = []
+    with open(filepath, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
 
+            if line[0] == SYNTAX:
+                line = line.strip(SYNTAX).strip()
+                syntax.append(line)
+    return syntax
+
+
+def serve(content='', end='\n', indent=0):
     def more():
         return min(indent+4, 40)
-
     def less():
         return max(indent-4, 0)
-
     if type(content) in [str, int, float]:
         print(content)
-
     elif type(content) in [list, set, frozenset, tuple]:
-        t_str = str(type(content))[8:-2]
-        print('({}) ['.format(t_str))
         indent = more()
+        print('[')
         for i, item in enumerate(content):
             print(' '*indent, end='')
             print("[{}] ".format(i), end='')
             serve(item, indent=indent)
         indent = less()
         print(' '*indent, end='')
-        print('] (end {})'.format(t_str))
-
+        print(']')
     elif type(content) is dict:
-        print('(dict) {')
+        print('{')
         indent = more()
         for (key, value) in content.items():
             print(' '*indent, end='')
@@ -100,19 +111,15 @@ def serve(content='', end='\n', indent=0):
             serve(value)
         indent = less()
         print(' '*indent, end='')
-        print('} (end dict)')
-
+        print('}')
     # Helps with OrderedDict.
     elif hasattr(content, 'items'):
         serve(list(content.items()))
-
     # Stops objects like str from spewing everywhere.
     elif hasattr(content, '__dict__') and type(content.__dict__) is dict:
         serve(content.__dict__, end)
-
     elif hasattr(content, '_get_args()'):
         serve(list(content._get_args()))
-
     # When in doubt, use repr.
     else:
         print(repr(content), end=end)
@@ -134,13 +141,10 @@ def _redirect(response, options=[]):
 
 def _help(options):
     indent = 0
-
     def more():
         return min(indent+4, 40)
-
     def less():
         return max(indent-4, 0)
-
     print(PREFIX + "Available Options:")
     indent = more()
     for i, opt_line in enumerate(options):
@@ -151,7 +155,6 @@ def _help(options):
         for key, cast in zip(keys, casts):
             print(' '*indent, end='')
             print("- {}: {}".format(key, cast))
-
         indent = less()
     indent = less()
 
@@ -170,7 +173,6 @@ class Response(object):
         if args is not None:
             for k, v in args.items():
                 self.__dict__[k] = v
-
     def __eq__(self, string):
         return self.cmd == string
 
@@ -179,10 +181,8 @@ def _parse(arg_line, options):
     opt_line = _match_option(arg_line, options) # raises ValueError
     (cmd, values) = _arg_parse(arg_line)
     (_, keys, casts) = _opt_parse(opt_line)
-
     if not (len(values) == len(keys) == len(casts)):
         raise ValueError("Too many or too few arguments.")
-
     args = {}
     for key, value, cast in zip(keys, values, casts):
         if '(' in cast: # used for limited options: "arg:str(one|two|three)"
@@ -192,7 +192,6 @@ def _parse(arg_line, options):
             args[key] = _typecast(value, cast, allowed_values)
         else:
             args[key] = _typecast(value, cast)
-
     return (cmd, args)
 
 
