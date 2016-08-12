@@ -5,7 +5,7 @@ import malt
 
 
 """Malt
-A tiny toolkit for structured input and output.
+A tiny toolkit for structured input and content.
 
 Public Functions:
     offer
@@ -48,62 +48,53 @@ def harvest(filepath, options):
     return lines
 
 
-def serve(output='', nl=True):
-    """Print something to the console with smart formatting.
+def serve(content='', end='\n', indent=0):
 
-    Accepts one item at a time to print to the console. Items are checked by
-    type and available attributes to determine the best way to format them.
-    Generally speaking, output should be much more readable that the basic
-    print function. Supports indentation.
-    """
-    if type(output) in [str, int, float]:
-        _mprint(output, nl)
+    def more():
+        return min(indent+4, 40)
 
-    # NOTE: nested tuples render as str(tuple)
-    elif type(output) is tuple:
-        if not output:
-            _mprint('()')
-        else:
-            _mprint('(', nl=False)
-            for item in output[:-1]:
-                _mprint(str(item)+', ', nl=False)
-            _mprint(str(output[-1]), nl=False)
-            _mprint(')', nl)
+    def less():
+        return max(indent-4, 0)
 
-    elif type(output) in [list, set, frozenset]:
-        _mprint('[', nl=output)
-        with indent():
-            for i, item in enumerate(output):
-                if not _fresh_line:
-                    _mprint()
-                #_mprint(LIST_TICK, nl=False)
-                _mprint("[{}] ".format(i), nl=False)
-                serve(item)
-        _mprint(']', nl)
+    if type(content) in [str, int, float]:
+        print(content, end=end)
 
-    elif type(output) is dict:
-        _mprint("{", nl=output)
-        with indent():
-            for (key, value) in output.items():
-                _mprint("{}: ".format(key), nl=False)
-                serve(value)
-        _mprint("}")
+    elif type(content) in [list, set, frozenset, tuple]:
+        print('{} ['.format(str(type(content))[8:-2]))
+        indent = more()
+        for i, item in enumerate(content):
+            print(' '*indent, end='')
+            print("[{}] ".format(i), end='')
+            serve(item, indent=indent)
+        indent = less()
+        print(' '*indent, end='')
+        print(']')
+
+    elif type(content) is dict:
+        print('dict {')
+        indent = more()
+        for (key, value) in content.items():
+            print(' '*indent, end='')
+            print("{}: ".format(key), end='')
+            serve(value)
+        indent = less()
+        print(' '*indent, end='')
+        print('}')
 
     # Helps with OrderedDict.
-    elif hasattr(output, 'items'):
-        serve(list(output.items()))
+    elif hasattr(content, 'items'):
+        serve(list(content.items()))
 
     # Stops objects like str from spewing everywhere.
-    elif hasattr(output, '__dict__') and type(output.__dict__) is dict:
-    #elif hasattr(output, '__dict__'):
-        serve(output.__dict__, nl)
+    elif hasattr(content, '__dict__') and type(content.__dict__) is dict:
+        serve(content.__dict__, end)
 
-    elif hasattr(output, '_get_args()'):
-        serve(list(output._get_args()))
+    elif hasattr(content, '_get_args()'):
+        serve(list(content._get_args()))
 
     # When in doubt, use repr.
     else:
-        _mprint(repr(output), nl)
+        print(repr(content), end=end)
 
 
 ### INTERNAL FUNCTIONS ###
