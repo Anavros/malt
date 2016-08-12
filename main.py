@@ -29,7 +29,7 @@ def main():
             options = [
                 "div id anchor:str(top|bottom|left|right) texture size:float"
             ]
-            malt.serve(malt.harvest(filename, options))
+            malt.serve(malt.harvest(filename, options=None))
 
 if __name__ == "__main__":
     main()

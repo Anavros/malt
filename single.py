@@ -45,17 +45,22 @@ def offer(options):
         return Response(cmd, args)
 
 
-def harvest(filepath, options):
+def harvest(filepath, options=None):
     """Load a config file matching syntax against given options."""
 
     lines = []
+    if options is None: # must be in lang file
+        options = []
     with open(filepath, 'r') as f:
         for raw_line in f:
             # clear out any comments or empty lines
             line = raw_line.split('#')[0].strip()
             if not line:
                 continue
-            pass
+
+            if '?' in line:
+                options.append(line.strip('?').strip())
+                continue
 
             # start doing things?
             (cmd, args) = _parse(line, options)

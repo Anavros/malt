@@ -1,5 +1,5 @@
 
-#? div id anchor file size:int
+? div id anchor:str(top|bottom|left|right) file size:float
 
 div main bottom "path/to/the file.png" 0.1
 div bird_selector left nine.png 0.2
