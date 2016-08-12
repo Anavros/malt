@@ -1,20 +1,22 @@
 
 import re
+import os
 import shlex
 import malt
 
 
 """Malt
-A tiny toolkit for structured input and content.
-
-Public Functions:
-    offer
-    serve
-    harvest
+A tiny toolkit for structured input and output.
 """
 
 PREFIX = '[malt] '
 PROMPT = '> '
+INCLUDED_FUNCTIONS = [
+    'help',
+    'help command', # default to none on optional args
+    'clear',
+    'quit',
+]
 
 ### PUBLIC FUNCTIONS ###
 
@@ -27,13 +29,24 @@ def offer(options):
         raise ValueError("Must offer a list of options!")
 
     try:
-        cmd, args = _parse(input(PROMPT), options)
-    except ValueError:
-        _help(options)
+        cmd, args = _parse(input(PROMPT), options+INCLUDED_FUNCTIONS)
+    except ValueError as e:
+        print(e)
+        return Response(None)
+    except KeyboardInterrupt:
+        print()
+        raise SystemExit # doesn't print stack trace
+    except EOFError:
+        print()
+        raise SystemExit # doesn't print stack trace
+
+
+    if cmd in _firsts(INCLUDED_FUNCTIONS):
+        # divert to included convenience functions
+        _redirect(Response(cmd, args), options)
         return Response(None)
     else:
         return Response(cmd, args)
-    # TODO built-in options
 
 
 def harvest(filepath, options):
@@ -107,6 +120,17 @@ def serve(content='', end='\n', indent=0):
 ### INTERNAL FUNCTIONS ###
 
 
+def _redirect(response, options=[]):
+    if response == 'help':
+        _help(options)
+    elif response == 'clear':
+        _clear()
+    elif response == 'quit':
+        _quit()
+    else:
+        raise Exception("I've made a terrible mistake.")
+
+
 def _help(options):
     indent = 0
 
@@ -121,7 +145,7 @@ def _help(options):
     for i, opt_line in enumerate(options):
         (cmd, keys, casts) = _opt_parse(opt_line)
         print(' '*indent, end='')
-        print('[{}] {}:'.format(i, cmd))
+        print('[{}] {}'.format(i, cmd))
         indent = more()
         for key, cast in zip(keys, casts):
             print(' '*indent, end='')
@@ -133,6 +157,10 @@ def _help(options):
 
 def _quit():
     raise SystemExit
+
+
+def _clear():
+    os.system("cls" if os.name == "nt" else "clear")
 
 
 class Response(object):
@@ -151,6 +179,9 @@ def _parse(arg_line, options):
     (cmd, values) = _arg_parse(arg_line)
     (_, keys, casts) = _opt_parse(opt_line)
 
+    if not (len(values) == len(keys) == len(casts)):
+        raise ValueError("Too many or too few arguments.")
+
     args = {}
     for key, value, cast in zip(keys, values, casts):
         if '(' in cast: # used for limited options: "arg:str(one|two|three)"
@@ -164,25 +195,15 @@ def _parse(arg_line, options):
     return (cmd, args)
 
 
-def _typecast(value, cast, allowed_values=None):
-    if allowed_values and value not in allowed_values:
-        raise ValueError("{} is not an allowed value.".format(value))
-        if cast == "str":
-            value = str(value)
-        elif cast == "int":
-            value = int(value)
-        elif cast == "float":
-            value = float(value)
-        else:
-            raise ValueError("Unknown cast: {}.".format(cast))
-    return value
-
-
 def _match_option(arg_line, options):
     for opt_line in options:
-        if shlex.split(arg_line)[0] == shlex.split(opt_line)[0]:
+        arg_words = shlex.split(arg_line)
+        opt_words = shlex.split(opt_line)
+        # check command and length of argument list
+        if (arg_words[0] == opt_words[0]) and (len(arg_words) == len(opt_words)):
             return opt_line
-    raise ValueError("Unknown command: {}.".format(shlex.split(arg_line)[0]))
+    # if not found
+    raise ValueError("unknown command: {}".format(arg_words[0]))
 
 
 def _opt_parse(opt_line):
@@ -201,21 +222,31 @@ def _opt_parse(opt_line):
             name = halves[0]
             cast = 'str'
         else:
-            raise ValueError
-        names.append(name) #?
+            raise ValueError("malformed expression")
+        names.append(name)
         casts.append(cast)
     return (cmd, names, casts)
 
 
 def _arg_parse(arg_line):
     arg_words = shlex.split(arg_line)
+    # KeyError on len() == 1? XXX
     return (arg_words[0], arg_words[1:])
 
 
-if __name__ == '__main__':
-    options = [
-        "div id anchor:str(top|bottom|left|right) texture size:float"
-    ]
-    arg = "div main bottom"
-    filepath = 'example.lang'
-    serve(harvest(filepath, options))
+def _typecast(value, cast, allowed_values=None):
+    if allowed_values and value not in allowed_values:
+        raise ValueError("{} is not an allowed value.".format(value))
+        if cast == "str":
+            value = str(value)
+        elif cast == "int":
+            value = int(value)
+        elif cast == "float":
+            value = float(value)
+        else:
+            raise ValueError("Unknown cast: {}.".format(cast))
+    return value
+
+
+def _firsts(list_of_strings):
+    return [shlex.split(string)[0] for string in list_of_strings]
