@@ -13,6 +13,7 @@ Public Functions:
     harvest
 """
 
+PREFIX = '[malt] '
 PROMPT = '> '
 
 ### PUBLIC FUNCTIONS ###
@@ -25,8 +26,13 @@ def offer(options):
     if not options or type(options) is not list:
         raise ValueError("Must offer a list of options!")
 
-    cmd, args = _parse(input(PROMPT))
-    return Response(cmd, args)
+    try:
+        cmd, args = _parse(input(PROMPT), options)
+    except ValueError:
+        _help(options)
+        return Response(None)
+    else:
+        return Response(cmd, args)
     # TODO built-in options
 
 
@@ -57,10 +63,11 @@ def serve(content='', end='\n', indent=0):
         return max(indent-4, 0)
 
     if type(content) in [str, int, float]:
-        print(content, end=end)
+        print(content)
 
     elif type(content) in [list, set, frozenset, tuple]:
-        print('{} ['.format(str(type(content))[8:-2]))
+        t_str = str(type(content))[8:-2]
+        print('({}) ['.format(t_str))
         indent = more()
         for i, item in enumerate(content):
             print(' '*indent, end='')
@@ -68,10 +75,10 @@ def serve(content='', end='\n', indent=0):
             serve(item, indent=indent)
         indent = less()
         print(' '*indent, end='')
-        print(']')
+        print('] (end {})'.format(t_str))
 
     elif type(content) is dict:
-        print('dict {')
+        print('(dict) {')
         indent = more()
         for (key, value) in content.items():
             print(' '*indent, end='')
@@ -79,7 +86,7 @@ def serve(content='', end='\n', indent=0):
             serve(value)
         indent = less()
         print(' '*indent, end='')
-        print('}')
+        print('} (end dict)')
 
     # Helps with OrderedDict.
     elif hasattr(content, 'items'):
@@ -100,14 +107,49 @@ def serve(content='', end='\n', indent=0):
 ### INTERNAL FUNCTIONS ###
 
 
+def _help(options):
+    indent = 0
+
+    def more():
+        return min(indent+4, 40)
+
+    def less():
+        return max(indent-4, 0)
+
+    print(PREFIX + "Available Options:")
+    indent = more()
+    for i, opt_line in enumerate(options):
+        (cmd, keys, casts) = _opt_parse(opt_line)
+        print(' '*indent, end='')
+        print('[{}] {}:'.format(i, cmd))
+        indent = more()
+        for key, cast in zip(keys, casts):
+            print(' '*indent, end='')
+            print("- {}: {}".format(key, cast))
+
+        indent = less()
+    indent = less()
+
+
+def _quit():
+    raise SystemExit
+
+
 class Response(object):
-    pass
+    def __init__(self, cmd=None, args=None):
+        self.cmd = cmd
+        if args is not None:
+            for k, v in args.items():
+                self.__dict__[k] = v
+
+    def __eq__(self, string):
+        return self.cmd == string
 
 
 def _parse(arg_line, options):
-    opt_line = _match_option(arg_line, options)
+    opt_line = _match_option(arg_line, options) # raises ValueError
     (cmd, values) = _arg_parse(arg_line)
-    (keys, casts) = _opt_parse(opt_line)
+    (_, keys, casts) = _opt_parse(opt_line)
 
     args = {}
     for key, value, cast in zip(keys, values, casts):
@@ -119,10 +161,7 @@ def _parse(arg_line, options):
         else:
             args[key] = _typecast(value, cast)
 
-    #print(cmd)
-    #malt.serve(args)
     return (cmd, args)
-    #return Response(cmd, args)
 
 
 def _typecast(value, cast, allowed_values=None):
@@ -146,10 +185,6 @@ def _match_option(arg_line, options):
     raise ValueError("Unknown command: {}.".format(shlex.split(arg_line)[0]))
 
 
-#inp = "div id anchor:str(top|bottom|left|right) file size:float",
-#cmd = "div"
-#names = [id anchor file size]
-#casts = [str str str float]
 def _opt_parse(opt_line):
     opt_words = shlex.split(opt_line)
     cmd = opt_words.pop(0) # removes command from front
@@ -169,7 +204,7 @@ def _opt_parse(opt_line):
             raise ValueError
         names.append(name) #?
         casts.append(cast)
-    return (names, casts)
+    return (cmd, names, casts)
 
 
 def _arg_parse(arg_line):
