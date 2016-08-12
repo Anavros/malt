@@ -13,7 +13,6 @@ PREFIX = '[malt] '
 PROMPT = '> '
 INCLUDED_FUNCTIONS = [
     'help',
-    'help command', # default to none on optional args
     'clear',
     'quit',
 ]
@@ -33,10 +32,7 @@ def offer(options):
     except ValueError as e:
         print(e)
         return Response(None)
-    except KeyboardInterrupt:
-        print()
-        raise SystemExit # doesn't print stack trace
-    except EOFError:
+    except (KeyboardInterrupt, EOFError):
         print()
         raise SystemExit # doesn't print stack trace
 
