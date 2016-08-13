@@ -2,7 +2,6 @@
 import re
 import os
 import shlex
-import malt
 
 
 """Malt
@@ -11,13 +10,30 @@ A tiny toolkit for structured input and output.
 
 PREFIX = '[malt] '
 PROMPT = '> '
-COMMENT = '#'
-SYNTAX = '?'
+c_COMMENT = '#'
+c_SYNTAX = '?'
 INCLUDED_FUNCTIONS = [
     'help',
     'clear',
     'quit',
 ]
+
+# Internal Errors
+err_EMPTY = 'empty'
+err_TOO_MANY_ARGS = 'too_many_args'
+err_MISSING_ARGS = 'too_few_args'
+err_BAD_TYPE = 'mistyped_arg'
+err_UNKNOWN = 'unknown_command'
+
+# Built-in Commands
+cmd_HELP = 'help'
+cmd_CLEAR = 'clear'
+cmd_QUIT = 'quit'
+
+INTERNAL_ERRORS = [
+    err_EMPTY, err_TOO_MANY_ARGS, err_MISSING_ARGS, err_BAD_TYPE, err_UNKNOWN]
+INTERNAL_COMMANDS = [
+    cmd_HELP, cmd_CLEAR, cmd_QUIT]
 
 ### PUBLIC FUNCTIONS ###
 
@@ -25,46 +41,45 @@ INCLUDED_FUNCTIONS = [
 def offer(options):
     """Offer the user a list of options. Input is verified as returned as a
     Response object."""
-
     if not options or type(options) is not list:
         raise ValueError("Must offer a list of options!")
-
     try:
-        cmd, args = _parse(input(PROMPT), options+INCLUDED_FUNCTIONS)
-    except ValueError as e:
-        print(e)
-        return Response(None)
+        arg_line = input(PROMPT)
     except (KeyboardInterrupt, EOFError):
         print()
         raise SystemExit # doesn't print stack trace
 
-    if cmd in _firsts(INCLUDED_FUNCTIONS):
-        # divert to included convenience functions
-        _redirect(Response(cmd, args), options)
+    # Where the magic happens.
+    cmd, args = _parse(arg_line, options)
+    if cmd in INTERNAL_ERRORS:
+        _handle_error(cmd)
+        return Response(None)
+    elif cmd in INTERNAL_COMMANDS:
+        _redirect(cmd, args, options)
         return Response(None)
     else:
         return Response(cmd, args)
 
 
+def _handle_error(cmd):
+    print("got an error!", cmd)
+
+
 def harvest(filepath, options=None):
     """Load a config file matching syntax against given options."""
-
     lines = []
     if not options: # must be in lang file
         options = _harvest_syntax(filepath)
         if not options: # still
             raise Exception("Language syntax not provided or found in file.")
-
     with open(filepath, 'r') as f:
         for raw_line in f:
             # clear out any comments or empty lines
-            line = raw_line.split(COMMENT)[0].strip()
+            line = raw_line.split(c_COMMENT)[0].strip()
             if not line:
                 continue
-
-            if line[0] == SYNTAX:
+            if line[0] == c_SYNTAX:
                 continue
-
             # start doing things?
             (cmd, args) = _parse(line, options)
             lines.append((cmd, args))
@@ -79,8 +94,8 @@ def _harvest_syntax(filepath):
             if not line:
                 continue
 
-            if line[0] == SYNTAX:
-                line = line.strip(SYNTAX).strip()
+            if line[0] == c_SYNTAX:
+                line = line.strip(c_SYNTAX).strip()
                 syntax.append(line)
     return syntax
 
@@ -132,7 +147,7 @@ def _redirect(response, options=[]):
     if response == 'help':
         _help(options)
     elif response == 'clear':
-        _clear()
+        clear()
     elif response == 'quit':
         _quit()
     else:
@@ -163,7 +178,7 @@ def _quit():
     raise SystemExit
 
 
-def _clear():
+def clear():
     os.system("cls" if os.name == "nt" else "clear")
 
 
@@ -178,21 +193,42 @@ class Response(object):
 
 
 def _parse(arg_line, options):
-    opt_line = _match_option(arg_line, options) # raises ValueError
+    arg_line = _cut_after(arg_line, c_COMMENT)
+    if not arg_line:
+        return (err_EMPTY, None)
+    try:
+        opt_line = _match_option(arg_line, options)
+    except ValueError:
+        return (err_UNKNOWN, None)
+
     (cmd, values) = _arg_parse(arg_line)
     (_, keys, casts) = _opt_parse(opt_line)
-    if not (len(values) == len(keys) == len(casts)):
-        raise ValueError("Too many or too few arguments.")
+
+    if len(values) < len(keys):
+        return (err_MISSING_ARGS, None)
+    elif len(keys) < len(values):
+        return (err_TOO_MANY_ARGS, None)
+
     args = {}
     for key, value, cast in zip(keys, values, casts):
         if '(' in cast: # used for limited options: "arg:str(one|two|three)"
             halves = cast.split('(')
             cast = halves[0]
             allowed_values = halves[1].strip(')').split('|')
-            args[key] = _typecast(value, cast, allowed_values)
+            try:
+                args[key] = _typecast(value, cast, allowed_values)
+            except ValueError:
+                return (err_BAD_TYPE, None) # TODO: show which values are allowed
         else:
-            args[key] = _typecast(value, cast)
+            try:
+                args[key] = _typecast(value, cast)
+            except ValueError:
+                return (err_BAD_TYPE, None) # TODO: show which type is expected
     return (cmd, args)
+
+
+def _cut_after(line, char):
+    return line.split(char)[0].strip()
 
 
 def _match_option(arg_line, options):
@@ -203,9 +239,12 @@ def _match_option(arg_line, options):
         if (arg_words[0] == opt_words[0]) and (len(arg_words) == len(opt_words)):
             return opt_line
     # if not found
-    raise ValueError("unknown command: {}".format(arg_words[0]))
+    raise ValueError("Given unknown command.")
 
 
+# TODO: parse options when given, not every time args need to be matched.
+# This way we can raise errors for bad option args, which are programmer errors,
+# when the program starts, and not when the user is using it.
 def _opt_parse(opt_line):
     opt_words = shlex.split(opt_line)
     cmd = opt_words.pop(0) # removes command from front

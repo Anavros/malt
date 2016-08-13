@@ -1,10 +1,9 @@
 
 single.py:
--> Prevent exceptions from stopping program.
 -> Allow docstrings for commands and arguments.
--> Let lang files contain their own syntax declarations.
--> Function to automatically create vim syntax highlighting.
+-> Module to automatically create vim syntax highlighting.
 -> Figure out how to include optional arguments?
+-> Empty lines trigger error. *--
 
 TODO:
 v0.2:
