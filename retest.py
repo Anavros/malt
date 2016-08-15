@@ -58,21 +58,8 @@ $
 def val():
     os.system("clear")
     for line in lines.split('\n'):
-
-        line_match = re.fullmatch(line_form, line, re.VERBOSE)
-        if not line_match:
-            print(line, red, False, stop)
-        else:
-            cmd = line_match.group('cmd')
-            args = line_match.group('args')
-            if args:
-                for word in args.split():
-                    word_match = re.fullmatch(word_form, word, re.VERBOSE)
-                    if not word_match:
-                        print(line, red, False, stop)
-                    else:
-                        print(line, green, True, stop)
-            else:
-                print(line, green, True, stop)
+        for word in line.split():
+            match = re.fullmatch(word_form, word, re.X)
+            print("m:", match)
 
 val()
