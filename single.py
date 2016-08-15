@@ -11,14 +11,6 @@ A tiny toolkit for structured input and output.
 PREFIX = '[malt] '
 PROMPT = '> '
 
-# Hardcoded Character Markers
-c_COMMENT = '#'
-c_SYNTAX = '?'
-c_TYPE_SPLIT = ':'
-c_KEYWORD_SPLIT = '|'
-c_LEFT_BRACKET = '('
-c_RIGHT_BRACKET = ')'
-
 r_SYNTAX_FORM = r"""
 ^
 (?P<cast>(str|int|float))?  # Optional type cast: type(example).
@@ -34,40 +26,120 @@ $
 def offer(options):
     """Offer the user a list of options. Input is verified as returned as a
     Response object."""
-
-    # Throws ValueError on bad options before the user gives input.
-    # Alerts the programmer without surprising the user.
     allowed_syntaxes = _compile(options)
-
     try:
         given_args = shlex.split(input(PROMPT))
     except (KeyboardInterrupt, EOFError):
-        _quit()
+        quit()
     if not given_args:
         return Response(None)
-    command = given_args.pop(0)
-
+    command = given_args.pop(0).lower()
     try:
         expected_args = _get_args(command, allowed_syntaxes)
     except ValueError:
         if command == 'help':
-            _help(allowed_syntaxes)
+            help(allowed_syntaxes)
         elif command == 'clear':
             clear()
         elif command == 'quit':
-            _quit()
+            quit()
         else:
-            print("unknown command")
+            print(PREFIX+"unknown command")
         return Response(None)
-
     try:
         final_args = _verify_arguments(given_args, expected_args)
     except ValueError:
-        print("bad typing or something!")
+        print(PREFIX+"malformed or missing arguments")
         return Response(None)
     else:
         return Response(command, final_args)
 
+
+def load(filepath, options=None):
+    """Load a config file matching syntax against given options."""
+    if options:
+        allowed_syntaxes = _compile(options)
+    else:
+        allowed_syntaxes = _read_syntax_comments(filepath)
+    lines = []
+    with open(filepath, 'r') as f:
+        for raw_line in f:
+            line = raw_line.split('#')[0].strip()
+            line = line.split('?')[0].strip()
+            if not line:
+                continue
+            words = shlex.split(line)
+            command = words.pop(0).lower() # non-case-sensitive
+            expected_args = _get_args(command, allowed_syntaxes)
+            final_args = _verify_arguments(words, expected_args)
+            lines.append((command, final_args))
+    return lines
+
+
+def serve(content='', end='\n', indent=0):
+    """Prints easy-to-read data structures according to type."""
+    if type(content) in [str, int, float]:
+        print(content)
+    elif type(content) in [list, set, frozenset, tuple]:
+        indent += 4
+        print('[')
+        for i, item in enumerate(content):
+            print(' '*indent, end='')
+            print("[{}] ".format(i), end='')
+            serve(item, indent=indent)
+        indent -= 4
+        print(' '*indent, end='')
+        print(']')
+    elif type(content) is dict:
+        print('{')
+        indent += 4
+        for (key, value) in content.items():
+            print(' '*indent, end='')
+            print("{}: ".format(key), end='')
+            serve(value, indent=indent)
+        indent -= 4
+        print(' '*indent, end='')
+        print('}')
+    # Helps with OrderedDict.
+    elif hasattr(content, 'items'):
+        serve(list(content.items()))
+    # Stops objects like str from spewing everywhere.
+    elif hasattr(content, '__dict__') and type(content.__dict__) is dict:
+        serve(content.__dict__, end)
+    elif hasattr(content, '_get_args()'):
+        serve(list(content._get_args()))
+    # When in doubt, use repr.
+    else:
+        print(repr(content), end=end)
+
+
+def help(allowed_syntaxes):
+    indent = 0
+    print(PREFIX + "Available Options:")
+    indent += 4
+    for i, (cmd, args) in enumerate(allowed_syntaxes):
+        print(' '*indent, end='')
+        print("[{}] {}".format(i, cmd.upper()))
+        indent += 4
+        for arg in args:
+            print(' '*indent, end='')
+            if arg.values:
+                print("* [{}]".format('|'.join(arg.values)))
+            else:
+                print("* {}({})".format(arg.cast, arg.key))
+        indent -= 4
+    indent -= 4
+
+
+def quit():
+    print()
+    raise SystemExit
+
+
+def clear():
+    os.system("cls" if os.name == "nt" else "clear")
+
+### INTERNAL FUNCTIONS ###
 
 class Argument(object):
     def __init__(self, key, cast='str', values=None, comment=None):
@@ -85,6 +157,22 @@ class Response(object):
                 self.__dict__[k] = v
     def __eq__(self, string):
         return self.cmd == string
+
+
+def _read_syntax_comments(filepath):
+    raw_lines = []
+    with open(filepath, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            if line[0] != '?':
+                continue
+            raw_lines.append(line.strip('?').strip())
+    if not raw_lines:
+        raise ValueError()
+    serve(raw_lines)
+    return _compile(raw_lines)
 
 
 def _compile(options):
@@ -129,7 +217,7 @@ def _match_arg(word):
 
 def _get_args(user_cmd, allowed_syntaxes):
     for (cmd, args) in allowed_syntaxes:
-        if user_cmd == cmd:
+        if user_cmd.lower() == cmd.lower():
             return args
     # if not found
     raise ValueError("{} was not found.".format(user_cmd))
@@ -139,7 +227,6 @@ def _verify_arguments(given_args, expected_args):
     final_args = {}
     if len(given_args) != len(expected_args):
         raise ValueError()
-
     for given, expected in zip(given_args, expected_args):
         # make sure right type and matches allowed
         if expected.values and given not in expected.values:
@@ -164,112 +251,3 @@ def _cast(value, t):
         print(value, t)
         raise ValueError("This should have been verified already!")
     return value
-
-
-def harvest(filepath, options=None):
-    """Load a config file matching syntax against given options."""
-
-    if options:
-        allowed_syntaxes = _compile(options)
-    else:
-        allowed_syntaxes = _read_syntax_comments(filepath)
-
-    lines = []
-    with open(filepath, 'r') as f:
-        for raw_line in f:
-            line = raw_line.split('#')[0].strip()
-            line = line.split('?')[0].strip()
-            if not line:
-                continue
-
-            words = shlex.split(line)
-            command = words.pop(0)
-            expected_args = _get_args(command, allowed_syntaxes)
-            final_args = _verify_arguments(words, expected_args)
-            lines.append((command, final_args))
-    return lines
-
-
-def _read_syntax_comments(filepath):
-    raw_lines = []
-    with open(filepath, 'r') as f:
-        for line in f:
-            line = line.strip()
-            if not line:
-                continue
-
-            if line[0] != '?':
-                continue
-
-            raw_lines.append(line.strip('?').strip())
-    if not raw_lines:
-        raise ValueError()
-    serve(raw_lines)
-    return _compile(raw_lines)
-
-
-def serve(content='', end='\n', indent=0):
-    """Prints easy-to-read data structures according to type."""
-    if type(content) in [str, int, float]:
-        print(content)
-    elif type(content) in [list, set, frozenset, tuple]:
-        indent += 4
-        print('[')
-        for i, item in enumerate(content):
-            print(' '*indent, end='')
-            print("[{}] ".format(i), end='')
-            serve(item, indent=indent)
-        indent -= 4
-        print(' '*indent, end='')
-        print(']')
-    elif type(content) is dict:
-        print('{')
-        indent += 4
-        for (key, value) in content.items():
-            print(' '*indent, end='')
-            print("{}: ".format(key), end='')
-            serve(value, indent=indent)
-        indent -= 4
-        print(' '*indent, end='')
-        print('}')
-    # Helps with OrderedDict.
-    elif hasattr(content, 'items'):
-        serve(list(content.items()))
-    # Stops objects like str from spewing everywhere.
-    elif hasattr(content, '__dict__') and type(content.__dict__) is dict:
-        serve(content.__dict__, end)
-    elif hasattr(content, '_get_args()'):
-        serve(list(content._get_args()))
-    # When in doubt, use repr.
-    else:
-        print(repr(content), end=end)
-
-
-### INTERNAL FUNCTIONS ###
-
-
-def _help(allowed_syntaxes):
-    indent = 0
-    print(PREFIX + "Available Options:")
-    indent += 4
-    for i, (cmd, args) in enumerate(allowed_syntaxes):
-        print(' '*indent, end='')
-        print("[{}] {}".format(i, cmd.upper()))
-        indent += 4
-        for arg in args:
-            print(' '*indent, end='')
-            if arg.values:
-                print("* [{}]".format('|'.join(arg.values)))
-            else:
-                print("* {}({})".format(arg.cast, arg.key))
-        indent -= 4
-    indent -= 4
-
-
-def _quit():
-    print()
-    raise SystemExit
-
-
-def clear():
-    os.system("cls" if os.name == "nt" else "clear")
