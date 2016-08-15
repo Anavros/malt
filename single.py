@@ -19,36 +19,10 @@ c_KEYWORD_SPLIT = '|'
 c_LEFT_BRACKET = '('
 c_RIGHT_BRACKET = ')'
 
-# Internal Errors
-err_EMPTY = 'empty'
-err_TOO_MANY_ARGS = 'too_many_args'
-err_MISSING_ARGS = 'too_few_args'
-err_BAD_TYPE = 'mistyped_arg'
-err_UNKNOWN = 'unknown_command'
-
-Errors.EMPTY
-Commands.
-MCmd
-
-class Errors(object):
-    EMPTY, ARG_COUNT, ARG_TYPE, COMMAND = range(4)
-
-class Commands(object):
-    HELP, CLEAR, QUIT = range(3)
-
 class ParseError(ValueError):
     def __init__(self, code):
         self.code = code
-
-# Built-in Commands
-cmd_HELP = 'help'
-cmd_CLEAR = 'clear'
-cmd_QUIT = 'quit'
-
-INTERNAL_ERRORS = [
-    err_EMPTY, err_TOO_MANY_ARGS, err_MISSING_ARGS, err_BAD_TYPE, err_UNKNOWN]
-INTERNAL_COMMANDS = [
-    cmd_HELP, cmd_CLEAR, cmd_QUIT]
+    EMPTY, ARG_COUNT, ARG_TYPE, COMMAND, HELP, CLEAR, QUIT = range(7)
 
 ### PUBLIC FUNCTIONS ###
 
@@ -58,25 +32,39 @@ def offer(options):
     Response object."""
     if not options or type(options) is not list:
         raise ValueError("Must offer a list of options!")
-    if _valid_syntax(options):
-        word = _valid_syntax(options) #TODO
-        raise ValueError("Malformed option syntax!", word)
+
+#    if _valid_syntax(options):
+#        word = _valid_syntax(options) #TODO
+#        raise ValueError("Malformed option syntax!", word)
 
     try:
-        user_text = input(PROMPT)
+        cmd, args = _parse(input(), options)
+    except ParseError as e:
+        _handle(e.code)
+        return Response(None)
     except (KeyboardInterrupt, EOFError):
-        print() # ensure newline
-        raise SystemExit # and don't print stack trace
-
-    cmd, args = _parse(user_text, options)
-    if cmd in INTERNAL_ERRORS:
-        _handle_error(cmd, args) # args will be a string instead of a dict
-        return Response(None)
-    elif cmd in INTERNAL_COMMANDS:
-        _redirect(cmd, args, options)
-        return Response(None)
+        _quit()
     else:
         return Response(cmd, args)
+
+
+def _handle(code):
+    if code == ParseError.HELP:
+        _help()
+    elif code == ParseError.CLEAR:
+        _clear()
+    elif code == ParseError.QUIT:
+        _quit()
+    elif code == ParseError.EMPTY:
+        print("Error.")
+    elif code == ParseError.ARG_COUNT:
+        print("Error.")
+    elif code == ParseError.ARG_TYPE:
+        print("Error.")
+    elif code == ParseError.COMMAND:
+        print("Error.")
+    else:
+        raise ValueError("Unknown error code.")
 
 
 def _valid_syntax(syntax):
@@ -87,9 +75,32 @@ def _valid_syntax(syntax):
                 return word
     return None
 
-def _handle_error(cmd, err_string):
-    print("got an error!", cmd)
-    print(err_string)
+
+class Syntax(object):
+    def __init__(self, cmd, arg_count, keys, casts):
+        pass
+
+    def match(response):
+        pass
+
+
+def _re_do(options):
+    if not options or type(options) is not list:
+        raise ValueError("Must provide a valid list of options!")
+
+    form = r"""
+    ^
+    ([a-z_0-9]+)        # \1 Required command name.
+    (:(str|int|float)   # \2 Optional type specifier separated by a colon.
+    (\([a-z_|0-9]*\)    # \3 Optional pipe-separated list of allowed values.
+    )?
+    )?
+    $
+    """
+    for line in options:
+        match = re.match(form, line, re.VERBOSE)
+        if not match:
+            raise ValueError("Must provide a valid list of options!")
 
 
 def harvest(filepath, options=None):
@@ -170,17 +181,6 @@ def serve(content='', end='\n', indent=0):
 ### INTERNAL FUNCTIONS ###
 
 
-def _redirect(response, options=[]):
-    if response == 'help':
-        _help(options)
-    elif response == 'clear':
-        clear()
-    elif response == 'quit':
-        _quit()
-    else:
-        raise Exception("I've made a terrible mistake.")
-
-
 def _help(options):
     indent = 0
     def more():
@@ -219,38 +219,6 @@ class Response(object):
         return self.cmd == string
 
 
-def _parse(arg_line, options):
-    cmd, values = _arg_parse(arg_line)
-    opt_line = _match_option(cmd, options)
-    _, keys, casts = _opt_parse(opt_line)
-
-    if len(values) != len(keys):
-        return (err_MISSING_ARGS,
-            "Expected {} arguments but only received {}.".format(len(keys), len(values)))
-    args = {}
-    for key, value, cast in zip(keys, values, casts):
-        if c_LEFT_BRACKET in cast: # used for limited options: "arg:str(one|two|three)"
-            halves = cast.split(c_LEFT_BRACKET)
-            cast = halves[0]
-            allowed_values = halves[1].strip(c_RIGHT_BRACKET).split(c_KEYWORD_SPLIT)
-            args[key] = _typecast(value, cast, allowed_values) # may throw ParseError
-        else:
-            args[key] = _typecast(value, cast)
-    return (cmd, args)
-
-
-def _cut(line, char):
-    return line.split(char)[0].strip()
-
-
-def _match_option(arg, options):
-    for line in options:
-        if line.split()[0] == arg.split()[0]:
-            return line
-    # if not found
-    raise ParseError(Errors.COMMAND)
-
-
 def _deconstruct_options(options):
     result = []
     for opt_line in options:
@@ -273,6 +241,41 @@ def _deconstruct_options(options):
                 casts.append('str')
         result.append((cmd, keys, casts))
     return result
+
+
+def _parse(arg_line, options):
+    cmd, values = _arg_parse(arg_line)
+    opt_line = _match_option(cmd, options)
+    if not opt_line:
+    _, keys, casts = _opt_parse(opt_line)
+
+
+
+    if len(values) != len(keys):
+        raise ParseError(ParseError.ARG_COUNT, given=len(values), expected=len(keys))
+
+    args = {}
+    for key, value, cast in zip(keys, values, casts):
+        if c_LEFT_BRACKET in cast: # used for limited options: "arg:str(one|two|three)"
+            halves = cast.split(c_LEFT_BRACKET)
+            cast = halves[0]
+            allowed_values = halves[1].strip(c_RIGHT_BRACKET).split(c_KEYWORD_SPLIT)
+            args[key] = _typecast(value, cast, allowed_values) # may throw ParseError
+        else:
+            args[key] = _typecast(value, cast)
+    return (cmd, args)
+
+
+def _cut(line, char):
+    return line.split(char)[0].strip()
+
+
+def _match_option(arg, options):
+    for line in options:
+        if line.split()[0] == arg.split()[0]:
+            return line
+    # if not found
+    raise ParseError(ParseError.COMMAND)
 
 
 # TODO: parse options when given, not every time args need to be matched.
@@ -308,7 +311,7 @@ def _arg_parse(arg_line):
 
 def _typecast(value, cast, allowed_values=None):
     if allowed_values and value not in allowed_values:
-        raise ParseError(Errors.TYPE)
+        raise ParseError(ParseError.TYPE)
     if cast == "str":
         value = str(value)
     elif cast == "int":
@@ -316,7 +319,7 @@ def _typecast(value, cast, allowed_values=None):
     elif cast == "float":
         value = float(value)
     else:
-        raise ParseError(Errors.TYPE)
+        raise ParseError(ParseError.TYPE)
     return value
 
 
