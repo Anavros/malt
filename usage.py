@@ -1,6 +1,6 @@
 
-# malt for python 3
-# written by John Dobbs
+# Malt for Python 3
+# written by John Dobbs (@Anavros)
 
 # Malt is contained in a single file: simply drag and drop into your project.
 import malt
@@ -9,7 +9,7 @@ import malt
 options = [
     'menu',         # commands can be simple, with no arguments
     'order drink',  # or more complicated, with one or more string args
-    'tip n:int'     # and can even specify types
+    'tip int(n)'    # and can even specify types
 ]
 
 # Typically menus like this are organized into infinite loops, where the user
@@ -17,7 +17,7 @@ options = [
 # typed, or just plain wrong, malt will return an empty response, which will
 # fall through the if/else tree and be discarded by the next time around.
 while True:
-    response = malt.fill(options)
+    response = malt.offer(options)
 
     # Responses can be checked against normal strings.
     if response == 'menu':
@@ -27,18 +27,15 @@ while True:
         # Using malt.indent() will increase the level of indentation for every
         # serving within its block. Indentation can be nested multiple times.
         with malt.indent():
-            malt.serve("malt.fill()     - Get a valid command.")
-            malt.serve("malt.freefill() - Get an unchecked string.")
+            malt.serve("malt.offer()    - Get a valid command.")
             malt.serve("malt.serve()    - Show nicely formatted output.")
-            malt.serve("malt.confirm()  - Ask a yes or no question.")
-            malt.serve("malt.indent()   - Increase the output indentation.")
 
     elif response == 'order':
         # Responses are a little more interesting that normal strings.
         # They also hold any extra parameters you've requested from the user.
         # 'order drink' -> response == 'order'; response.drink == [user input]
         drink = response.drink
-        if drink in ['fill', 'freefill', 'serve', 'confirm', 'indent']:
+        if drink in ['offer', 'serve']:
             malt.serve("One malt.{}() right away.".format(drink))
         else:
             malt.serve("I'm not sure I know how to make that.")

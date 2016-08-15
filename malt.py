@@ -1,391 +1,253 @@
-# coding=utf-8
-"""
-Malt
-a tiny toolkit for making interactive loops
 
-...
-"""
-# TODO:
-# import logging
-# import readline
+import re
 import os
-from contextlib import contextmanager
-
-try:
-    from malt_ext_output import *
-except ImportError:
-    pass
-else:
-    print = _mprint
-    input = _minput
-
-RAISE_SYSTEM_EXIT = True
-STASH_FILE = './maltstash.txt'
-PREFIX = "[malt] "  # may tweak output style
-MAX_INDENT = 4
-INDENT_WIDTH = 2
-OVERFLOW = 80
-
-_indent = 0
-_fresh_line = True
-
-# NOTE: Theme Words:
-# answer, extract, supply, satisfy, flow, pour, glass, provide, dispense
+import shlex
 
 
-# offer like a menu
-# make menus more formal too
+"""Malt
+A tiny toolkit for structured input and output.
+"""
+
+PREFIX = '[malt] '
+PROMPT = '> '
+
+r_SYNTAX_FORM = r"""
+^
+(?P<cast>(str|int|float))?  # Optional type cast: type(example).
+ (?(cast) \( )              # Only matches paren if cast is matched.
+(?P<key>[a-z]+)             # Required keyword.
+ (?(cast) \) )              # Closing paren for cast.
+(?P<allow>\[[\w\d_|]+\])?   # Optional list of allowed values.
+$
+"""
+
+### PUBLIC FUNCTIONS ###
+
 def offer(options):
-    return fill(options)
-def fill(options):
-    """Get a valid command from the user.
-
-    Returns a special Response() object which can be printed and compared like
-    a string. If the user provides extra arguments, they will be accessible
-    through dot notation (e.g. response.arg1). Will only prompt the user once,
-    so control flow is left to the client programmer. If the user provides
-    bad input, a message will print to the console and an empty response will
-    be returned. Neither type-checking or existence-checking is necessary in
-    the client program: if either fails, malt will automatically print an error
-    message and return an empty object. Bad or partial input is never returned.
-
-    Requires a list of option strings. Each option string is a prototype for a
-    valid command the user may enter: for example: 'add x:int y:int' requires
-    that the user enter 'add', followed by two int-castable numbers. If extra
-    arguments are omitted, only the command will match; and if args are given
-    with no casts, they are assumed to be str. 'start' and 'register name' are
-    both valid option strings.
-    """
-    if not options or type(options) is not list:
-        raise ValueError("malt.fill requires a list of string options.")
-
-    # Convert the option strings into a dict with (name, type) pairs.
-    prototype = _construct_prototype(options)
-    allowed_commands = list(prototype.keys())
-
-    # Every word given on the console is split and stripped.
-    words = [w.strip() for w in freefill().split()]
-
-    # Skip empty inputs.
-    if len(words) < 1:
-        return Response(None)
-
-    # Split the input into one command and zero+ arguments.
-    command = words[0].lower()
+    """Offer the user a list of options. Input is verified as returned as a
+    Response object."""
+    allowed_syntaxes = _compile(options)
     try:
-        arguments = words[1:]
-    except IndexError:
-        arguments = []
-
-    if command in allowed_commands:  # NOTE: removed the case guard
-        proto_args = prototype[command]
-
-        # Every response must be perfectly typed. No partial input.
-        if len(arguments) > len(proto_args):
-            serve(PREFIX + "too many arguments")
-            return Response(None)
-        elif len(arguments) < len(proto_args):
-            serve(PREFIX + "missing arguments")
-            return Response(None)
-
-        # We have the right number of args; now we try to cast.
-        final_args = []
-        for (given, (label, cast)) in zip(arguments, proto_args):
-            try:
-                final = (label, cast(given))
-            except ValueError:
-                serve(PREFIX + "invalid type")
-                return Response(None)
-            final_args.append(final)
+        given_args = shlex.split(input(PROMPT))
+    except (KeyboardInterrupt, EOFError):
+        quit()
+    if not given_args:
+        return Response(None)
+    command = given_args.pop(0).lower()
+    try:
+        expected_args = _get_args(command, allowed_syntaxes)
+    except ValueError:
+        if command == 'help':
+            help(allowed_syntaxes)
+        elif command == 'clear':
+            clear()
+        elif command == 'quit':
+            quit()
+        else:
+            print(PREFIX+"unknown command")
+        return Response(None)
+    try:
+        final_args = _verify_arguments(given_args, expected_args)
+    except ValueError:
+        print(PREFIX+"malformed or missing arguments")
+        return Response(None)
+    else:
         return Response(command, final_args)
 
-    # Only try built-ins if the string has not already been matched.
-    elif command == 'help':
-        explain(prototype, focus=arguments[0] if arguments else None)
-        return Response(None)
 
-    elif command == 'clear':
-        clear()
-        return Response(None)
-
-    elif command == 'back':
-        return Response("back")
-
-#    elif command == 'quit':
-#        if words:
-#            immediate = (words[0].strip().lower() == 'now')
-#            if immediate:
-#                raise SystemExit()
-#        return Response('quit')
-
+def load(filepath, options=None):
+    """Load a config file matching syntax against given options."""
+    if options:
+        allowed_syntaxes = _compile(options)
     else:
-        serve(PREFIX + "unknown keyword")
-        return Response(None)
+        allowed_syntaxes = _read_syntax_comments(filepath)
+    lines = []
+    with open(filepath, 'r') as f:
+        for raw_line in f:
+            line = raw_line.split('#')[0].strip()
+            line = line.split('?')[0].strip()
+            if not line:
+                continue
+            words = shlex.split(line)
+            command = words.pop(0).lower() # non-case-sensitive
+            expected_args = _get_args(command, allowed_syntaxes)
+            final_args = _verify_arguments(words, expected_args)
+            lines.append((command, final_args))
+    return lines
 
 
-def freefill(prompt="> "):
-    """Get a string from the user.
-
-    Displays an optional prompt. Strips extra whitespace. Preserves indentation.
-    """
-    serve(prompt, nl=False)
-    return _minput().strip()
-
-
-def serve(output='', nl=True):
-    """Print something to the console with smart formatting.
-
-    Accepts one item at a time to print to the console. Items are checked by
-    type and available attributes to determine the best way to format them.
-    Generally speaking, output should be much more readable that the basic
-    print function. Supports indentation.
-    """
-    if type(output) in [str, int, float]:
-        _mprint(output, nl)
-
-    # NOTE: nested tuples render as str(tuple)
-    elif type(output) is tuple:
-        if not output:
-            _mprint('()')
-        else:
-            _mprint('(', nl=False)
-            for item in output[:-1]:
-                _mprint(str(item)+', ', nl=False)
-            _mprint(str(output[-1]), nl=False)
-            _mprint(')', nl)
-
-    elif type(output) in [list, set, frozenset]:
-        _mprint('[', nl=output)
-        with indent():
-            for i, item in enumerate(output):
-                if not _fresh_line:
-                    _mprint()
-                #_mprint(LIST_TICK, nl=False)
-                _mprint("[{}] ".format(i), nl=False)
-                serve(item)
-        _mprint(']', nl)
-
-    elif type(output) is dict:
-        _mprint("{", nl=output)
-        with indent():
-            for (key, value) in output.items():
-                _mprint("{}: ".format(key), nl=False)
-                serve(value)
-        _mprint("}")
-
+def serve(content='', end='\n', indent=0):
+    """Prints easy-to-read data structures according to type."""
+    if type(content) in [str, int, float]:
+        print(content)
+    elif type(content) in [list, set, frozenset, tuple]:
+        indent += 4
+        print('[')
+        for i, item in enumerate(content):
+            print(' '*indent, end='')
+            print("[{}] ".format(i), end='')
+            serve(item, indent=indent)
+        indent -= 4
+        print(' '*indent, end='')
+        print(']')
+    elif type(content) is dict:
+        print('{')
+        indent += 4
+        for (key, value) in content.items():
+            print(' '*indent, end='')
+            print("{}: ".format(key), end='')
+            serve(value, indent=indent)
+        indent -= 4
+        print(' '*indent, end='')
+        print('}')
     # Helps with OrderedDict.
-    elif hasattr(output, 'items'):
-        serve(list(output.items()))
-
+    elif hasattr(content, 'items'):
+        serve(list(content.items()))
     # Stops objects like str from spewing everywhere.
-    elif hasattr(output, '__dict__') and type(output.__dict__) is dict:
-    #elif hasattr(output, '__dict__'):
-        serve(output.__dict__, nl)
-
-    elif hasattr(output, '_get_args()'):
-        serve(list(output._get_args()))
-
+    elif hasattr(content, '__dict__') and type(content.__dict__) is dict:
+        serve(content.__dict__, end)
+    elif hasattr(content, '_get_args()'):
+        serve(list(content._get_args()))
     # When in doubt, use repr.
     else:
-        _mprint(repr(output), nl)
+        print(repr(content), end=end)
 
 
-@contextmanager
-def indent():
-    """Increase the indentation level for all output.
-
-    Used with a context manager: 'with malt.indent(): ...'. Indentation levels
-    are error-checked to prevent excessive or invalid levels. Client
-    programmers do not need to error check use of this function. Set the
-    malt.OVERFLOW global variable to set the maximum line width including
-    indentation.
-    """
-    global _indent
-    _indent = _indent+1
-    try:
-        yield
-    finally:
-        _indent = max(_indent-1, 0)
-
-
-def confirm(prompt=PREFIX + "confirm? "):
-    """Get a boolean yes or no from the console.
-
-    Loops until a yes or no has been given. Does not accept unknown input to
-    prevent accidental typing errors from causing problems.
-    """
-    while True:
-        serve(prompt, nl=False)
-        key = _minput().strip().lower()
-        if key == 'yes':
-            return True
-        elif key == 'no':
-            return False
-        else:
-            serve(PREFIX + "unknown keyword (use 'yes' or 'no')")
-            serve()
-            continue
+def help(allowed_syntaxes):
+    indent = 0
+    print(PREFIX + "Available Options:")
+    indent += 4
+    for i, (cmd, args) in enumerate(allowed_syntaxes):
+        print(' '*indent, end='')
+        print("[{}] {}".format(i, cmd.upper()))
+        indent += 4
+        for arg in args:
+            print(' '*indent, end='')
+            if arg.values:
+                print("* [{}]".format('|'.join(arg.values)))
+            else:
+                print("* {}({})".format(arg.cast, arg.key))
+        indent -= 4
+    indent -= 4
 
 
-# TODO: name needs some thinking
-def prepare_stockpile(filename):
-    """Set up a log file for malt.stash() to use."""
-    pass
-
-
-def stash(message, level=0):
-    """Print a message to a log file."""
-    pass
-
-
-def pause():
-    """Pause for dramatic effect."""
-
-    serve('...', nl=False)
-    _minput()
+def quit():
+    print()
+    raise SystemExit
 
 
 def clear():
-    """Clear the screen."""
-
     os.system("cls" if os.name == "nt" else "clear")
 
+### INTERNAL FUNCTIONS ###
 
-def line(char='=', insert=None):
-    """Print a line of characters exactly as wide as the window."""
+class Argument(object):
+    def __init__(self, key, cast='str', values=None, comment=None):
+        self.key = key
+        self.cast = cast
+        self.values = values
+        self.comment = comment
 
-    if len(char) > 1:
-        char = char[0]
-    length = OVERFLOW-(min(_indent, MAX_INDENT) * INDENT_WIDTH)
-    string = char*length
-    if insert is not None:
-        pass
-    _mprint(string)
-
-
-# XXX: doesn't maintain order any more
-def explain(prototype, focus=None):
-    """Serve a help message with all available commands."""
-    with indent():
-        if focus is not None:
-            if focus in prototype.keys():
-                serve(PREFIX + "Usage:")
-                with indent():
-                    serve(focus + ' ', nl=False)
-                    args = prototype[focus]
-                    for name, cast in args:
-                        serve("[{} {}] ".format(str(cast)[8:-2], name), nl=False)
-                    serve(nl=True)
-            else:
-                serve(PREFIX + "Unknown Command: '{}'".format(focus))
-        else:
-            serve(PREFIX + "Available Commands:")
-            for command in prototype.keys():
-                serve("'{}' ".format(command), nl=False)
-            serve(nl=True)
-            serve("'help', 'clear', 'back', and 'quit' are always available.")
-
-# Internal Functions #
 
 class Response(object):
-    """A faux-string with additional parameters.
-
-    Used by malt.fill(). Can be compared and printed like a normal string; but
-    also contains extra parameters accessible by dot notation.
-    """
-    def __init__(self, command=None, args=None):
-        self.command = command
+    def __init__(self, cmd, args=None):
+        self.cmd = cmd
         if args is not None:
-            for (key, value) in args:
-                self.__dict__[key] = value
-
+            for k, v in args.items():
+                self.__dict__[k] = v
     def __eq__(self, string):
-        return string == self.command
+        return self.cmd == string
 
 
-def _mprint(string='', nl=True):
-    """Print output to the console with extra functionality.
+def _read_syntax_comments(filepath):
+    raw_lines = []
+    with open(filepath, 'r') as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            if line[0] != '?':
+                continue
+            raw_lines.append(line.strip('?').strip())
+    if not raw_lines:
+        raise ValueError()
+    serve(raw_lines)
+    return _compile(raw_lines)
 
-    Provides support for indentation and line truncation. Every call should go
-    through _mprint() as it will ensure indentation will always be correct.
-    """
-    global _fresh_line, OVERFLOW
-    global _indent, MAX_INDENT, INDENT_WIDTH
-    already_printed = 0
 
-    # Add indentation to the beginning of every new line.
-    if _fresh_line:
-        indentation = ' '*min(_indent, MAX_INDENT)*INDENT_WIDTH
-        already_printed = len(indentation)
-        print(indentation, end='')
+def _compile(options):
+    if not options or type(options) is not list:
+        raise ValueError("Must provide a valid list of options!")
+    allowed_syntaxes = []
+    for line in options:
+        words = line.split()
+        # Command
+        cmd = _match_cmd(words.pop(0))
+        args = []
+        for word in words:
+            key, cast, allow = _match_arg(word)
+            args.append(Argument(key, cast, allow))
+        allowed_syntaxes.append((cmd, args))
+    return allowed_syntaxes
 
-    string = str(string)  # cast ints and anything else just to make sure
-    end_char = '\n' if nl else ''
 
-    # Wrap the line via recursion if it is too long.
-    if already_printed + len(string) > OVERFLOW:
-        remaining = OVERFLOW-already_printed
-        cut = OVERFLOW  # not 0 to prevent infinite loops on long words
-        # should get the whitespace closest to the maximum allowed length
-        for i in range(remaining):
-            if string[i].isspace():
-                cut = i
-        print(string[:cut], end='\n')
-        _fresh_line = True
-        _mprint(string[cut:].strip(), nl)
+def _match_cmd(word):
+    match = re.fullmatch(r_SYNTAX_FORM, word, re.VERBOSE)
+    if not match:
+        raise ValueError("Malformed command: {}.".format(word))
+    if match.group('cast') or match.group('allow'):
+        raise ValueError("Can not cast commands, only args.")
     else:
-        print(string, end=end_char)
-
-    # The next line will be 'fresh' if it follows a newline.
-    _fresh_line = nl
+        return match.group('key')
 
 
+def _match_arg(word):
+    match = re.fullmatch(r_SYNTAX_FORM, word, re.VERBOSE)
+    if not match:
+        raise ValueError("Malformed argument: {}.".format(word))
+    key = match.group('key')
+    cast = match.group('cast')
+    if cast is None:
+        cast = 'str'
+    allow = match.group('allow')
+    if allow:
+        allow = allow.strip('[]').split('|')
+    return key, cast, allow
 
-def _minput():
-    """Wrapper for input() to help provide indentation support."""
-    global _fresh_line
-    _fresh_line = True
 
-    x = input()
-    if x.strip().lower() == 'quit':
-        raise SystemExit
+def _get_args(user_cmd, allowed_syntaxes):
+    for (cmd, args) in allowed_syntaxes:
+        if user_cmd.lower() == cmd.lower():
+            return args
+    # if not found
+    raise ValueError("{} was not found.".format(user_cmd))
+
+
+def _verify_arguments(given_args, expected_args):
+    final_args = {}
+    if len(given_args) != len(expected_args):
+        raise ValueError()
+    for given, expected in zip(given_args, expected_args):
+        # make sure right type and matches allowed
+        if expected.values and given not in expected.values:
+            raise ValueError()
+        try:
+            fresh_clean_and_beautiful = _cast(given, expected.cast)
+        except TypeError:
+            raise ValueError()
+        else:
+            final_args[expected.key] = fresh_clean_and_beautiful
+    return final_args
+
+
+def _cast(value, t):
+    if t == 'int':
+        value = int(value)
+    elif t == 'float':
+        value = float(value)
+    elif t == 'str':
+        pass
     else:
-        return x
-
-
-def _construct_prototype(option_list):
-    """Converts option strings into a dict with types."""
-
-    prototype = {}
-    for option in option_list:
-        # Each option takes the form: "command arg1 arg2:type".
-        parts = [o.strip().lower() for o in option.split()]
-        command = parts[0]
-        try:  # Pythonic!
-            arguments = parts[1:]
-        except IndexError:
-            arguments = []
-
-        arg_list = []
-        for arg in arguments:
-            # Take each "name:type" pair and convert it to a (name,type) tuple.
-            split = arg.split(':')
-            name = split[0]
-            try:
-                cast_string = split[1]
-            except IndexError:
-                # If an arg is not typed, assume it should be a string.
-                cast = str
-            else:
-                cast_string = split[1]
-                if cast_string == 'int':
-                    cast = int
-                elif cast_string == 'float':
-                    cast = float
-                elif cast_string == 'bool':
-                    cast = bool
-                else:  # any unknown types should just stay as strings
-                    cast = str
-            arg_list.append((name, cast))
-        prototype[command] = arg_list
-    return prototype
+        print(value, t)
+        raise ValueError("This should have been verified already!")
+    return value
