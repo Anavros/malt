@@ -3,7 +3,6 @@ single.py:
 -> Allow docstrings for commands and arguments.
 -> Module to automatically create vim syntax highlighting.
 -> Figure out how to include optional arguments?
--> Empty lines trigger error. *--
 
 TODO:
 v0.2:

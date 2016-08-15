@@ -10,13 +10,14 @@ A tiny toolkit for structured input and output.
 
 PREFIX = '[malt] '
 PROMPT = '> '
+
+# Hardcoded Character Markers
 c_COMMENT = '#'
 c_SYNTAX = '?'
-INCLUDED_FUNCTIONS = [
-    'help',
-    'clear',
-    'quit',
-]
+c_TYPE_SPLIT = ':'
+c_KEYWORD_SPLIT = '|'
+c_LEFT_BRACKET = '('
+c_RIGHT_BRACKET = ')'
 
 # Internal Errors
 err_EMPTY = 'empty'
@@ -24,6 +25,20 @@ err_TOO_MANY_ARGS = 'too_many_args'
 err_MISSING_ARGS = 'too_few_args'
 err_BAD_TYPE = 'mistyped_arg'
 err_UNKNOWN = 'unknown_command'
+
+Errors.EMPTY
+Commands.
+MCmd
+
+class Errors(object):
+    EMPTY, ARG_COUNT, ARG_TYPE, COMMAND = range(4)
+
+class Commands(object):
+    HELP, CLEAR, QUIT = range(3)
+
+class ParseError(ValueError):
+    def __init__(self, code):
+        self.code = code
 
 # Built-in Commands
 cmd_HELP = 'help'
@@ -43,16 +58,19 @@ def offer(options):
     Response object."""
     if not options or type(options) is not list:
         raise ValueError("Must offer a list of options!")
-    try:
-        arg_line = input(PROMPT)
-    except (KeyboardInterrupt, EOFError):
-        print()
-        raise SystemExit # doesn't print stack trace
+    if _valid_syntax(options):
+        word = _valid_syntax(options) #TODO
+        raise ValueError("Malformed option syntax!", word)
 
-    # Where the magic happens.
-    cmd, args = _parse(arg_line, options)
+    try:
+        user_text = input(PROMPT)
+    except (KeyboardInterrupt, EOFError):
+        print() # ensure newline
+        raise SystemExit # and don't print stack trace
+
+    cmd, args = _parse(user_text, options)
     if cmd in INTERNAL_ERRORS:
-        _handle_error(cmd)
+        _handle_error(cmd, args) # args will be a string instead of a dict
         return Response(None)
     elif cmd in INTERNAL_COMMANDS:
         _redirect(cmd, args, options)
@@ -61,8 +79,17 @@ def offer(options):
         return Response(cmd, args)
 
 
-def _handle_error(cmd):
+def _valid_syntax(syntax):
+    word_form = r"^([a-z_0-9]+)(:(str|int|float)(\([a-z_|0-9]*\))?)?$"
+    for line in syntax:
+        for word in line.split():
+            if not re.match(word_form, word):
+                return word
+    return None
+
+def _handle_error(cmd, err_string):
     print("got an error!", cmd)
+    print(err_string)
 
 
 def harvest(filepath, options=None):
@@ -193,53 +220,59 @@ class Response(object):
 
 
 def _parse(arg_line, options):
-    arg_line = _cut_after(arg_line, c_COMMENT)
-    if not arg_line:
-        return (err_EMPTY, None)
-    try:
-        opt_line = _match_option(arg_line, options)
-    except ValueError:
-        return (err_UNKNOWN, None)
+    cmd, values = _arg_parse(arg_line)
+    opt_line = _match_option(cmd, options)
+    _, keys, casts = _opt_parse(opt_line)
 
-    (cmd, values) = _arg_parse(arg_line)
-    (_, keys, casts) = _opt_parse(opt_line)
-
-    if len(values) < len(keys):
-        return (err_MISSING_ARGS, None)
-    elif len(keys) < len(values):
-        return (err_TOO_MANY_ARGS, None)
-
+    if len(values) != len(keys):
+        return (err_MISSING_ARGS,
+            "Expected {} arguments but only received {}.".format(len(keys), len(values)))
     args = {}
     for key, value, cast in zip(keys, values, casts):
-        if '(' in cast: # used for limited options: "arg:str(one|two|three)"
-            halves = cast.split('(')
+        if c_LEFT_BRACKET in cast: # used for limited options: "arg:str(one|two|three)"
+            halves = cast.split(c_LEFT_BRACKET)
             cast = halves[0]
-            allowed_values = halves[1].strip(')').split('|')
-            try:
-                args[key] = _typecast(value, cast, allowed_values)
-            except ValueError:
-                return (err_BAD_TYPE, None) # TODO: show which values are allowed
+            allowed_values = halves[1].strip(c_RIGHT_BRACKET).split(c_KEYWORD_SPLIT)
+            args[key] = _typecast(value, cast, allowed_values) # may throw ParseError
         else:
-            try:
-                args[key] = _typecast(value, cast)
-            except ValueError:
-                return (err_BAD_TYPE, None) # TODO: show which type is expected
+            args[key] = _typecast(value, cast)
     return (cmd, args)
 
 
-def _cut_after(line, char):
+def _cut(line, char):
     return line.split(char)[0].strip()
 
 
-def _match_option(arg_line, options):
-    for opt_line in options:
-        arg_words = shlex.split(arg_line)
-        opt_words = shlex.split(opt_line)
-        # check command and length of argument list
-        if (arg_words[0] == opt_words[0]) and (len(arg_words) == len(opt_words)):
-            return opt_line
+def _match_option(arg, options):
+    for line in options:
+        if line.split()[0] == arg.split()[0]:
+            return line
     # if not found
-    raise ValueError("Given unknown command.")
+    raise ParseError(Errors.COMMAND)
+
+
+def _deconstruct_options(options):
+    result = []
+    for opt_line in options:
+        opt_words = shlex.split(opt_line) # preserve quoted strings
+        cmd = opt_words.pop(0)
+        keys = []
+        casts = []
+        for opt in opt_words:
+            # param:str(top|bottom|left|right)
+            # param:int(a|b|c|d) XXX avoid? mismatched types
+            # param:int:float XXX too many, throw error
+            if c_TYPE_SPLIT in opt:
+                # param:int
+                halves = opt.split(c_TYPE_SPLIT)
+                keys.append(halves[0])
+                casts.append(halves[1])
+            else:
+                # param
+                keys.append(opt)
+                casts.append('str')
+        result.append((cmd, keys, casts))
+    return result
 
 
 # TODO: parse options when given, not every time args need to be matched.
@@ -261,29 +294,29 @@ def _opt_parse(opt_line):
             name = halves[0]
             cast = 'str'
         else:
-            raise ValueError("malformed expression")
+            pass # TODO above note
         names.append(name)
         casts.append(cast)
     return (cmd, names, casts)
 
 
 def _arg_parse(arg_line):
-    arg_words = shlex.split(arg_line)
+    arg_words = shlex.split(_cut(arg_line, c_COMMENT))
     # KeyError on len() == 1? XXX
     return (arg_words[0], arg_words[1:])
 
 
 def _typecast(value, cast, allowed_values=None):
     if allowed_values and value not in allowed_values:
-        raise ValueError("{} is not an allowed value.".format(value))
-        if cast == "str":
-            value = str(value)
-        elif cast == "int":
-            value = int(value)
-        elif cast == "float":
-            value = float(value)
-        else:
-            raise ValueError("Unknown cast: {}.".format(cast))
+        raise ParseError(Errors.TYPE)
+    if cast == "str":
+        value = str(value)
+    elif cast == "int":
+        value = int(value)
+    elif cast == "float":
+        value = float(value)
+    else:
+        raise ParseError(Errors.TYPE)
     return value
 
 
