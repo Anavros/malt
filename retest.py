@@ -20,15 +20,15 @@ words = [
 
 lines = r"""cmd
 cmd arg
-cmd arg:str
-bad arg:badtype
+cmd (butts)
+cmd str(arg)
+bad badtype(arg)
 cmd arg1 arg2
 cmd arg_one arg_two arg_three
-bad:str
-bad:badtype
-bad(a|b|c)
-cmd arg:str(a|b)
-bad arg(a|b)
+str(bad)
+badtype(bad)
+bad[a|b|c]
+cmd arg[a|b]
 *** arg
 cmd ***
 cmd ::: &&&
@@ -38,28 +38,28 @@ red = '\033[31m'
 green = '\033[32m'
 stop = '\033[0m'
 
-line_form = r"""
-^
-(?P<cmd> \w+)               # Required command name.
-(?P<args> \s[\w|:()]+)*     # Zero or more optional arguments. Refined later.
-$
-"""
-
 word_form = r"""
 ^
-(?P<key> \w+)               # \1 Required argument name.
-(?P<cast> :(str|int|float)   # \2 Optional type specifier separated by a colon.
-(?P<allow> \([a-z_|0-9]*\)    # \3 Optional pipe-separated list of allowed values.
-)?
-)?
+(?P<cast>(str|int|float))?
+ (?(cast) \( )
+(?P<key>[a-z]+)
+ (?(cast) \) )
+(?P<allow>\[[\w\d_|]+\])?
 $
 """
 
 def val():
     os.system("clear")
     for line in lines.split('\n'):
+        success = True
         for word in line.split():
             match = re.fullmatch(word_form, word, re.X)
-            print("m:", match)
+            if not match:
+                success = False
+                break
+        if success:
+            print(line, green, True, stop)
+        else:
+            print(line, red, False, stop)
 
 val()

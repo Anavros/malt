@@ -19,7 +19,7 @@ c_KEYWORD_SPLIT = '|'
 c_LEFT_BRACKET = '('
 c_RIGHT_BRACKET = ')'
 
-r_SYNTAX_FORM = r"""
+r_SYNTAX_FORM_X = r"""
 ^
 (?P<key> \w+)               # Required argument name.
 (:                          # Don't match the colon.
@@ -31,13 +31,15 @@ r_SYNTAX_FORM = r"""
 $
 """
 
-_most_recent_syntax_list = []
-
-
-class ParseError(ValueError):
-    def __init__(self, code):
-        self.code = code
-    EMPTY, ARG_COUNT, ARG_TYPE, COMMAND, HELP, CLEAR, QUIT = range(7)
+r_SYNTAX_FORM = r"""
+^
+(?P<cast>(str|int|float))?
+ (?(cast) \( )
+(?P<key>[a-z]+)
+ (?(cast) \) )
+(?P<allow>\[[\w\d_|]+\])?
+$
+"""
 
 ### PUBLIC FUNCTIONS ###
 
@@ -49,8 +51,6 @@ def offer(options):
     # Throws ValueError on bad options before the user gives input.
     # Alerts the programmer without surprising the user.
     allowed_syntaxes = _compile(options)
-    #global _most_recent_syntax_list
-    #_most_recent_syntax_list = allowed_syntaxes
 
     try:
         given_args = shlex.split(input(PROMPT))
@@ -63,9 +63,16 @@ def offer(options):
     try:
         expected_args = _get_args(command, allowed_syntaxes)
     except ValueError:
-        # unknown command, check built-ins now
-        print("unknown, might be a built-in!")
+        if command == 'help':
+            _help(allowed_syntaxes)
+        elif command == 'clear':
+            clear()
+        elif command == 'quit':
+            _quit()
+        else:
+            print("unknown command")
         return Response(None)
+
     try:
         final_args = _verify_arguments(given_args, expected_args)
     except ValueError:
@@ -98,25 +105,39 @@ def _compile(options):
         raise ValueError("Must provide a valid list of options!")
     allowed_syntaxes = []
     for line in options:
-        cmd = ""
-        args = []
         words = line.split()
         # Command
-        first_word = words.pop(0)
-        cmd_match = re.fullmatch(r_SYNTAX_FORM, first_word, re.VERBOSE)
-        if cmd_match.group('cast') is not None or cmd_match.group('allow') is not None:
-            raise ParseError()
-        else:
-            cmd = cmd_match.group('key')
-        # Arguments
+        cmd = _match_cmd(words.pop(0))
+        args = []
         for word in words:
-            match = re.fullmatch(r_SYNTAX_FORM, word, re.VERBOSE)
-            key = match.group('key')
-            cast = match.group('cast')
-            allow =  match.group('allow')
-            args.append(Argument(key, cast, allow, comment="COMING SOON!"))
+            key, cast, allow = _match_arg(word)
+            args.append(Argument(key, cast, allow))
         allowed_syntaxes.append((cmd, args))
     return allowed_syntaxes
+
+
+def _match_cmd(word):
+    match = re.fullmatch(r_SYNTAX_FORM, word, re.VERBOSE)
+    if not match:
+        raise ValueError("Malformed command: {}.".format(word))
+    if match.group('cast') or match.group('allow'):
+        raise ValueError("Can not cast commands, only args.")
+    else:
+        return match.group('key')
+
+
+def _match_arg(word):
+    match = re.fullmatch(r_SYNTAX_FORM, word, re.VERBOSE)
+    if not match:
+        raise ValueError("Malformed argument: {}.".format(word))
+    key = match.group('key')
+    cast = match.group('cast')
+    if cast is None:
+        cast = 'str'
+    allow = match.group('allow')
+    if allow:
+        allow = allow.strip('[]').split('|')
+    return key, cast, allow
 
 
 def _get_args(user_cmd, allowed_syntaxes):
@@ -233,46 +254,24 @@ def serve(content='', end='\n', indent=0):
 ### INTERNAL FUNCTIONS ###
 
 
-def _handle(code):
-    if code == ParseError.HELP:
-        _help()
-    elif code == ParseError.CLEAR:
-        _clear()
-    elif code == ParseError.QUIT:
-        _quit()
-    elif code == ParseError.EMPTY:
-        print("Error.")
-    elif code == ParseError.ARG_COUNT:
-        print("Error.")
-    elif code == ParseError.ARG_TYPE:
-        print("Error.")
-    elif code == ParseError.COMMAND:
-        print("Error.")
-    else:
-        raise ValueError("Unknown error code.")
-
-
-def _help(options):
+def _help(allowed_syntaxes):
     indent = 0
-    def more():
-        return min(indent+4, 40)
-    def less():
-        return max(indent-4, 0)
     print(PREFIX + "Available Options:")
-    indent = more()
-    for i, opt_line in enumerate(options):
-        (cmd, keys, casts) = _opt_parse(opt_line)
+    indent += 4
+    for i, (cmd, args) in enumerate(allowed_syntaxes):
         print(' '*indent, end='')
-        print('[{}] {}'.format(i, cmd))
-        indent = more()
-        for key, cast in zip(keys, casts):
-            print(' '*indent, end='')
-            print("- {}: {}".format(key, cast))
-        indent = less()
-    indent = less()
+        print("[{}] {}".format(i, cmd.upper()), end='')
+        for arg in args:
+            if arg.values:
+                print(" [{}]".format('|'.join(arg.values)), end='')
+            else:
+                print(" {}({})".format(arg.cast, arg.key), end='')
+        print()
+    indent -= 4
 
 
 def _quit():
+    print()
     raise SystemExit
 
 
