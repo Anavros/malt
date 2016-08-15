@@ -1,16 +1,9 @@
 
-#? div id anchor:str(top|bottom|left|right) file size:float
-#? but id file
-#? tex file
-
-#? DIV
-#^ id
-#^ anchor[top|bottom|left|right]
-#^ file
-#^ float(size)
+? div id anchor[top|bottom|left|right] file float(size)
+? but id file
+? tex file
 
 div main bottom "path/to/the file.png" 0.1
 div bird_selector left nine.png 0.2
-
 but hidden nine.png
 tex "assets/blc.png"

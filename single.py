@@ -19,30 +19,17 @@ c_KEYWORD_SPLIT = '|'
 c_LEFT_BRACKET = '('
 c_RIGHT_BRACKET = ')'
 
-r_SYNTAX_FORM_X = r"""
-^
-(?P<key> \w+)               # Required argument name.
-(:                          # Don't match the colon.
-(?P<cast> (str|int|float)   # Optional type specifier separated by a colon.
-(?P<allow> \([a-z_|0-9]*\)  # Optional pipe-separated list of allowed values.
-)?
-)
-)?
-$
-"""
-
 r_SYNTAX_FORM = r"""
 ^
-(?P<cast>(str|int|float))?
- (?(cast) \( )
-(?P<key>[a-z]+)
- (?(cast) \) )
-(?P<allow>\[[\w\d_|]+\])?
+(?P<cast>(str|int|float))?  # Optional type cast: type(example).
+ (?(cast) \( )              # Only matches paren if cast is matched.
+(?P<key>[a-z]+)             # Required keyword.
+ (?(cast) \) )              # Closing paren for cast.
+(?P<allow>\[[\w\d_|]+\])?   # Optional list of allowed values.
 $
 """
 
 ### PUBLIC FUNCTIONS ###
-
 
 def offer(options):
     """Offer the user a list of options. Input is verified as returned as a
@@ -145,7 +132,7 @@ def _get_args(user_cmd, allowed_syntaxes):
         if user_cmd == cmd:
             return args
     # if not found
-    raise ValueError()
+    raise ValueError("{} was not found.".format(user_cmd))
 
 
 def _verify_arguments(given_args, expected_args):
@@ -181,61 +168,68 @@ def _cast(value, t):
 
 def harvest(filepath, options=None):
     """Load a config file matching syntax against given options."""
+
+    if options:
+        allowed_syntaxes = _compile(options)
+    else:
+        allowed_syntaxes = _read_syntax_comments(filepath)
+
     lines = []
-    if not options: # must be in lang file
-        options = _harvest_syntax(filepath)
-        if not options: # still
-            raise Exception("Language syntax not provided or found in file.")
     with open(filepath, 'r') as f:
         for raw_line in f:
-            cmd, args = _split_input(raw_line)
-            if not cmd:
+            line = raw_line.split('#')[0].strip()
+            line = line.split('?')[0].strip()
+            if not line:
                 continue
-            # start doing things?
-            (cmd, args) = _parse(line, options)
-            lines.append((cmd, args))
+
+            words = shlex.split(line)
+            command = words.pop(0)
+            expected_args = _get_args(command, allowed_syntaxes)
+            final_args = _verify_arguments(words, expected_args)
+            lines.append((command, final_args))
     return lines
 
 
-def _harvest_syntax(filepath):
-    syntax = []
+def _read_syntax_comments(filepath):
+    raw_lines = []
     with open(filepath, 'r') as f:
         for line in f:
             line = line.strip()
             if not line:
                 continue
 
-            if line[0] == c_SYNTAX:
-                line = line.strip(c_SYNTAX).strip()
-                syntax.append(line)
-    return syntax
+            if line[0] != '?':
+                continue
+
+            raw_lines.append(line.strip('?').strip())
+    if not raw_lines:
+        raise ValueError()
+    serve(raw_lines)
+    return _compile(raw_lines)
 
 
 def serve(content='', end='\n', indent=0):
-    def more():
-        return min(indent+4, 40)
-    def less():
-        return max(indent-4, 0)
+    """Prints easy-to-read data structures according to type."""
     if type(content) in [str, int, float]:
         print(content)
     elif type(content) in [list, set, frozenset, tuple]:
-        indent = more()
+        indent += 4
         print('[')
         for i, item in enumerate(content):
             print(' '*indent, end='')
             print("[{}] ".format(i), end='')
             serve(item, indent=indent)
-        indent = less()
+        indent -= 4
         print(' '*indent, end='')
         print(']')
     elif type(content) is dict:
         print('{')
-        indent = more()
+        indent += 4
         for (key, value) in content.items():
             print(' '*indent, end='')
             print("{}: ".format(key), end='')
-            serve(value)
-        indent = less()
+            serve(value, indent=indent)
+        indent -= 4
         print(' '*indent, end='')
         print('}')
     # Helps with OrderedDict.
@@ -260,13 +254,15 @@ def _help(allowed_syntaxes):
     indent += 4
     for i, (cmd, args) in enumerate(allowed_syntaxes):
         print(' '*indent, end='')
-        print("[{}] {}".format(i, cmd.upper()), end='')
+        print("[{}] {}".format(i, cmd.upper()))
+        indent += 4
         for arg in args:
+            print(' '*indent, end='')
             if arg.values:
-                print(" [{}]".format('|'.join(arg.values)), end='')
+                print("* [{}]".format('|'.join(arg.values)))
             else:
-                print(" {}({})".format(arg.cast, arg.key), end='')
-        print()
+                print("* {}({})".format(arg.cast, arg.key))
+        indent -= 4
     indent -= 4
 
 

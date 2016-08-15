@@ -5,11 +5,11 @@ import single as malt
 def main():
     little_options = ['add', 'subtract', 'echo', 'load']
     options = [
-        #"add int(n) int(m)",
-        "subtract thing[one|two]",
-        #"echo string[up|down]",
-        #"load file[one|two]",
-        #"div anchor[top|bottom]"
+        "add int(n) int(m)",
+        "dashes",
+        "echo string",
+        "load",
+        "div anchor[top|bottom]"
     ]
     big_options = [
         """
