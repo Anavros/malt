@@ -7,3 +7,5 @@ div main bottom "path/to/the file.png" 0.1
 div bird_selector left nine.png 0.2
 but hidden nine.png
 tex "assets/blc.png"
+
+int(a)
