@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import single as malt
+import malt
 
 def main():
     options = [
