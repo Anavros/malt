@@ -40,6 +40,7 @@ cmd thing_1, thing_b, f:n, i:i, s:thing
 cmd s[one|two|three]:n
 cmd i:n, i:m
 cmd i:n=1, string=butt
+cmd a, b
 bad thing_1 thing_b f:n i:i s:thing
 bad thing:butt
 bad thing:[set|of|these]

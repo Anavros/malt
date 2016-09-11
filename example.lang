@@ -28,14 +28,21 @@
 #prefix {such}
 #prefix {outrage}
 #
-#? suffix *args m=1 tags=[]
-#suffix that's that tags=[silly]
-#suffix I'll have no more of it
-#suffix {thing}
-#suffix m=3 fuck you
-#suffix motherfucker
+? suffix text m=1 tags=[]
+suffix that's that, tags=[silly]
+suffix I'll have no more of it
+suffix {thing}
+suffix fuck you, m=3
+suffix motherfucker
 
 ? locale name, i:food=0, i:wood=0
 locale home
+
 locale plains, food=10
 locale woods, food=5, wood=5
+#butt home #(caught)
+
+? int i:n
+int 1
+int 4
+int five # log error and skip

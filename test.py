@@ -11,16 +11,6 @@ A tiny toolkit for structured input and output.
 PREFIX = '[malt] '
 PROMPT = '> '
 
-r_SYNTAX_FORM = r"""
-^
-(?P<cast>(str|int|float))?  # Optional type cast: type(example).
- (?(cast) \( )              # Only matches paren if cast is matched.
-(?P<key>[a-z]+)             # Required keyword.
- (?(cast) \) )              # Closing paren for cast.
-(?P<allow>\[[\w\d_|]+\])?   # Optional list of allowed values.
-$
-"""
-
 r_NEW_SYNTAX_LINE = r"""
 ^
 (?P<head>[\w]+)
@@ -34,7 +24,23 @@ r_NEW_SYNTAX_WORD = r"""
  (?(mod)(?P<lim>\[[\w|]+\]))?
  (?(mod):)
 (?P<key>[\w]+)
-(?P<arg>=[\w]+)?
+(?P<eq>=)?
+ (?(eq)(?P<arg> [\w]+))
+$
+"""
+
+r_NEW_INPUT_LINE = r"""
+^
+(?P<head>[\w]+)
+(?P<tail>\s+[\w\s|:=,\[\]]+)*
+$
+"""
+
+r_NEW_INPUT_WORD = r"""
+^
+(?P<key>[\w\s]+)
+(?P<eq>=)?
+ (?(eq)(?P<arg> [\w]+))
 $
 """
 
@@ -43,56 +49,26 @@ $
 def offer(options):
     """Offer the user a list of options. Input is verified as returned as a
     Response object."""
+    syntax = _parse(options)
 
-    # syntax -> ? add thing, i:n, pre=butt, i:mod=1
-    # raw text -> add butt, 5, mod=1
-    # head and tail -> add, (butt, 5, mod=1)
-    # make sure head is valid
-    # maybe built struct -> args=[], kwargs={}
-    # make sure tail args are alright
-    # typecast and verify args
-
-    allowed_syntaxes = _compile(options)
     try:
         raw_text = input(PROMPT)
     except (KeyboardInterrupt, EOFError):
         quit()
     if not raw_text:
-        return Response(None)
-
-    head, tail = _match(raw_text)
-    #assert head in options
-    args = []
-    kwargs = {}
-    for word in tail.split(','):
-        if '=' in word:
-            k, v = word.split('=')
-            kwargs[k] = v
-        else:
-            args.append(word)
-
-    
-
+        return Response(None, None)
+    head, args, kwargs = _parse_response(raw_text)
     try:
-        expected_args = _get_args(command, allowed_syntaxes)
-    except ValueError:
-        if command == 'help':
-            help(allowed_syntaxes)
-        elif command == 'clear':
-            clear()
-        elif command == 'quit':
-            quit()
-        else:
-            print(PREFIX+"unknown command")
-        return Response(None)
-
+        syn = syntax[head]
+    except KeyError:
+        print("Unknown key!")
+        return Response(None, None)
     try:
-        final_args = _verify_arguments(given_args, expected_args)
+        body = _validate((args, kwargs), syn)
     except ValueError:
-        print(PREFIX+"malformed or missing arguments")
-        return Response(None)
-    else:
-        return Response(command, final_args)
+        print("Bad typing!")
+        return Response(None, None)
+    return Response(head, body)
 
 
 def load(filepath, options=None):
@@ -100,29 +76,24 @@ def load(filepath, options=None):
     if options:
         syntax = _parse(options)
     else:
-        syntax = _read_syntax_comments(filepath)
-        serve(syntax)
-        input()
+        syntax = _parse(_syntax_hints(filepath))
     responses = []
     with open(filepath, 'r') as f:
-        for raw_line in f:
-            line = raw_line.split('#')[0].strip()
+        for line in f:
+            line = line.split('#')[0].strip()
             line = line.split('?')[0].strip()
             if not line: continue
 
-            head, tail = _match(line)
-            args, kwargs = _match_tail(tail)
-            # check head
-            #args = process(tail)
-            #expected_args = _get_args(command, allowed_syntaxes)
-            #final_args = _verify_arguments(words, expected_args)
-            #responses.append(Response(head, tail))
+            head, raw_args, raw_kwargs = _parse_response(line)
+            body = _validate((raw_args, raw_kwargs), syntax[head])
+
+            print("SYNTAX")
+            serve(syntax)
             print("HEAD")
             serve(head)
-            print("ARGS")
-            serve(args)
-            print("KWARGS")
-            serve(kwargs)
+            print("BODY")
+            serve(body)
+            responses.append(Response(head, body))
     return responses
 
 
@@ -191,25 +162,17 @@ def clear():
 
 ### INTERNAL FUNCTIONS ###
 
-class Argument(object):
-    def __init__(self, key, mod='str', lim=None, arg=None):
-        self.key = key
-        self.mod = mod
-        self.lim = lim
-        self.arg = arg
-
-
-class Response(object):
-    def __init__(self, cmd, args=None):
-        self.cmd = cmd
-        if args is not None:
-            for k, v in args.items():
+class Response:
+    def __init__(self, head, body):
+        self.head = head
+        if body is not None:
+            for k, v in body.items():
                 self.__dict__[k] = v
-    def __eq__(self, string):
-        return self.cmd == string
+    def __eq__(self, x):
+        return self.head == x
 
 
-def _read_syntax_comments(filepath):
+def _syntax_hints(filepath):
     raw_lines = []
     with open(filepath, 'r') as f:
         for line in f:
@@ -221,7 +184,7 @@ def _read_syntax_comments(filepath):
             raw_lines.append(line.strip('?').strip())
     if not raw_lines:
         raise ValueError("Malt syntax not provided or found in file.")
-    return _parse(raw_lines)
+    return raw_lines
 
 
 def _parse(options):
@@ -229,75 +192,94 @@ def _parse(options):
     if type(options) is str: options = [options]
     syntax = {}
     for line in options:
-        head, tail = _match(line)
-        syntax[head] = _match_tail(tail)
+        #head, args, kwargs = _match(line)
+        line_match = re.fullmatch(r_NEW_SYNTAX_LINE, line, re.VERBOSE)
+        if not line_match:
+            raise ValueError("Malformed syntax line:\n\t{}".format(line))
+        head = line_match.group('head')
+        tail = line_match.group('tail')
+        args = []
+        kwargs = {}
+        if not tail:
+            syntax[head] = args, kwargs
+            continue
+        for word in tail.split(','):
+            word = word.strip()
+            word_match = re.fullmatch(r_NEW_SYNTAX_WORD, word, re.VERBOSE)
+            if not word_match:
+                raise ValueError("Unmatched word: {}".format(word))
+            key = word_match.group('key')
+            mod = word_match.group('mod')
+            lim = word_match.group('lim')
+            arg = word_match.group('arg')
+            if arg is not None:
+                kwargs[key] = (arg, mod, lim)
+            else:
+                args.append((key, mod, lim))
+        syntax[head] = args, kwargs
     return syntax
 
 
-def _match(line):
-    line_match = re.fullmatch(r_NEW_SYNTAX_LINE, line, re.VERBOSE)
+def _parse_response(line):
+    line_match = re.fullmatch(r_NEW_INPUT_LINE, line, re.VERBOSE)
     if not line_match:
-        raise ValueError("Malformed syntax line:\n\t{}".format(line))
+        raise ValueError("Malformed input line:\n\t{}".format(line))
     head = line_match.group('head')
     tail = line_match.group('tail')
-    return head, tail
-
-
-def _match_tail(tail):
     args = []
     kwargs = {}
+    if not tail:
+        return head, args, kwargs
     for word in tail.split(','):
         word = word.strip()
-        word_match = re.fullmatch(r_NEW_SYNTAX_WORD, word, re.VERBOSE)
+        word_match = re.fullmatch(r_NEW_INPUT_WORD, word, re.VERBOSE)
         if not word_match:
             raise ValueError("Unmatched word: {}".format(word))
         key = word_match.group('key')
-        mod = word_match.group('mod')
-        lim = word_match.group('lim')
         arg = word_match.group('arg')
-        obj = Argument(key, mod, lim, arg)
         if arg is not None:
-            obj.arg = arg.strip('=')
-            kwargs[key] = obj
+            kwargs[key] = arg
         else:
-            args.append(obj)
-    return args, kwargs
+            args.append(key)
+    return head, args, kwargs
 
 
-def _get_args(user_cmd, allowed_syntaxes):
-    for (cmd, args) in allowed_syntaxes:
-        if user_cmd.lower() == cmd.lower():
-            return args
-    # if not found
-    raise ValueError("{} was not found.".format(user_cmd))
+def _validate(given, expected):
+    given_args, given_kwargs = given
+    expec_args, expec_kwargs = expected
+    final = {}
 
+    if len(given_args) < len(expec_args):
+        raise ValueError("Missing positional arguments.")
+    elif len(expec_args) < len(given_args):
+        raise ValueError("Too many positional arguments.")
+    for given_arg, expec_arg in zip(given_args, expec_args):
+        key, mod, lim = expec_arg
+        value = given_arg
+        final[key] = _cast(value, mod, lim)  # raises TypeError
 
-def _verify_arguments(given_args, expected_args):
-    final_args = {}
-    if len(given_args) != len(expected_args):
-        raise ValueError()
-    for given, expected in zip(given_args, expected_args):
-        # make sure right type and matches allowed
-        if expected.values and (given not in expected.values):
-            raise ValueError("Unexpected value '{}' found in limited arg.".format(given))
+    for key, params in expec_kwargs.items():
+        (default, mod, lim) = params
         try:
-            fresh_clean_and_beautiful = _cast(given, expected.cast)
-        except TypeError:
-            raise ValueError("Failed to cast '{}' to type {}.".format(
-                given, expected.cast))
-        else:
-            final_args[expected.key] = fresh_clean_and_beautiful
-    return final_args
+            value = given_kwargs[key]
+        except KeyError:
+            value = default
+        final[key] = _cast(value, mod, lim)  # raises TypeError
+    return final
 
 
-def _cast(value, t):
-    if t == 'int':
+def _cast(value, mod, lim=None):
+    if mod == 'i':
         value = int(value)
-    elif t == 'float':
+    elif mod == 'f':
         value = float(value)
-    elif t == 'str':
+    elif mod == 's':
+        if lim is not None and value not in lim:
+            raise TypeError("Expected value {} to be one of: {}".format(value, lim))
+        pass
+    elif mod is None:
         pass
     else:
-        print(value, t)
+        print(value, mod)
         raise ValueError("This should have been verified already!")
     return value

@@ -4,33 +4,33 @@ import test as malt
 
 def main():
     options = [
-        "add int(n) int(m)",
-        "dashes",
-        "echo string",
-        "load",
-        "div anchor[top|bottom]"
-    ]
-    new_options = [
-        "add i:n, i:m",
-        "dashes",
+        "add",
+        "int i:n",
+        "kwargs one=1, two=2, three=3",
         "echo string",
         "load",
         "div s[top|bottom]:anchor",
     ]
     while True:
-        response = malt.offer(options) 
-        if response == "add":
-            malt.serve(response.n + response.m)
+        r = malt.offer(options) 
+        if r == "add":
+            malt.serve(r)
 
-        elif response == "subtract":
-            malt.serve("---")
+        elif r == 'int':
+            print(r.n, type(r.n))
 
-        elif response == "echo":
-            malt.serve(response.string)
+        elif r == 'kwargs':
+            malt.serve(r)
 
-        elif response == "load":
+        elif r == "echo":
+            malt.serve(r.string)
+
+        elif r == "load":
             malt.serve(malt.load('example.lang'))
 
+        else:
+            malt.serve("Do whatever: {}".format(r.head))
+
 if __name__ == "__main__":
-    #main()
-    malt.serve(malt.load('example.lang'))
+    main()
+    #malt.serve(malt.load('example.lang'))
