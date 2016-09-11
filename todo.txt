@@ -5,6 +5,9 @@ single.py:
 -> Figure out how to include optional arguments?
 -> Fix case sensitivity.
 
+-> args and kwargs like python
+-> unmatched commands?
+
 TODO:
 v0.2:
 -> Modularize

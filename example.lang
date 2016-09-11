@@ -1,11 +1,41 @@
 
-? div id anchor[top|bottom|left|right] file float(size)
-? but id file
-? tex file
+#? area name, i:food=0, i:wood=0, i:iron=0, i:bed=0, i:stove=0, i:shelter=1
+#area forest, food=5, shelter=2
+#
+#? food name s[juicy|tender|dry]:moisture=tender s[solid|pieces|paste|liquid]:state=solid
+#food apple, moisture=juicy
+#food hummus, state=paste
+#
+#? prep name require change name
+#prep chop, state/solid, state/pieces, chopped {}
+#
+#? ele name i:col=1 i:row=1 i:w=0 i:h=0 i:pad=0
+#ele menu col:1 row:4 w:0 h:40 pad:20
+#
+#? all name [N|E|S|W|C]:anchor=C i:size=0 i:cols=1 i:rows=1 i:w=0 i:h=0 i:pad=0
+#all menu, anchor=S, size=80, rows=4, h=40, pad=20
+#
+#syntax = {
+#}
+#
+#? struct *args tags=[]
+#struct you are {such} a {thing}, +negative
+#struct you are a bad {person} +negative
+#struct go {do} a {thing} +negative
+#struct go {do} yourself +negative
+#
+#? prefix *args
+#prefix {such}
+#prefix {outrage}
+#
+#? suffix *args m=1 tags=[]
+#suffix that's that tags=[silly]
+#suffix I'll have no more of it
+#suffix {thing}
+#suffix m=3 fuck you
+#suffix motherfucker
 
-div main bottom "path/to/the file.png" 0.1
-div bird_selector left nine.png 0.2
-but hidden nine.png
-tex "assets/blc.png"
-
-int(a)
+? locale name, i:food=0, i:wood=0
+locale home
+locale plains, food=10
+locale woods, food=5, wood=5

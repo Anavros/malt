@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import malt
+import test as malt
 
 def main():
     options = [
@@ -9,6 +9,13 @@ def main():
         "echo string",
         "load",
         "div anchor[top|bottom]"
+    ]
+    new_options = [
+        "add i:n, i:m",
+        "dashes",
+        "echo string",
+        "load",
+        "div s[top|bottom]:anchor",
     ]
     while True:
         response = malt.offer(options) 
@@ -25,4 +32,5 @@ def main():
             malt.serve(malt.load('example.lang'))
 
 if __name__ == "__main__":
-    main()
+    #main()
+    malt.serve(malt.load('example.lang'))

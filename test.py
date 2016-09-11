@@ -24,16 +24,17 @@ $
 r_NEW_SYNTAX_LINE = r"""
 ^
 (?P<head>[\w]+)
-(?P<tail>\s+[\w\s|:,\[\]]+)*
+(?P<tail>\s+[\w\s|:=,\[\]]+)*
 $
 """
 
 r_NEW_SYNTAX_WORD = r"""
 ^
-(?P<cast>[isf])?
- (?(cast) (?P<limit> \[[\w|]+\]))?
- (?(cast) : )
+(?P<mod>[isf])?
+ (?(mod)(?P<lim>\[[\w|]+\]))?
+ (?(mod):)
 (?P<key>[\w]+)
+(?P<arg>=[\w]+)?
 $
 """
 
@@ -42,14 +43,36 @@ $
 def offer(options):
     """Offer the user a list of options. Input is verified as returned as a
     Response object."""
+
+    # syntax -> ? add thing, i:n, pre=butt, i:mod=1
+    # raw text -> add butt, 5, mod=1
+    # head and tail -> add, (butt, 5, mod=1)
+    # make sure head is valid
+    # maybe built struct -> args=[], kwargs={}
+    # make sure tail args are alright
+    # typecast and verify args
+
     allowed_syntaxes = _compile(options)
     try:
-        given_args = shlex.split(input(PROMPT))
+        raw_text = input(PROMPT)
     except (KeyboardInterrupt, EOFError):
         quit()
-    if not given_args:
+    if not raw_text:
         return Response(None)
-    command = given_args.pop(0).lower()
+
+    head, tail = _match(raw_text)
+    #assert head in options
+    args = []
+    kwargs = {}
+    for word in tail.split(','):
+        if '=' in word:
+            k, v = word.split('=')
+            kwargs[k] = v
+        else:
+            args.append(word)
+
+    
+
     try:
         expected_args = _get_args(command, allowed_syntaxes)
     except ValueError:
@@ -62,6 +85,7 @@ def offer(options):
         else:
             print(PREFIX+"unknown command")
         return Response(None)
+
     try:
         final_args = _verify_arguments(given_args, expected_args)
     except ValueError:
@@ -74,22 +98,32 @@ def offer(options):
 def load(filepath, options=None):
     """Load a config file matching syntax against given options."""
     if options:
-        allowed_syntaxes = _compile(options)
+        syntax = _parse(options)
     else:
-        allowed_syntaxes = _read_syntax_comments(filepath)
-    lines = []
+        syntax = _read_syntax_comments(filepath)
+        serve(syntax)
+        input()
+    responses = []
     with open(filepath, 'r') as f:
         for raw_line in f:
             line = raw_line.split('#')[0].strip()
             line = line.split('?')[0].strip()
-            if not line:
-                continue
-            words = shlex.split(line)
-            command = words.pop(0).lower() # non-case-sensitive
-            expected_args = _get_args(command, allowed_syntaxes)
-            final_args = _verify_arguments(words, expected_args)
-            lines.append(Response(command, final_args))
-    return lines
+            if not line: continue
+
+            head, tail = _match(line)
+            args, kwargs = _match_tail(tail)
+            # check head
+            #args = process(tail)
+            #expected_args = _get_args(command, allowed_syntaxes)
+            #final_args = _verify_arguments(words, expected_args)
+            #responses.append(Response(head, tail))
+            print("HEAD")
+            serve(head)
+            print("ARGS")
+            serve(args)
+            print("KWARGS")
+            serve(kwargs)
+    return responses
 
 
 def serve(content='', end='\n', indent=0):
@@ -121,9 +155,9 @@ def serve(content='', end='\n', indent=0):
         serve(list(content.items()))
     # Stops objects like str from spewing everywhere.
     elif hasattr(content, '__dict__') and type(content.__dict__) is dict:
-        serve(content.__dict__, end)
+        serve(content.__dict__, end, indent=indent)
     elif hasattr(content, '_get_args()'):
-        serve(list(content._get_args()))
+        serve(list(content._get_args()), indent=indent)
     # When in doubt, use repr.
     else:
         print(repr(content), end=end)
@@ -158,11 +192,11 @@ def clear():
 ### INTERNAL FUNCTIONS ###
 
 class Argument(object):
-    def __init__(self, key, cast='str', values=None, comment=None):
+    def __init__(self, key, mod='str', lim=None, arg=None):
         self.key = key
-        self.cast = cast
-        self.values = values
-        self.comment = comment
+        self.mod = mod
+        self.lim = lim
+        self.arg = arg
 
 
 class Response(object):
@@ -186,49 +220,48 @@ def _read_syntax_comments(filepath):
                 continue
             raw_lines.append(line.strip('?').strip())
     if not raw_lines:
-        raise ValueError("Malt syntax not provided nor found in file.")
-    #serve(raw_lines)
-    return _compile(raw_lines)
+        raise ValueError("Malt syntax not provided or found in file.")
+    return _parse(raw_lines)
 
 
-def _compile(options):
-    if not options or type(options) is not list:
-        raise ValueError("Must provide a valid list of options!")
-    allowed_syntaxes = []
+def _parse(options):
+    if not options: raise ValueError("Must provide a valid list of options!")
+    if type(options) is str: options = [options]
+    syntax = {}
     for line in options:
-        words = line.split()
-        # Command
-        cmd = _match_cmd(words.pop(0))
-        args = []
-        for word in words:
-            key, cast, allow = _match_arg(word)
-            args.append(Argument(key, cast, allow))
-        allowed_syntaxes.append((cmd, args))
-    return allowed_syntaxes
+        head, tail = _match(line)
+        syntax[head] = _match_tail(tail)
+    return syntax
 
 
-def _match_cmd(word):
-    match = re.fullmatch(r_SYNTAX_FORM, word, re.VERBOSE)
-    if not match:
-        raise ValueError("Malformed command: {}.".format(word))
-    if match.group('cast') or match.group('allow'):
-        raise ValueError("Can not cast commands, only args.")
-    else:
-        return match.group('key')
+def _match(line):
+    line_match = re.fullmatch(r_NEW_SYNTAX_LINE, line, re.VERBOSE)
+    if not line_match:
+        raise ValueError("Malformed syntax line:\n\t{}".format(line))
+    head = line_match.group('head')
+    tail = line_match.group('tail')
+    return head, tail
 
 
-def _match_arg(word):
-    match = re.fullmatch(r_SYNTAX_FORM, word, re.VERBOSE)
-    if not match:
-        raise ValueError("Malformed argument: {}.".format(word))
-    key = match.group('key')
-    cast = match.group('cast')
-    if cast is None:
-        cast = 'str'
-    allow = match.group('allow')
-    if allow:
-        allow = allow.strip('[]').split('|')
-    return key, cast, allow
+def _match_tail(tail):
+    args = []
+    kwargs = {}
+    for word in tail.split(','):
+        word = word.strip()
+        word_match = re.fullmatch(r_NEW_SYNTAX_WORD, word, re.VERBOSE)
+        if not word_match:
+            raise ValueError("Unmatched word: {}".format(word))
+        key = word_match.group('key')
+        mod = word_match.group('mod')
+        lim = word_match.group('lim')
+        arg = word_match.group('arg')
+        obj = Argument(key, mod, lim, arg)
+        if arg is not None:
+            obj.arg = arg.strip('=')
+            kwargs[key] = obj
+        else:
+            args.append(obj)
+    return args, kwargs
 
 
 def _get_args(user_cmd, allowed_syntaxes):

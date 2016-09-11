@@ -34,6 +34,17 @@ cmd ***
 cmd ::: &&&
 -u-"""
 
+pylines = r"""cmd
+cmd i:n
+cmd thing_1, thing_b, f:n, i:i, s:thing
+cmd s[one|two|three]:n
+cmd i:n, i:m
+cmd i:n=1, string=butt
+bad thing_1 thing_b f:n i:i s:thing
+bad thing:butt
+bad thing:[set|of|these]
+bad int(y)"""
+
 red = '\033[31m'
 green = '\033[32m'
 stop = '\033[0m'
@@ -48,18 +59,48 @@ word_form = r"""
 $
 """
 
+python_form = r"""
+^
+(?P<mod>[isf])?
+ (?(mod)(?P<lim>\[[\w|]+\]))?
+ (?(mod):)
+(?P<key>[\w]+)
+(?P<def>=[\w]+)?
+$
+"""
+
+python_line = r"""
+^
+(?P<head>[\w]+)
+(?P<tail>\s+[\w\s|:=,\[\]]+)*
+$
+"""
+
 def val():
     os.system("clear")
-    for line in lines.split('\n'):
+    for line in pylines.split('\n'):
+        line_match = re.fullmatch(python_line, line, re.X)
         success = True
-        for word in line.split():
-            match = re.fullmatch(word_form, word, re.X)
+        if not line_match:
+            show(line, extra='bad line')
+            continue
+        head = line_match.group('head')
+        tail = line_match.group('tail')
+        if tail is None:
+            show(line, True)
+            continue
+        for word in tail.split(','):
+            match = re.fullmatch(python_form, word.strip(), re.X)
             if not match:
                 success = False
                 break
         if success:
-            print(line, green, True, stop)
+            show(line, True)
         else:
-            print(line, red, False, stop)
+            show(line)
+
+
+def show(line, x=False, extra=""):
+    print(green if x else red, line, '('+extra+')', stop)
 
 val()
