@@ -4,7 +4,7 @@ import test as malt
 
 def main():
     options = [
-        "add",
+        "add i:a, i:b",
         "int i:n",
         "kwargs one=1, two=2, three=3",
         "echo string",
@@ -14,7 +14,7 @@ def main():
     while True:
         r = malt.offer(options) 
         if r == "add":
-            malt.serve(r)
+            print("{} + {} = {}".format(r.a, r.b, r.a+r.b))
 
         elif r == 'int':
             print(r.n, type(r.n))

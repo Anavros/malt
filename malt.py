@@ -3,6 +3,8 @@ import re
 import os
 import shlex
 
+import readline
+
 
 """Malt
 A tiny toolkit for structured input and output.

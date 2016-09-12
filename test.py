@@ -1,7 +1,11 @@
 
 import re
 import os
-import shlex
+
+try:
+    import readline
+except ImportError:
+    pass
 
 
 """Malt
@@ -56,18 +60,31 @@ def offer(options):
     except (KeyboardInterrupt, EOFError):
         quit()
     if not raw_text:
-        return Response(None, None)
-    head, args, kwargs = _parse_response(raw_text)
+        return Response(None, None, valid=False)
+
+    try:
+        head, args, kwargs = _parse_response(raw_text)
+    except ValueError:
+        print("Bad response!")
+        return Response(None, None, valid=False)
+
     try:
         syn = syntax[head]
     except KeyError:
-        print("Unknown key!")
-        return Response(None, None)
+        if head == 'help':
+            print(PREFIX+'Available Commands:')
+            serve(options)
+        elif head == 'clear':
+            clear()
+        elif head == 'quit':
+            raise SystemExit
+        return Response(head, None, valid=False)
+
     try:
         body = _validate((args, kwargs), syn)
     except ValueError:
         print("Bad typing!")
-        return Response(None, None)
+        return Response(head, None, valid=False)
     return Response(head, body)
 
 
@@ -163,13 +180,15 @@ def clear():
 ### INTERNAL FUNCTIONS ###
 
 class Response:
-    def __init__(self, head, body):
+    def __init__(self, head, body, valid=True):
         self.head = head
+        self.valid = valid
         if body is not None:
             for k, v in body.items():
                 self.__dict__[k] = v
     def __eq__(self, x):
-        return self.head == x
+        """Will not match with anything if invalid."""
+        return self.head == x if self.valid else False
 
 
 def _syntax_hints(filepath):
@@ -207,7 +226,7 @@ def _parse(options):
             word = word.strip()
             word_match = re.fullmatch(r_NEW_SYNTAX_WORD, word, re.VERBOSE)
             if not word_match:
-                raise ValueError("Unmatched word: {}".format(word))
+                raise ValueError("Unmatched word in syntax: {}".format(word))
             key = word_match.group('key')
             mod = word_match.group('mod')
             lim = word_match.group('lim')
