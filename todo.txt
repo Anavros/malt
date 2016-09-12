@@ -7,3 +7,7 @@ New Features:
 -> Modularize project and make into proper package?
 -> Color printing.
 -> More advanced terminal manipulation with blessings.
+-> Tab completion!
+
+Documentation:
+-> Everything.

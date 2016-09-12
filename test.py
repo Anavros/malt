@@ -82,8 +82,8 @@ def offer(options):
 
     try:
         body = _validate((args, kwargs), syn)
-    except ValueError:
-        print("Bad typing!")
+    except ValueError as e:
+        print(PREFIX+str(e))
         return Response(head, None, valid=False)
     return Response(head, body)
 
@@ -246,9 +246,11 @@ def _validate(given, expected):
     final = {}
 
     if len(given_args) < len(expec_args):
-        raise ValueError("Missing positional arguments.")
+        raise ValueError("missing positional arguments (expected {})".format(
+            len(expec_args)))
     elif len(expec_args) < len(given_args):
-        raise ValueError("Too many positional arguments.")
+        raise ValueError("too many positional arguments (expected {})".format(
+            len(expec_args)))
     for given_arg, expec_arg in zip(given_args, expec_args):
         key, mod, lim = expec_arg
         value = given_arg
