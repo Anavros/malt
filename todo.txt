@@ -1,62 +1,9 @@
 
-single.py:
--> Allow docstrings for commands and arguments.
--> Module to automatically create vim syntax highlighting.
--> Figure out how to include optional arguments?
--> Fix case sensitivity.
+Python Syntax Rework:
+-> Clean up error codes.
 
--> args and kwargs like python
--> unmatched commands?
-
-TODO:
-v0.2:
--> Modularize
-    * classic.py
-    * micromalt.py
-        * offer
-        * accept
-        * confirm
-    * malt/
-        * input.py
-            * offer
-            * accept
-        * output.py
-            * confirm
-            * indent
-            * serve
-        * internal.py
-            * _minput
-            * _mprint
-            * _construct_prototype
-            * response
-        * extra.py
-            * pause
-            * clear
-            * line
-        * auto.py
-            * readline
-        * stash.py
-            * stash
-        * color.py
-
-v0.3:
--> Stash Functions
--> Readline Support
--> File Logging
-
-v0.4:
--> Cleaner Built-in Functions
-    * think about when to raise SystemExit
-    * consider an option to set global commands
-    * generally simplify and clean up
--> allow optional arguments on built-ins
--> think about allowing user-supplied global functions
-    * operate like built-ins
-
-v0.5:
--> Built-in Coloring
--> Color Printing Options
--> Multiplatform Testing
-
-Future:
--> C/Cython Port
+New Features:
+-> Log output to file.
+-> Modularize project and make into proper package?
+-> Color printing.
+-> More advanced terminal manipulation with blessings.

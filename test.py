@@ -151,29 +151,6 @@ def serve(content='', end='\n', indent=0):
         print(repr(content), end=end)
 
 
-def help(allowed_syntaxes):
-    indent = 0
-    print(PREFIX + "Available Options:")
-    indent += 4
-    for i, (cmd, args) in enumerate(allowed_syntaxes):
-        print(' '*indent, end='')
-        print("[{}] {}".format(i, cmd.upper()))
-        indent += 4
-        for arg in args:
-            print(' '*indent, end='')
-            if arg.values:
-                print("* [{}]".format('|'.join(arg.values)))
-            else:
-                print("* {}({})".format(arg.cast, arg.key))
-        indent -= 4
-    indent -= 4
-
-
-def quit():
-    print()
-    raise SystemExit
-
-
 def clear():
     os.system("cls" if os.name == "nt" else "clear")
 
