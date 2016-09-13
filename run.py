@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import malt
-malt.bless()
+import os
 
 def main():
     options = [
@@ -14,7 +14,7 @@ def main():
     ]
     while True:
         r = malt.offer(options)
-        if r == "add":
+        if r == 'add':
             print("{} + {} = {}".format(r.a, r.b, r.a+r.b))
 
         elif r == 'int':
@@ -23,18 +23,20 @@ def main():
         elif r == 'kwargs':
             malt.serve(r)
 
-        elif r == "echo":
+        elif r == 'echo':
             malt.serve(r.string)
 
-        elif r == "load":
+        elif r == 'load':
             malt.serve(malt.load('example.lang'))
 
-        #elif r.error:
-            #print(r.error)
+        elif r.raw_head == 'clear':
+            os.system('clear')
 
-        else:
-            malt.serve("Do whatever: {}".format(r.head))
+        elif not r.valid:
+            malt.serve(r.raw_args)
+            malt.serve(r.raw_kwargs)
+            malt.serve(options)
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
     #malt.serve(malt.load('example.lang'))

@@ -59,32 +59,23 @@ def offer(options):
     except (KeyboardInterrupt, EOFError):
         quit()
     if not raw_text:
-        return Response(None, None, valid=False)
+        return Response(None, None, raw_args=None, raw_kwargs=None, valid=False)
 
     try:
         head, args, kwargs = _parse_response(raw_text)
     except ValueError:
-        print("Bad response!")
-        return Response(None, None, valid=False)
+        return Response(head, None, raw_args=args, raw_kwargs=kwargs, valid=False)
 
     try:
         syn = syntax[head]
     except KeyError:
-        if head == 'help':
-            print(PREFIX+'Available Commands:')
-            serve(options)
-        elif head == 'clear':
-            clear()
-        elif head == 'quit':
-            raise SystemExit
-        return Response(head, None, valid=False)
+        return Response(head, None, raw_args=args, raw_kwargs=kwargs, valid=False)
 
     try:
         body = _validate((args, kwargs), syn)
     except ValueError as e:
-        print(PREFIX+str(e))
-        return Response(head, None, valid=False)
-    return Response(head, body)
+        return Response(head, None, raw_args=args, raw_kwargs=kwargs, valid=False)
+    return Response(head, body, raw_args=args, raw_kwargs=kwargs, valid=True)
 
 
 def load(filepath, options=None):
@@ -103,12 +94,12 @@ def load(filepath, options=None):
             head, raw_args, raw_kwargs = _parse_response(line)
             body = _validate((raw_args, raw_kwargs), syntax[head])
 
-            print("SYNTAX")
-            serve(syntax)
-            print("HEAD")
-            serve(head)
-            print("BODY")
-            serve(body)
+            #print("SYNTAX")
+            #serve(syntax)
+            #print("HEAD")
+            #serve(head)
+            #print("BODY")
+            #serve(body)
             responses.append(Response(head, body))
     return responses
 
@@ -156,15 +147,39 @@ def clear():
 ### INTERNAL FUNCTIONS ###
 
 class Response:
-    def __init__(self, head, body, valid=True):
-        self.head = head
+    """
+    A `Response` object stores information about user input, taken as a response
+    to a prompt. The object stores the input, after it has been verified and
+    validated, as well as metadata about the input's context. The first word of
+    the user's response, the command, or head, can be compared directly to the
+    response object using '=='. A new response is generated for each input.
+    """
+    def __init__(self, head, body, raw_args=None, raw_kwargs=None, valid=False):
+        self.head = head if valid else None
         self.valid = valid
         if body is not None:
             for k, v in body.items():
                 self.__dict__[k] = v
+
+        # new params
+        self.raw_head = head
+        self.raw_args = raw_args
+        self.raw_kwargs = raw_kwargs
+
     def __eq__(self, x):
-        """Will not match with anything if invalid."""
-        return self.head == x if self.valid else False
+        """
+        A `Response` will compare directly to a string, as in:
+            response = malt.offer(options)
+            if response == 'string':
+                # do whatever
+        If the response in invalid, either because of an unknown command or bad
+        arguments, it will equate as `None`, not matching any strings. This way,
+        if the user enters a known command, but mistyped arguments, the response
+        will not match the command, and will not try to exec your code with
+        incorrect arguments. Raw inputs can still be accessed manually, but do
+        not affect equation operations.
+        """
+        return self.head == x
 
 
 def _syntax_hints(filepath):
@@ -277,6 +292,5 @@ def _cast(value, mod, lim=None):
     elif mod is None:
         pass
     else:
-        print(value, mod)
-        raise ValueError("This should have been verified already!")
+        raise ValueError("Invalid type parameter! Type: {}".format(mod))
     return value
