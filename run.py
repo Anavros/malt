@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import malt
+import malt.helpers as helpers
 import os
 
 def main():
@@ -8,6 +9,7 @@ def main():
         "add i:a, i:b",
         "int i:n",
         "kwargs one=1, two=2, three=3",
+        "types s:str=string, i:int=5, f:float=1.0",
         "echo string",
         "load",
         "div s[top|bottom]:anchor",
@@ -29,8 +31,8 @@ def main():
         elif r == 'load':
             malt.serve(malt.load('example.malt'))
 
-        elif r.raw_head == 'clear':
-            os.system('clear')
+        else:
+            helpers.try_extra_functions(r, options)
 
 if __name__ == '__main__':
     main()

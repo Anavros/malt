@@ -4,7 +4,7 @@ import re
 r_NEW_SYNTAX_LINE = r"""
 ^
 (?P<head>[\w]+)
-(?P<tail>\s+[\w\s|:=,\[\]]+)*
+(?P<tail>\s+[\w\s|:=,.\[\]]+)*
 $
 """
 
@@ -15,7 +15,7 @@ r_NEW_SYNTAX_WORD = r"""
  (?(mod):)
 (?P<key>[\w]+)
 (?P<eq>=)?
- (?(eq)(?P<arg> [\w]+))
+ (?(eq)(?P<arg> [\w.+-]+))
 $
 """
 

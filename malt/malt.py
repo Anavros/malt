@@ -69,6 +69,7 @@ def load(filepath, options=None):
     return responses
 
 
+# TODO: add recursion guard to prevent infinite loops
 def serve(content='', end='\n', indent=0):
     """
     Prints content to stdout. Wrapper of print that provides special formatting
