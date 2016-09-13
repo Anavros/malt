@@ -27,15 +27,10 @@ def main():
             malt.serve(r.string)
 
         elif r == 'load':
-            malt.serve(malt.load('example.lang'))
+            malt.serve(malt.load('example.malt'))
 
         elif r.raw_head == 'clear':
             os.system('clear')
-
-        elif not r.valid:
-            malt.serve(r.raw_args)
-            malt.serve(r.raw_kwargs)
-            malt.serve(options)
 
 if __name__ == '__main__':
     main()

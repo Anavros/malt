@@ -11,10 +11,6 @@ except ImportError:
 A tiny toolkit for structured input and output.
 """
 
-PREFIX = '[malt] '
-PROMPT = '> '
-
-### PUBLIC FUNCTIONS ###
 
 def offer(options):
     """Offer the user a list of options. Input is verified as returned as a
@@ -22,9 +18,12 @@ def offer(options):
     syntax = parse.parse(options)
 
     try:
-        raw_text = input(PROMPT)
+        raw_text = input('> ')
     except (KeyboardInterrupt, EOFError):
-        quit()
+        # Design point: Allow option to not exit immediately?
+        # Put special variable in response and allow user?
+        # Possibly extensible options where user can define built-in funcs?
+        raise SystemExit  # silent
     if not raw_text:
         return Response(None, None, raw_args=None, raw_kwargs=None, valid=False)
 
@@ -40,17 +39,23 @@ def offer(options):
 
     try:
         body = parse.validate((args, kwargs), syn)
-    except ValueError as e:
+    except ValueError:
+        # Design point: return error status in response.
+        # Allow user to print message or special message if they like.
         return Response(head, None, raw_args=args, raw_kwargs=kwargs, valid=False)
     return Response(head, body, raw_args=args, raw_kwargs=kwargs, valid=True)
 
 
 def load(filepath, options=None):
-    """Load a config file matching syntax against given options."""
+    """
+    Load a list of responses from a file. Each line is processed in the same way
+    as input from stdin. If options are not given, `load` will search for syntax
+    hints, lines starting with '?' and describing one option, in the file.
+    """
     if options:
         syntax = parse.parse(options)
     else:
-        syntax = parse.parse(_syntax_hints(filepath))
+        syntax = parse.parse(parse.syntax_hints(filepath))
     responses = []
     with open(filepath, 'r') as f:
         for line in f:
@@ -60,19 +65,15 @@ def load(filepath, options=None):
 
             head, raw_args, raw_kwargs = parse.parse_response(line)
             body = parse.validate((raw_args, raw_kwargs), syntax[head])
-
-            #print("SYNTAX")
-            #serve(syntax)
-            #print("HEAD")
-            #serve(head)
-            #print("BODY")
-            #serve(body)
-            responses.append(Response(head, body))
+            responses.append(Response(head, body, raw_args, raw_kwargs, valid=True))
     return responses
 
 
 def serve(content='', end='\n', indent=0):
-    """Prints easy-to-read data structures according to type."""
+    """
+    Prints content to stdout. Wrapper of print that provides special formatting
+    for complex types.
+    """
     if type(content) in [str, int, float]:
         print(content)
     elif type(content) in [list, set, frozenset, tuple]:
@@ -118,12 +119,13 @@ class Response:
     """
     def __init__(self, head, body, raw_args=None, raw_kwargs=None, valid=False):
         self.head = head if valid else None
-        self.valid = valid
+        self.body = body
         if body is not None:
             for k, v in body.items():
                 self.__dict__[k] = v
 
         # new params
+        self.valid = valid
         self.raw_head = head
         self.raw_args = raw_args
         self.raw_kwargs = raw_kwargs
