@@ -7,7 +7,6 @@ try:
 except ImportError:
     pass
 
-
 """Malt
 A tiny toolkit for structured input and output.
 """

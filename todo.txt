@@ -8,6 +8,19 @@ New Features:
 -> Color printing.
 -> More advanced terminal manipulation with blessings.
 -> Tab completion!
+-> Helper functions to make testing easier.
 
 Documentation:
 -> Everything.
+
+Interface Split:
+
+import malt
+malt.offer()
+malt.serve()
+malt.load()
+
+import malt.barbet as barbet
+barbet.message()
+barbet.footer()
+barbet.header()

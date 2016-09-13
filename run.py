@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-import test as malt
+import malt
+malt.bless()
 
 def main():
     options = [
@@ -12,7 +13,7 @@ def main():
         "div s[top|bottom]:anchor",
     ]
     while True:
-        r = malt.offer(options) 
+        r = malt.offer(options)
         if r == "add":
             print("{} + {} = {}".format(r.a, r.b, r.a+r.b))
 
@@ -27,6 +28,9 @@ def main():
 
         elif r == "load":
             malt.serve(malt.load('example.lang'))
+
+        #elif r.error:
+            #print(r.error)
 
         else:
             malt.serve("Do whatever: {}".format(r.head))
