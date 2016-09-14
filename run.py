@@ -23,7 +23,7 @@ def main():
             bar.message("{} + {} = {}".format(r.a, r.b, r.a+r.b))
 
         elif r == 'int':
-            bar.message(r.n, type(r.n))
+            bar.message(str(r.n) + str(type(r.n)))
 
         elif r == 'kwargs':
             bar.message(r)
@@ -37,8 +37,8 @@ def main():
         elif r.raw_head == 'clear':
             bar.clear()
 
-        else:
-            bar.message("unknown command")
+        elif not r.empty:
+            bar.message(r.error)
         bar.render()
 
 if __name__ == '__main__':

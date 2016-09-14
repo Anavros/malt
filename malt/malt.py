@@ -24,25 +24,23 @@ def offer(options):
         # Put special variable in response and allow user?
         # Possibly extensible options where user can define built-in funcs?
         raise SystemExit  # silent
-    if not raw_text:
-        return Response(None, None, raw_args=None, raw_kwargs=None, valid=False)
 
     try:
         head, args, kwargs = parse.parse_response(raw_text)
-    except ValueError:
-        return Response(None, None, raw_args=None, raw_kwargs=None, valid=False)
+    except ValueError as e:
+        return Response(valid=False, error=str(e), empty=bool(not raw_text))
 
     try:
         syn = syntax[head]
     except KeyError:
-        return Response(head, None, raw_args=args, raw_kwargs=kwargs, valid=False)
+        return Response(head=head, raw_args=args, raw_kwargs=kwargs,
+            valid=False, error='unknown command')
 
     try:
         body = parse.validate((args, kwargs), syn)
-    except ValueError:
-        # Design point: return error status in response.
-        # Allow user to print message or special message if they like.
-        return Response(head, None, raw_args=args, raw_kwargs=kwargs, valid=False)
+    except ValueError as e:
+        return Response(head, raw_args=args, raw_kwargs=kwargs,
+            valid=False, error=str(e))
     return Response(head, body, raw_args=args, raw_kwargs=kwargs, valid=True)
 
 
@@ -118,7 +116,9 @@ class Response:
     the user's response, the command, or head, can be compared directly to the
     response object using '=='. A new response is generated for each input.
     """
-    def __init__(self, head, body, raw_args=None, raw_kwargs=None, valid=False):
+    def __init__(self, head=None, body=None,
+        raw_args=None, raw_kwargs=None, valid=False, empty=False, error=None):
+
         self.head = head if valid else None
         self.body = body
         if body is not None:
@@ -127,6 +127,8 @@ class Response:
 
         # new params
         self.valid = valid
+        self.empty = empty
+        self.error = error
         self.raw_head = head
         self.raw_args = raw_args
         self.raw_kwargs = raw_kwargs

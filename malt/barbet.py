@@ -29,8 +29,7 @@ def clear():
 
 
 def clean(item):
-    if type(item) is not str:
-        # maybe it's a list?
+    if type(item) is list:
         return '\n'.join(map(str, item))
     else:
         return str(item)
@@ -62,7 +61,7 @@ def render():
         print(term.move_up*3)
         print(term.bold_yellow('#'*term.width))
 
-    offset = len(footer.split('\n'))+5
+    offset = len(footer.split('\n'))+6
     print(term.move_y(term.height-offset))
     for s in messages:
         print(s+term.move_up*3)

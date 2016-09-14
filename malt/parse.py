@@ -84,7 +84,7 @@ def parse(options):
 def parse_response(line):
     line_match = re.fullmatch(r_NEW_INPUT_LINE, line, re.VERBOSE)
     if not line_match:
-        raise ValueError("Malformed input line:\n\t{}".format(line))
+        raise ValueError("forbidden characters in input")
     head = line_match.group('head')
     tail = line_match.group('tail')
     args = []
@@ -95,7 +95,7 @@ def parse_response(line):
         word = word.strip()
         word_match = re.fullmatch(r_NEW_INPUT_WORD, word, re.VERBOSE)
         if not word_match:
-            raise ValueError("Unmatched word: {}".format(word))
+            raise ValueError("misformatted argument")
         key = word_match.group('key')
         arg = word_match.group('arg')
         if arg is not None:
