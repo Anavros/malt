@@ -30,7 +30,7 @@ r_NEW_INPUT_WORD = r"""
 ^
 (?P<key>[\w\s+-/:]+)
 (?P<eq>=)?
- (?(eq)(?P<arg> [\w]+))
+ (?(eq)(?P<arg> [\w+-/:]+))
 $
 """
 
