@@ -13,9 +13,10 @@ def main():
         "types s:str=string, i:int=5, f:float=1.0",
         "echo string",
         "load",
-        "div s[top|bottom]:anchor",
+        #"div s[top|bottom]:anchor",
     ]
-    bar.set_footer(options)
+    #bar.set_footer(options)
+    bar.set_sidebar(options)
     bar.render()
     while True:
         r = malt.offer(options)
@@ -43,4 +44,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-    #malt.serve(malt.load('example.lang'))
