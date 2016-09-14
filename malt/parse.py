@@ -22,13 +22,13 @@ $
 r_NEW_INPUT_LINE = r"""
 ^
 (?P<head>[\w]+)
-(?P<tail>\s+[\w\s|:=,\[\]]+)*
+(?P<tail>\s+[\w\s|:=,+-\[\]]+)*
 $
 """
 
 r_NEW_INPUT_WORD = r"""
 ^
-(?P<key>[\w\s]+)
+(?P<key>[\w\s+-/:]+)
 (?P<eq>=)?
  (?(eq)(?P<arg> [\w]+))
 $
