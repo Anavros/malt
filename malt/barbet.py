@@ -43,27 +43,38 @@ def clean(item):
         return str(item)
 
 
+def listify(string):
+    lines = string.split('\n')
+    lines = [s.strip(' \n') for s in lines]
+    if not lines[0]:
+        lines.pop(0)
+    if not lines[-1]:
+        lines.pop()
+    return lines
+
+
 def render():
     print(term.clear)
 
+    head_lines = listify(header)
+    foot_lines = listify(footer)
+    side_lines = listify(sidebar)
     offsets = {
-        'head': 2+len(header.split('\n')),
-        'foot': 4+len(footer.split('\n')),
+        'head': 2+len(head_lines),
+        'foot': 4+len(foot_lines),
         'side': 0,
     }
 
     if header:
-        head_lines = header.split('\n')
         print(term.move_y(1))
         print(term.bold_yellow('#'*term.width))
         for hl in head_lines:
             print(term.bold_yellow(term.move_x(term.width-2)+' :'), end='')
             print(term.bold_yellow(term.move_x(0)+': '), end='')
-            print(hl.strip())
+            print(hl)
         print(term.bold_yellow('#'*term.width))
 
     if footer:
-        foot_lines = footer.split('\n')
         foot_lines.reverse()
         print(term.move_y(term.height-1))
         print(term.bold_yellow('#'*term.width))
@@ -71,7 +82,7 @@ def render():
             print(term.move_up*3)
             print(term.bold_yellow(term.move_x(term.width-2)+' :'), end='')
             print(term.bold_yellow(term.move_x(0)+': '), end='')
-            print(fl)
+            print(fl.strip())
         print(term.move_up*3)
         print(term.bold_yellow('#'*term.width))
         #print(term.move_up*3)
@@ -79,16 +90,14 @@ def render():
 
     if sidebar:
         x_off = int(term.width*SIDEBAR_X_OFFSET)
-        side_lines = sidebar.split('\n')
         fill_lines = range(offsets['head'], term.height-offsets['head']-offsets['foot'])
         print(term.move_y(offsets['head']))
         for text, i in zip_longest(side_lines, fill_lines, fillvalue=""):
             print(term.move_x(x_off), term.bold_yellow(': '), text)
 
     if messages:
-        offset = len(footer.split('\n'))+6
-        print(term.move_y(term.height-offset))
+        print(term.move_y(term.height-offsets['foot']-2))
         for s in messages:
-            print(s+term.move_up*3)
+            print('> '+s.strip()+term.move_up*3)
 
     print(term.move_y(term.height-2))
