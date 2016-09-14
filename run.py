@@ -2,6 +2,7 @@
 
 import malt
 import malt.helpers as helpers
+import malt.barbet as bar
 import os
 
 def main():
@@ -14,25 +15,31 @@ def main():
         "load",
         "div s[top|bottom]:anchor",
     ]
+    bar.set_footer(options)
+    bar.render()
     while True:
         r = malt.offer(options)
         if r == 'add':
-            print("{} + {} = {}".format(r.a, r.b, r.a+r.b))
+            bar.message("{} + {} = {}".format(r.a, r.b, r.a+r.b))
 
         elif r == 'int':
-            print(r.n, type(r.n))
+            bar.message(r.n, type(r.n))
 
         elif r == 'kwargs':
-            malt.serve(r)
+            bar.message(r)
 
         elif r == 'echo':
-            malt.serve(r.string)
+            bar.message(r.string)
 
         elif r == 'load':
-            malt.serve(malt.load('example.malt'))
+            bar.message(malt.load('example.malt'))
+
+        elif r.raw_head == 'clear':
+            bar.clear()
 
         else:
-            helpers.try_extra_functions(r, options)
+            bar.message("unknown command")
+        bar.render()
 
 if __name__ == '__main__':
     main()

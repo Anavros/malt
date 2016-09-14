@@ -30,7 +30,7 @@ def offer(options):
     try:
         head, args, kwargs = parse.parse_response(raw_text)
     except ValueError:
-        return Response(head, None, raw_args=args, raw_kwargs=kwargs, valid=False)
+        return Response(None, None, raw_args=None, raw_kwargs=None, valid=False)
 
     try:
         syn = syntax[head]
@@ -145,3 +145,6 @@ class Response:
         not affect equation operations.
         """
         return self.head == x
+
+    def __str__(self):
+        return self.raw_head

@@ -3,13 +3,40 @@ import readline
 import blessings
 term = blessings.Terminal()
 
-PROMPT = '> '
-HEADER = 'THIS IS COOL\nOH YEAH'
-INFO_PANEL = "HERE IS SOME HELPFUL INFORMATION\nHEALTH: 100, BUTT: STYLISH"
+header = "HEADER"
+footer = "FOOTER"
+prompt = "> "
+messages = ["help"]
 
-history = []
 
-def render(header, footer):
+def message(text):
+    messages.insert(0, clean(text))
+
+
+def set_footer(text):
+    global footer
+    footer = clean(text)
+
+
+def set_header(text):
+    global header
+    header = clean(text)
+
+
+def clear():
+    global messages
+    messages = []
+
+
+def clean(item):
+    if type(item) is not str:
+        # maybe it's a list?
+        return '\n'.join(map(str, item))
+    else:
+        return str(item)
+
+
+def render():
     print(term.clear)
 
     if header:
@@ -35,8 +62,9 @@ def render(header, footer):
         print(term.move_up*3)
         print(term.bold_yellow('#'*term.width))
 
-    print(term.move_y(term.height-7))
-    for s in history:
+    offset = len(footer.split('\n'))+5
+    print(term.move_y(term.height-offset))
+    for s in messages:
         print(s+term.move_up*3)
 
     print(term.move_y(term.height-2))
