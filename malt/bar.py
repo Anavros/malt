@@ -14,21 +14,21 @@ footer = ""
 sidebar = ""
 messages = [""]
 
-def message(text):
+def slide(text):
     messages.insert(0, clean(text))
 
 
-def set_footer(text):
+def foot(text):
     global footer
     footer = clean(text)
 
 
-def set_header(text):
+def head(text):
     global header
     header = clean(text)
 
 
-def set_sidebar(text):
+def side(text):
     global sidebar
     sidebar = clean(text)
 
