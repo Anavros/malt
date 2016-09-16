@@ -2,7 +2,6 @@
 
 import malt
 import malt.helpers as helpers
-import malt.barbet as bar
 import os
 
 def main():
@@ -13,34 +12,31 @@ def main():
         "types s:str=string, i:int=5, f:float=1.0",
         "echo string",
         "load",
+        "struct d:dict={k:v}, l:list=[1 2]",
         #"div s[top|bottom]:anchor",
     ]
-    #bar.set_footer(options)
-    bar.set_sidebar(options)
-    bar.render()
     while True:
         r = malt.offer(options)
         if r == 'add':
-            bar.message("{} + {} = {}".format(r.a, r.b, r.a+r.b))
+            malt.serve("{} + {} = {}".format(r.a, r.b, r.a+r.b))
 
         elif r == 'int':
-            bar.message(str(r.n) + str(type(r.n)))
+            malt.serve(str(r.n) + str(type(r.n)))
 
-        elif r == 'kwargs':
-            bar.message(r)
+        elif r == 'kwargs' or r == 'struct':
+            malt.serve(r)
 
         elif r == 'echo':
-            bar.message(r.string)
+            malt.serve(r.string)
 
         elif r == 'load':
-            bar.message(malt.load('example.malt'))
+            malt.serve(malt.load('example.malt'))
 
         elif r.raw_head == 'clear':
             bar.clear()
 
         elif not r.empty:
-            bar.message(r.error)
-        bar.render()
+            malt.serve(r.error)
 
 if __name__ == '__main__':
     main()

@@ -4,25 +4,25 @@ import re
 r_NEW_SYNTAX_LINE = r"""
 ^
 (?P<head>[\w]+)
-(?P<tail>\s+[\w\s|:=,.\[\]]+)*
+(?P<tail>\s+[\w\s|:=,.\[\]{}]+)*
 $
 """
 
 r_NEW_SYNTAX_WORD = r"""
 ^
-(?P<mod>[isf])?
+(?P<mod>[isfld])?
  (?(mod)(?P<lim>\[[\w|]+\]))?
  (?(mod):)
 (?P<key>[\w]+)
 (?P<eq>=)?
- (?(eq)(?P<arg> [\w.+-]+))
+ (?(eq)(?P<arg> [\w\s.+-\[\]{}]+))
 $
 """
 
 r_NEW_INPUT_LINE = r"""
 ^
 (?P<head>[\w]+)
-(?P<tail>\s+[\w\s|:=,+-\[\]]+)*
+(?P<tail>\s+[\w\s|:=,+-\[\]{}]+)*
 $
 """
 
@@ -30,7 +30,7 @@ r_NEW_INPUT_WORD = r"""
 ^
 (?P<key>[\w\s+-/:]+)
 (?P<eq>=)?
- (?(eq)(?P<arg> [\w+-/:]+))
+ (?(eq)(?P<arg> [\w\s+-/:{}\[\]]+))
 $
 """
 
@@ -140,6 +140,19 @@ def cast(value, mod, lim=None):
         if lim is not None and value not in lim:
             raise TypeError("Expected value {} to be one of: {}".format(value, lim))
         pass
+    elif mod == 'd':
+        # d:dict={1:one 2:two}
+        # dict=1:one 2:two, {1:one, 2:two}
+        pairs = [s.split(':') for s in value.strip('{}').split()]
+        if not pairs:
+            print("empty dict!")
+            value = {}
+        else:
+            value = {k:v for k, v in pairs}
+    elif mod == 'l':
+        # l:list=[1 2 3] -> [1, 2, 3]
+        # [1 2 3], 1 2 3, list=1 2 3, 
+        value = list(value.strip('[]').split())
     elif mod is None:
         pass
     else:
