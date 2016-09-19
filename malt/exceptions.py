@@ -7,11 +7,18 @@ normal errors.
 """
 
 class WrongType(TypeError):
-    pass
+    def __init__(self, cast='str', value=''):
+        self.cast = cast
+        self.value = value
 
 
 class NotAnOption(TypeError):
-    pass
+    def __init__(self, value='', cast='str', options=None, bot=None, top=None):
+        self.value = value
+        self.cast = cast
+        self.options = options if options is not None else []
+        self.bot = bot
+        self.top = top
 
 
 class TooManyArgs(ValueError):

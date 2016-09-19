@@ -31,7 +31,10 @@ def print_error(error):
         serve(PREFIX+"input contains forbidden characters")
     elif t is WrongType:
         serve(PREFIX+"argument does not match expected type")
+        serve(PREFIX+"failed to cast '{}' to type {}".format(error.value, error.cast))
     elif t is NotAnOption:
         serve(PREFIX+"argument is not an option")
+        serve(PREFIX+"got '{}', expected {}:{} or ({}) (type {})".format(
+            error.value, error.bot, error.top, '|'.join(error.options), error.cast))
     else:
         serve(PREFIX+"unexpected error ({}: {})".format(str(t), str(error)))

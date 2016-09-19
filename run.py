@@ -11,7 +11,8 @@ import os
 def main():
     options = [
         "add i:a, i:b",
-        "int i(0:1):n",
+        "int i:n",
+        "lim_int i(1:10):n",
         "float f(0.0:1.0):n",
         "kwargs one=1, two=2, three=3",
         "types s:str=string, i:int=5, f:float=1.0",
@@ -19,7 +20,7 @@ def main():
         "load",
         "multiline",
         "struct d:dict={k:v}, l:list=[1 2]",
-        "dict d(i:i):arg",
+        "dict d(s:i):arg={}",
         "len l(2):two, l(2:4):twofour",
         "div s(top|bottom):anchor",
         "baddiv s:anchor",

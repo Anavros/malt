@@ -6,17 +6,29 @@ def auto(mod, value, spec=""):
     bot, top, items = parse_type_specifics(spec)
 
     if mod == 'i':
-        return i(value, int(bot) if bot is not None else None,
-            int(top) if top is not None else None, map(lambda n: int(n), items))
+        if bot is not None:
+            bot = int(bot)
+        if top is not None:
+            top = int(top)
+        if items:
+            items = list(map(lambda n: int(n), items))
+        return i(value, bot, top, items)
     elif mod == 'f':
-        return i(value, float(bot) if bot is not None else None,
-            float(top) if top is not None else None, map(lambda n: float(n), items))
+        if bot is not None:
+            bot = float(bot)
+        if top is not None:
+            top = float(top)
+        if items:
+            items = list(map(lambda n: float(n), items))
+        return i(value, bot, top, items)
     elif mod == 's':
         return s(value, items)
     elif mod == 'l':
         return l(value)
     elif mod == 'd':
         return d(value, bot, top)
+    elif not mod:
+        return value
     else: raise UnexpectedProgrammingError()
 
 
@@ -40,23 +52,22 @@ def i(value, bot, top, items):
     try:
         value = int(value)
     except ValueError:
-        print("bad int cast:", value)
-        raise WrongType()
+        raise WrongType(cast='int', value=value)
     else:
         if bot is not None and top is not None:
-            print(bot, value, top)
+            print('trying range')
             if bot <= value <= top:
-                print('good int')
                 return value
             else:
-                print('bad int')
-                raise NotAnOption()
-        elif items:
+                raise NotAnOption(value=value, cast='int', bot=bot, top=top)
+        elif len(items) > 0:
+            print('trying items')
             if value in items:
                 return value
             else:
-                raise NotAnOption()
+                raise NotAnOption(value=value, cast='int', options=items)
         else:
+            print('not using spec')
             return value
 
 
@@ -64,18 +75,18 @@ def f(value, bot, top, items):
     try:
         value = float(value)
     except ValueError:
-        raise WrongType()
+        raise WrongType(cast='float', value=value)
     else:
         if bot is not None and top is not None:
             if bot <= value <= top:
                 return value
             else:
-                raise NotAnOption()
+                raise NotAnOption(value=value, cast='float', options=items, bot=bot, top=top)
         elif items:
             if value in items:
                 return value
             else:
-                raise NotAnOption()
+                raise NotAnOption(value=value, cast='float', options=items, bot=bot, top=top)
         return value
 
 
@@ -84,7 +95,7 @@ def s(value, items):
         if value in items:
             return value
         else:
-            raise NotAnOption()
+            raise NotAnOption(value=value, cast='str', options=items, bot=bot, top=top)
     else:
         return value
 
