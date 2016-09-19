@@ -18,7 +18,6 @@ def main():
         "load",
         "multiline",
         "struct d:dict={k:v}, l:list=[1 2]",
-        #"div s[top|bottom]:anchor",
         "div o(top|bottom):anchor",
     ]
     while True:

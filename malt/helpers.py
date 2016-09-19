@@ -29,7 +29,7 @@ def print_error(error):
         serve(PREFIX+"input contains forbidden characters")
     elif t is WrongType:
         serve(PREFIX+"argument does not match expected type")
-    elif t is NotInAllowedOptions:
+    elif t is NotAnOption:
         serve(PREFIX+"argument does not match any allowed inputs")
     else:
-        serve(PREFIX+"unexpected error")
+        serve(PREFIX+"unexpected error ({}: {})".format(str(t), str(error)))

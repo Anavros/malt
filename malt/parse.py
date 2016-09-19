@@ -1,5 +1,6 @@
 
 import re
+from malt.exceptions import *
 
 r_NEW_SYNTAX_LINE = r"""
 ^
@@ -105,21 +106,19 @@ def parse_response(line):
     return head, args, kwargs
 
 
+# silent error: key=value w/ unknown key
 def validate(given, expected):
     given_args, given_kwargs = given
     expec_args, expec_kwargs = expected
     final = {}
 
-    if len(given_args) < len(expec_args):
-        raise ValueError("missing positional arguments (expected {})".format(
-            len(expec_args)))
-    elif len(expec_args) < len(given_args):
-        raise ValueError("too many positional arguments (expected {})".format(
-            len(expec_args)))
+    # Verify argument counts.
+    if   len(given_args) < len(expec_args): raise NotEnoughArgs()
+    elif len(expec_args) < len(given_args): raise TooManyArgs()
     for given_arg, expec_arg in zip(given_args, expec_args):
         key, mod, lim = expec_arg
         value = given_arg
-        final[key] = cast(value, mod, lim)  # raises TypeError
+        final[key] = cast(value, mod, lim)  # raises WrongType, NotAnOption
 
     for key, params in expec_kwargs.items():
         (default, mod, lim) = params
@@ -127,48 +126,75 @@ def validate(given, expected):
             value = given_kwargs[key]
         except KeyError:
             value = default
-        final[key] = cast(value, mod, lim)  # raises TypeError
+        final[key] = cast(value, mod, lim)  # raises WrongType, NotAnOption
     return final
 
 
-def cast(value, mod, lim=None):
-    print('lim', lim)
+def cast(value, mod, specifics=""):
+    print('specifics', specifics)
+
+    # Integers
     if mod == 'i':
-        value = int(value)
-        if lim:
-            ints = lim.strip('()').split('-') # silent error
-            low, high = ints[0], ints[1]
+        try:
+            value = int(value)
+        except TypeError:
+            raise WrongType()
+
+        if specifics:
+            ints = specifics.strip('()').split('-') # silent error
+            low, high = int(ints[0]), int(ints[1])
             print(low, high)
             if low <= value <= high:
                 print("matches!")
+                return value
             else:
                 print("no match")
-                raise TypeError("Integer is out of limit!")
+                raise NotAnOption()
+        else:
+            return value
+
+    # Floats
     elif mod == 'f':
-        value = float(value)
+        try:
+            value = float(value)
+        except TypeError:
+            raise WrongType()
+        else:
+            return value
+
+    # Strings
     elif mod == 's':
-        pass
+        return value
+
+    # Dictionaries
     elif mod == 'd':
         # d:dict={1:one 2:two}
         # dict=1:one 2:two, {1:one, 2:two}
         pairs = [s.split(':') for s in value.strip('{}').split()]
         if not pairs:
-            print("empty dict!")
-            value = {}
+            #print("empty dict!")
+            return {}
         else:
-            value = {k:v for k, v in pairs}
+            return {k:v for k, v in pairs}
+
+    # Lists
     elif mod == 'l':
         # l:list=[1 2 3] -> [1, 2, 3]
         # [1 2 3], 1 2 3, list=1 2 3, 
-        value = list(value.strip('[]').split())
+        return list(value.strip('[]').split())
+
+    # Limited Options
     elif mod == 'o':
-        lim = lim.strip('()').split('|')
-        if value in lim:
+        options = specifics.strip('()').split('|')
+        if value in options:
             return value
         else:
-            raise TypeError("o:option type given, value not included in limits!")
+            raise NotAnOption()
+
+    # Default, assumes string
     elif mod is None:
-        pass
+        return value
+
+    # Should have been one of those, regex error
     else:
-        raise ValueError("Invalid type parameter! Type: {}".format(mod))
-    return value
+        raise UnexpectedProgrammingError()

@@ -1,6 +1,7 @@
 
 import re
 import malt.parse as parse
+from malt.exceptions import *
 
 try:
     import readline
@@ -38,7 +39,7 @@ def offer(options):
 
     try:
         body = parse.validate((args, kwargs), syn)
-    except (ValueError, TypeError) as e:
+    except (WrongType, NotAnOption, TooManyArgs, NotEnoughArgs) as e:
         return Response(head, raw_args=args, raw_kwargs=kwargs,
             valid=False, error=str(e))
     return Response(head, body, raw_args=args, raw_kwargs=kwargs, valid=True)
