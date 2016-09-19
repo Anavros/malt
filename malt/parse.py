@@ -4,14 +4,14 @@ import re
 r_NEW_SYNTAX_LINE = r"""
 ^
 (?P<head>[\w]+)
-(?P<tail>\s+[\w\s|:=,.\[\]{}]+)*
+(?P<tail>\s+[\w\s|:=,.\[\]{}()]+)*
 $
 """
 
 r_NEW_SYNTAX_WORD = r"""
 ^
-(?P<mod>[isfld])?
- (?(mod)(?P<lim>\[[\w|]+\]))?
+(?P<mod>[isfldo])?
+ (?(mod)(?P<lim>\([\w|]+\)))?
  (?(mod):)
 (?P<key>[\w]+)
 (?P<eq>=)?
@@ -137,8 +137,6 @@ def cast(value, mod, lim=None):
     elif mod == 'f':
         value = float(value)
     elif mod == 's':
-        if lim is not None and value not in lim:
-            raise TypeError("Expected value {} to be one of: {}".format(value, lim))
         pass
     elif mod == 'd':
         # d:dict={1:one 2:two}
@@ -153,6 +151,11 @@ def cast(value, mod, lim=None):
         # l:list=[1 2 3] -> [1, 2, 3]
         # [1 2 3], 1 2 3, list=1 2 3, 
         value = list(value.strip('[]').split())
+    elif mod == 'o':
+        if value in lim:
+            return value
+        else:
+            raise TypeError("o:option type given, value not included in limits!")
     elif mod is None:
         pass
     else:

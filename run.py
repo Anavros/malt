@@ -16,6 +16,7 @@ def main():
         "multiline",
         "struct d:dict={k:v}, l:list=[1 2]",
         #"div s[top|bottom]:anchor",
+        "div o(top|bottom):anchor",
     ]
     while True:
         r = malt.offer(options)
@@ -34,11 +35,11 @@ def main():
         elif r == 'load':
             malt.serve(malt.load('example.malt'))
 
-        elif r.raw_head == 'clear':
-            malt.clear()
+        elif r == 'div':
+            malt.serve(r)
 
-        elif not r.empty:
-            malt.serve(r.error)
+        else:
+            helpers.try_extra_functions(r, options)
 
 
 def test_bar():
@@ -63,5 +64,5 @@ def test_bar():
         bar.render()
 
 if __name__ == '__main__':
-    #main()
-    test_bar()
+    main()
+    #test_bar()

@@ -38,7 +38,7 @@ def offer(options):
 
     try:
         body = parse.validate((args, kwargs), syn)
-    except ValueError as e:
+    except (ValueError, TypeError) as e:
         return Response(head, raw_args=args, raw_kwargs=kwargs,
             valid=False, error=str(e))
     return Response(head, body, raw_args=args, raw_kwargs=kwargs, valid=True)

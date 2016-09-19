@@ -14,6 +14,19 @@ footer = ""
 sidebar = ""
 messages = [""]
 
+
+def serve(text):
+    pass
+
+
+def offer(options):
+    pass
+
+
+def load(path):
+    pass
+
+
 def slide(text):
     for line in text.split('\n'):
         messages.insert(0, clean(line))
