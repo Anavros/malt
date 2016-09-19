@@ -12,14 +12,17 @@ def main():
     options = [
         "add i:a, i:b",
         "int i(0:1):n",
+        "float f(0.0:1.0):n",
         "kwargs one=1, two=2, three=3",
         "types s:str=string, i:int=5, f:float=1.0",
         "echo string",
         "load",
         "multiline",
-        #"struct d(s:i):dict={k:v}, l:list=[1 2]",
-        "div o(top|bottom):anchor",
-        "baddiv o:anchor",
+        "struct d:dict={k:v}, l:list=[1 2]",
+        "dict d(i:i):arg",
+        "len l(2):two, l(2:4):twofour",
+        "div s(top|bottom):anchor",
+        "baddiv s:anchor",
     ]
     #(1:5)  # only two
     #(1|2|3|4|5)  # any number
@@ -27,27 +30,9 @@ def main():
         r = malt.offer(options)
         if r.valid:
             malt.serve("success!")
+            malt.serve(r)
         else:
             malt.serve("failure.")
-        if r == 'add':
-            malt.serve("{} + {} = {}".format(r.a, r.b, r.a+r.b))
-
-        elif r == 'int':
-            malt.serve(str(r.n) + str(type(r.n)))
-
-        elif r == 'kwargs' or r == 'struct':
-            malt.serve(r)
-
-        elif r == 'echo':
-            malt.serve(r.string)
-
-        elif r == 'load':
-            malt.serve(malt.load('example.malt'))
-
-        elif r == 'div':
-            malt.serve(r)
-
-        else:
             helpers.try_extra_functions(r, options)
 
 
