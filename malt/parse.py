@@ -131,6 +131,11 @@ def validate(given, expected):
         value = given_arg
         final[key] = cast.auto(mod, value, lim)  # raises WrongType, NotAnOption
 
+    # check for invalid keys
+    for key in given_kwargs.keys():
+        if key not in expec_kwargs.keys():
+            raise UnknownKeyword()
+
     for key, params in expec_kwargs.items():
         (default, mod, lim) = params
         try:

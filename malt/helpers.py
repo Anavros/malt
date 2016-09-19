@@ -23,6 +23,8 @@ def print_error(error):
         serve(PREFIX+"too many arguments")
     elif t is NotEnoughArgs:
         serve(PREFIX+"not enough arguments")
+    elif t is UnknownKeyword:
+        serve(PREFIX+"unknown keyword")
     elif t is UnknownCommand:
         serve(PREFIX+"unknown command (try 'help' for a list of commands)")
     elif t is EmptyCommand:

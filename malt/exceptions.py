@@ -29,6 +29,10 @@ class NotEnoughArgs(ValueError):
     pass
 
 
+class UnknownKeyword(ValueError):
+    pass
+
+
 class UnknownCommand(ValueError):
     pass
 

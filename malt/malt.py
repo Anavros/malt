@@ -43,7 +43,7 @@ def offer(options):
 
     try:
         body = parse.validate((args, kwargs), syn)
-    except (WrongType, NotAnOption, TooManyArgs, NotEnoughArgs) as e:
+    except (WrongType, NotAnOption, TooManyArgs, NotEnoughArgs, UnknownKeyword) as e:
         return Response(head, raw_args=args, raw_kwargs=kwargs,
             valid=False, error=e)
     return Response(head, body, raw_args=args, raw_kwargs=kwargs, valid=True)
