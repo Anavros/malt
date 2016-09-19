@@ -18,7 +18,7 @@ def offer(options):
     syntax = parse.parse(options)
 
     try:
-        raw_text = minput('> ')
+        raw_text = minput()
     except (KeyboardInterrupt, EOFError):
         # Design point: Allow option to not exit immediately?
         # Put special variable in response and allow user?
@@ -70,28 +70,28 @@ def load(filepath, options=None):
 
 
 # TODO: add recursion guard to prevent infinite loops
-def serve(content='', end=True):
+def serve(content='', end=True, to='body'):
     """
     Prints content to stdout. Wrapper of print that provides special formatting
     for complex types.
     """
     if type(content) in [str, int, float]:
-        mprint(content)
+        mprint(content, to=to)
     elif type(content) in [list, set, frozenset, tuple]:
         #indent += 4
-        mprint('[')
+        mprint('[', to=to)
         with indent():
             for i, item in enumerate(content):
-                mprint("[{}] ".format(i), end=False)
+                mprint("[{}] ".format(i), end=False, to=to)
                 serve(item)
-        mprint(']')
+        mprint(']', to=to)
     elif type(content) is dict:
-        mprint('{')
+        mprint('{', to=to)
         with indent():
             for (key, value) in content.items():
-                mprint("{}: ".format(key), end=False)
+                mprint("{}: ".format(key), end=False, to=to)
                 serve(value)
-        mprint('}')
+        mprint('}', to=to)
     # Helps with OrderedDict.
     elif hasattr(content, 'items'):
         serve(list(content.items()))
@@ -102,7 +102,7 @@ def serve(content='', end=True):
         serve(list(content._get_args()))
     # When in doubt, use repr.
     else:
-        mprint(repr(content), end)
+        mprint(repr(content), end, to=to)
 
 
 @contextmanager

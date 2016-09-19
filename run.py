@@ -1,15 +1,11 @@
 #!/usr/bin/env python3
 
 import malt
-#import malt.bar as bar
 import malt.helpers as helpers
 import os
 
-# malt.use_frontend('fancy')
-# but what about extra functions? just no-op them?
 
 def main():
-    #malt.bless()
     options = [
         "add i:a, i:b",
         "int i:n",
@@ -19,7 +15,7 @@ def main():
         "types s:str=string, i:int=5, f:float=1.0",
         "echo string",
         "load",
-        "multiline",
+        "line",
         "struct d:dict={k:v}, l:list=[1 2]",
         "dict d(s:i):arg={}",
         "len l(2):two, l(2:4):twofour",
@@ -29,7 +25,10 @@ def main():
         "revert",
     ]
     #(1:5)  # only two
-    #(1|2|3|4|5)  # any number
+    #(1|2|3|4|5)  # any number of options
+    malt.serve('this goes in the head', to='head')
+    malt.serve('this goes in the foot', to='foot')
+    malt.serve('this goes in the side', to='side')
     while True:
         r = malt.offer(options)
         if r == 'load':
@@ -38,7 +37,8 @@ def main():
             malt.bless()
         elif r == 'revert':
             malt.revert()
-        elif r == 'multiline':
+        elif r == 'line':
+            malt.serve("this\nline\nis\nseparated\nby\nnew\nlines")
             with malt.indent():
                 malt.serve("Hello, there!")
                 with malt.indent():
@@ -51,27 +51,5 @@ def main():
             helpers.try_extra_functions(r, options)
 
 
-def test_bar():
-    options = [
-        'single',
-        'multi',
-    ]
-    bar.head("Header")
-    bar.foot("Footer")
-    bar.render()
-    quitting = False
-    while not quitting:
-        response = malt.offer(options)
-        if response == 'single':
-            bar.slide("This is a single line!")
-        elif response == 'multi':
-            bar.slide("This one\nstretches\nacross\nmultiple lines\nhooray.")
-        elif response.raw_head == 'clear':
-            bar.clear()
-        elif response.raw_head == 'quit':
-            quitting = True
-        bar.render()
-
 if __name__ == '__main__':
     main()
-    #test_bar()

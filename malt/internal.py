@@ -9,8 +9,8 @@ new_line = True
 side_offset = 0.5
 blessed = False
 
-head = "HEADER"
-foot = "FOOTER"
+head = ""
+foot = ""
 side = ""
 messages = []
 body = ""
@@ -44,37 +44,39 @@ def decrease_indentation():
     tabs -= 1
     
 
-def mprint(content, end=True):
-    global new_line, body
+def mprint(content, end=True, to='body'):
+    global new_line, body, head, side, foot
     endchar = '\n' if end else ''
     if new_line: content = ' '*tabs*tab_width + content
-    if blessed: body = body + content + endchar
-    else: print(content, end=endchar)
-    if end: new_line = True
-    else: new_line = False
+
+    if to == 'head':
+        head = head + content + endchar
+    elif to == 'side':
+        side = side + content + endchar
+    elif to == 'foot':
+        foot = foot + content + endchar
+    else:
+        body = body + content + endchar
+
+    if not blessed and to == 'body':
+        print(content, end=endchar)
+
+    new_line = end
 
 
-def minput(prompt):
+def minput():
     if blessed:
         render()
-        return input('(bless) '+prompt)
+        return input(PROMPT)
     else:
-        return input('(curse) '+prompt)
+        return input(PROMPT)
 
 
 def clear():
-    if blessed:
-        global body
-        body = ""
-    else:
+    global body
+    body = ""
+    if not blessed:
         os.system('clear')
-
-
-def clean(item):
-    if type(item) is list:
-        return '\n'.join(map(str, item))
-    else:
-        return str(item)
 
 
 def listify(string, w=0):
