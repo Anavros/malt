@@ -2,10 +2,12 @@
 
 import malt
 import malt.helpers as helpers
+import malt.letters
 import os
 
 
 def main():
+    malt.bless()
     options = [
         "add i:a, i:b",
         "int i:n",
@@ -30,7 +32,7 @@ def main():
         malt.clear('head')
         malt.clear('foot')
         malt.clear('side')
-        malt.serve('this goes in the head', to='head')
+        malt.serve(malt.letters.convert('HOME-11AM'), to='head')
         malt.serve('this goes in the foot', to='foot')
         malt.serve('this goes in the side', to='side')
         r = malt.offer(options)
