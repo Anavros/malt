@@ -16,6 +16,8 @@ A tiny toolkit for structured input and output.
 def offer(options):
     """Offer the user a list of options. Input is verified as returned as a
     Response object."""
+    #maybe give a warning if the user tries something like `bad o():arg`
+    #which would never match anything
     syntax = parse.parse(options)
 
     try:
@@ -28,20 +30,21 @@ def offer(options):
 
     try:
         head, args, kwargs = parse.parse_response(raw_text)
-    except ValueError as e:
-        return Response(valid=False, error=str(e), empty=bool(not raw_text))
+    except (EmptyCommand, InputForbiddenCharacters) as e:
+        empty = type(e) is EmptyCommand
+        return Response(valid=False, error=e, empty=empty)
 
     try:
         syn = syntax[head]
     except KeyError:
         return Response(head=head, raw_args=args, raw_kwargs=kwargs,
-            valid=False, error='unknown command')
+            valid=False, error=UnknownCommand())
 
     try:
         body = parse.validate((args, kwargs), syn)
     except (WrongType, NotAnOption, TooManyArgs, NotEnoughArgs) as e:
         return Response(head, raw_args=args, raw_kwargs=kwargs,
-            valid=False, error=str(e))
+            valid=False, error=e)
     return Response(head, body, raw_args=args, raw_kwargs=kwargs, valid=True)
 
 

@@ -19,14 +19,18 @@ def main():
         "multiline",
         "struct d:dict={k:v}, l:list=[1 2]",
         "div o(top|bottom):anchor",
+        "baddiv o:anchor",
     ]
     while True:
         r = malt.offer(options)
+        if r.valid:
+            malt.serve("success!")
+        else:
+            malt.serve("failure.")
         if r == 'add':
             malt.serve("{} + {} = {}".format(r.a, r.b, r.a+r.b))
 
         elif r == 'int':
-            malt.serve("success!")
             malt.serve(str(r.n) + str(type(r.n)))
 
         elif r == 'kwargs' or r == 'struct':

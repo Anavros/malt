@@ -74,18 +74,22 @@ def parse(options):
             mod = word_match.group('mod')
             lim = word_match.group('lim')
             arg = word_match.group('arg')
+            spec = lim.strip('()') if lim is not None else ""
             if arg is not None:
-                kwargs[key] = (arg, mod, lim)
+                kwargs[key] = (arg, mod, spec)
             else:
-                args.append((key, mod, lim))
+                args.append((key, mod, spec))
         syntax[head] = args, kwargs
     return syntax
 
 
 def parse_response(line):
+    """
+    Raises EmptyCommand, InputForbiddenCharacters.
+    """
+    if not line: raise EmptyCommand()
     line_match = re.fullmatch(r_NEW_INPUT_LINE, line, re.VERBOSE)
-    if not line_match:
-        raise ValueError("forbidden characters in input")
+    if not line_match: raise InputForbiddenCharacters()
     head = line_match.group('head')
     tail = line_match.group('tail')
     args = []
@@ -96,7 +100,7 @@ def parse_response(line):
         word = word.strip()
         word_match = re.fullmatch(r_NEW_INPUT_WORD, word, re.VERBOSE)
         if not word_match:
-            raise ValueError("misformatted argument")
+            raise InputForbiddenCharacters()
         key = word_match.group('key')
         arg = word_match.group('arg')
         if arg is not None:
@@ -106,8 +110,14 @@ def parse_response(line):
     return head, args, kwargs
 
 
-# silent error: key=value w/ unknown key
+# BUG: silent error: key=value w/ unknown key
 def validate(given, expected):
+    """
+    Compare the given input to the expected input. Returns the final dictionary containing
+    every key:value pair from the response, typecasted and ready to use.
+    
+    Raises NotEnoughArgs, TooManyArgs, WrongType, and NotAnOption.
+    """
     given_args, given_kwargs = given
     expec_args, expec_kwargs = expected
     final = {}
@@ -131,6 +141,10 @@ def validate(given, expected):
 
 
 def cast(value, mod, specifics=""):
+    """
+    Cast a given value according to its type prefix. The specifics are an optional string
+    that allow different limitations for each type.
+    """
     print('specifics', specifics)
 
     # Integers

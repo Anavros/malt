@@ -25,11 +25,13 @@ def print_error(error):
         serve(PREFIX+"not enough arguments")
     elif t is UnknownCommand:
         serve(PREFIX+"unknown command (try 'help' for a list of commands)")
+    elif t is EmptyCommand:
+        serve("(empty)")
     elif t is InputForbiddenCharacters:
         serve(PREFIX+"input contains forbidden characters")
     elif t is WrongType:
         serve(PREFIX+"argument does not match expected type")
     elif t is NotAnOption:
-        serve(PREFIX+"argument does not match any allowed inputs")
+        serve(PREFIX+"argument is not an option")
     else:
         serve(PREFIX+"unexpected error ({}: {})".format(str(t), str(error)))
