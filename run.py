@@ -9,7 +9,7 @@ import os
 # but what about extra functions? just no-op them?
 
 def main():
-    malt.bless()
+    #malt.bless()
     options = [
         "add i:a, i:b",
         "int i:n",
@@ -25,6 +25,8 @@ def main():
         "len l(2):two, l(2:4):twofour",
         "div s(top|bottom):anchor",
         "baddiv s:anchor",
+        "bless",
+        "revert",
     ]
     #(1:5)  # only two
     #(1|2|3|4|5)  # any number
@@ -32,11 +34,20 @@ def main():
         r = malt.offer(options)
         if r == 'load':
             malt.serve(malt.load('items.malt'))
-        if r.valid:
-            malt.serve("success!")
-            malt.serve(r)
+        elif r == 'bless':
+            malt.bless()
+        elif r == 'revert':
+            malt.revert()
+        elif r == 'multiline':
+            with malt.indent():
+                malt.serve("Hello, there!")
+                with malt.indent():
+                    malt.serve("I'm indented!")
+        #if r.valid:
+            #malt.serve("success!")
+            #malt.serve(r)
         else:
-            malt.serve("failure.")
+            #malt.serve("failure.")
             helpers.try_extra_functions(r, options)
 
 
