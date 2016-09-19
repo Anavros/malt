@@ -15,7 +15,9 @@ sidebar = ""
 messages = [""]
 
 def slide(text):
-    messages.insert(0, clean(text))
+    for line in text.split('\n'):
+        messages.insert(0, clean(line))
+    messages.insert(0, '')
 
 
 def foot(text):
@@ -91,9 +93,13 @@ def render():
                 term.bold_white(text))
 
     if messages:
-        print(term.move_y(term.height-offsets['foot']-2))
+        print(term.move_y(term.height-offsets['foot']))
         for s in messages:
-            print(PROMPT+s.strip()+term.move_up*3)
+            print(term.move_up*3)
+            if s:
+                print(PROMPT+s.strip())
+            else:
+                print()
 
     print(term.move_y(term.height-2))
 

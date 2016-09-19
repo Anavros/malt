@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import malt
+import malt.bar as bar
 import malt.helpers as helpers
 import os
 
@@ -12,6 +13,7 @@ def main():
         "types s:str=string, i:int=5, f:float=1.0",
         "echo string",
         "load",
+        "multiline",
         "struct d:dict={k:v}, l:list=[1 2]",
         #"div s[top|bottom]:anchor",
     ]
@@ -33,10 +35,33 @@ def main():
             malt.serve(malt.load('example.malt'))
 
         elif r.raw_head == 'clear':
-            bar.clear()
+            malt.clear()
 
         elif not r.empty:
             malt.serve(r.error)
 
+
+def test_bar():
+    options = [
+        'single',
+        'multi',
+    ]
+    bar.head("Header")
+    bar.foot("Footer")
+    bar.render()
+    quitting = False
+    while not quitting:
+        response = malt.offer(options)
+        if response == 'single':
+            bar.slide("This is a single line!")
+        elif response == 'multi':
+            bar.slide("This one\nstretches\nacross\nmultiple lines\nhooray.")
+        elif response.raw_head == 'clear':
+            bar.clear()
+        elif response.raw_head == 'quit':
+            quitting = True
+        bar.render()
+
 if __name__ == '__main__':
-    main()
+    #main()
+    test_bar()
