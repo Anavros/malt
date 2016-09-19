@@ -11,16 +11,18 @@ import os
 def main():
     options = [
         "add i:a, i:b",
-        "int i(0-1):n",
+        "int i(0:1):n",
         "kwargs one=1, two=2, three=3",
         "types s:str=string, i:int=5, f:float=1.0",
         "echo string",
         "load",
         "multiline",
-        "struct d:dict={k:v}, l:list=[1 2]",
+        #"struct d(s:i):dict={k:v}, l:list=[1 2]",
         "div o(top|bottom):anchor",
         "baddiv o:anchor",
     ]
+    #(1:5)  # only two
+    #(1|2|3|4|5)  # any number
     while True:
         r = malt.offer(options)
         if r.valid:

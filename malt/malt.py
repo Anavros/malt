@@ -13,6 +13,7 @@ A tiny toolkit for structured input and output.
 """
 
 
+# TODO: allow case-insensitive input
 def offer(options):
     """Offer the user a list of options. Input is verified as returned as a
     Response object."""

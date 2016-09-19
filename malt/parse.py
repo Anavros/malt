@@ -1,5 +1,6 @@
 
 import re
+import malt.cast as cast
 from malt.exceptions import *
 
 r_NEW_SYNTAX_LINE = r"""
@@ -12,7 +13,7 @@ $
 r_NEW_SYNTAX_WORD = r"""
 ^
 (?P<mod>[isfldo])?
- (?(mod)(?P<lim>\([\w|-]+\)))?
+ (?(mod)(?P<lim>\([\w|:]+\)))?
  (?(mod):)
 (?P<key>[\w]+)
 (?P<eq>=)?
@@ -128,7 +129,7 @@ def validate(given, expected):
     for given_arg, expec_arg in zip(given_args, expec_args):
         key, mod, lim = expec_arg
         value = given_arg
-        final[key] = cast(value, mod, lim)  # raises WrongType, NotAnOption
+        final[key] = cast.auto(mod, value, lim)  # raises WrongType, NotAnOption
 
     for key, params in expec_kwargs.items():
         (default, mod, lim) = params
@@ -136,79 +137,5 @@ def validate(given, expected):
             value = given_kwargs[key]
         except KeyError:
             value = default
-        final[key] = cast(value, mod, lim)  # raises WrongType, NotAnOption
+        final[key] = cast.auto(mod, value, lim)  # raises WrongType, NotAnOption
     return final
-
-
-def cast(value, mod, specifics=""):
-    """
-    Cast a given value according to its type prefix. The specifics are an optional string
-    that allow different limitations for each type.
-    """
-    print('specifics', specifics)
-
-    # Integers
-    if mod == 'i':
-        try:
-            value = int(value)
-        except TypeError:
-            raise WrongType()
-
-        if specifics:
-            ints = specifics.strip('()').split('-') # silent error
-            low, high = int(ints[0]), int(ints[1])
-            print(low, high)
-            if low <= value <= high:
-                print("matches!")
-                return value
-            else:
-                print("no match")
-                raise NotAnOption()
-        else:
-            return value
-
-    # Floats
-    elif mod == 'f':
-        try:
-            value = float(value)
-        except TypeError:
-            raise WrongType()
-        else:
-            return value
-
-    # Strings
-    elif mod == 's':
-        return value
-
-    # Dictionaries
-    elif mod == 'd':
-        # d:dict={1:one 2:two}
-        # dict=1:one 2:two, {1:one, 2:two}
-        pairs = [s.split(':') for s in value.strip('{}').split()]
-        if not pairs:
-            #print("empty dict!")
-            return {}
-        else:
-            return {k:v for k, v in pairs}
-
-    # Lists
-    elif mod == 'l':
-        # l:list=[1 2 3] -> [1, 2, 3]
-        # [1 2 3], 1 2 3, list=1 2 3, 
-        return list(value.strip('[]').split())
-
-    # Limited Options
-    elif mod == 'o':
-        options = specifics.strip('()').split('|')
-        if value in options:
-            return value
-        else:
-            raise NotAnOption()
-
-    # Default, assumes string
-    elif mod is None:
-        return value
-
-    # Should have been one of those, regex error
-    else:
-        raise UnexpectedProgrammingError()
