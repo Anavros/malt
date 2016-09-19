@@ -55,19 +55,19 @@ def i(value, bot, top, items):
         raise WrongType(cast='int', value=value)
     else:
         if bot is not None and top is not None:
-            print('trying range')
+            #print('trying range')
             if bot <= value <= top:
                 return value
             else:
                 raise NotAnOption(value=value, cast='int', bot=bot, top=top)
         elif len(items) > 0:
-            print('trying items')
+            #print('trying items')
             if value in items:
                 return value
             else:
                 raise NotAnOption(value=value, cast='int', options=items)
         else:
-            print('not using spec')
+            #print('not using spec')
             return value
 
 
@@ -100,7 +100,7 @@ def s(value, items):
         return value
 
 
-def l(value, bot, top):
+def l(value):
     value = value.strip('[]').split()
     return value
 
@@ -108,8 +108,13 @@ def l(value, bot, top):
 # BUG: crashes on input similar to {4:5:7}
 def d(value, key, val):
     items = {}
-    if key in 'dl' or val in 'dl': raise ValueError("Recursion is a bad idea here!")
-    for pair in value.strip('{}').split():
-        k, v = pair.split(':')  # throws ValueError on bad input
-        items[auto(key, k)] = auto(val, v)
+    if key is not None and val is not None:
+        if key in 'dl' or val in 'dl': raise ValueError("Recursion is a bad idea here!")
+        for pair in value.strip('{}').split():
+            k, v = pair.split(':')  # throws ValueError on bad input
+            items[auto(key, k)] = auto(val, v)
+    else:
+        for pair in value.strip('{}').split():
+            k, v = pair.split(':')  # throws ValueError on bad input
+            items[k] = v 
     return items

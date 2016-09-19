@@ -29,6 +29,8 @@ def main():
     #(1|2|3|4|5)  # any number
     while True:
         r = malt.offer(options)
+        if r == 'load':
+            malt.serve(malt.load('items.malt'))
         if r.valid:
             malt.serve("success!")
             malt.serve(r)
