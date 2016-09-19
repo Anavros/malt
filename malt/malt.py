@@ -2,11 +2,7 @@
 import re
 import malt.parse as parse
 from malt.exceptions import *
-
-try:
-    import readline
-except ImportError:
-    pass
+from malt.internal import mprint, minput
 
 """Malt
 A tiny toolkit for structured input and output.
@@ -17,12 +13,11 @@ A tiny toolkit for structured input and output.
 def offer(options):
     """Offer the user a list of options. Input is verified as returned as a
     Response object."""
-    #maybe give a warning if the user tries something like `bad o():arg`
-    #which would never match anything
+    # TODO: extra function just to validate syntax
     syntax = parse.parse(options)
 
     try:
-        raw_text = input('> ')
+        raw_text = minput('> ')
     except (KeyboardInterrupt, EOFError):
         # Design point: Allow option to not exit immediately?
         # Put special variable in response and allow user?
@@ -80,27 +75,27 @@ def serve(content='', end='\n', indent=0):
     for complex types.
     """
     if type(content) in [str, int, float]:
-        print(content)
+        mprint(content)
     elif type(content) in [list, set, frozenset, tuple]:
         indent += 4
-        print('[')
+        mprint('[')
         for i, item in enumerate(content):
-            print(' '*indent, end='')
-            print("[{}] ".format(i), end='')
+            mprint(' '*indent, end='')
+            mprint("[{}] ".format(i), end='')
             serve(item, indent=indent)
         indent -= 4
-        print(' '*indent, end='')
-        print(']')
+        mprint(' '*indent, end='')
+        mprint(']')
     elif type(content) is dict:
-        print('{')
+        mprint('{')
         indent += 4
         for (key, value) in content.items():
-            print(' '*indent, end='')
-            print("{}: ".format(key), end='')
+            mprint(' '*indent, end='')
+            mprint("{}: ".format(key), end='')
             serve(value, indent=indent)
         indent -= 4
-        print(' '*indent, end='')
-        print('}')
+        mprint(' '*indent, end='')
+        mprint('}')
     # Helps with OrderedDict.
     elif hasattr(content, 'items'):
         serve(list(content.items()))
@@ -111,7 +106,7 @@ def serve(content='', end='\n', indent=0):
         serve(list(content._get_args()), indent=indent)
     # When in doubt, use repr.
     else:
-        print(repr(content), end=end)
+        mprint(repr(content), end=end)
 
 
 def log(): pass 

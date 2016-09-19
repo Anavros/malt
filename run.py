@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 import malt
-import malt.bar as bar
+#import malt.bar as bar
 import malt.helpers as helpers
 import os
 
@@ -9,6 +9,7 @@ import os
 # but what about extra functions? just no-op them?
 
 def main():
+    malt.bless()
     options = [
         "add i:a, i:b",
         "int i:n",
