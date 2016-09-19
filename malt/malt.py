@@ -44,6 +44,7 @@ def offer(options):
     return Response(head, body, raw_args=args, raw_kwargs=kwargs, valid=True)
 
 
+# TODO: allow loading list of strings
 def load(filepath, options=None):
     """
     Load a list of responses from a file. Each line is processed in the same way
@@ -106,6 +107,9 @@ def serve(content='', end='\n', indent=0):
     # When in doubt, use repr.
     else:
         print(repr(content), end=end)
+
+
+def log(): pass 
 
 
 class Response:

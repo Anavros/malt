@@ -5,10 +5,13 @@ import malt.bar as bar
 import malt.helpers as helpers
 import os
 
+# malt.use_frontend('fancy')
+# but what about extra functions? just no-op them?
+
 def main():
     options = [
         "add i:a, i:b",
-        "int i:n",
+        "int i(0-1):n",
         "kwargs one=1, two=2, three=3",
         "types s:str=string, i:int=5, f:float=1.0",
         "echo string",
@@ -24,6 +27,7 @@ def main():
             malt.serve("{} + {} = {}".format(r.a, r.b, r.a+r.b))
 
         elif r == 'int':
+            malt.serve("success!")
             malt.serve(str(r.n) + str(type(r.n)))
 
         elif r == 'kwargs' or r == 'struct':

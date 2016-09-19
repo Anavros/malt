@@ -4,14 +4,14 @@ import re
 r_NEW_SYNTAX_LINE = r"""
 ^
 (?P<head>[\w]+)
-(?P<tail>\s+[\w\s|:=,.\[\]{}()]+)*
+(?P<tail>\s+[\w\s|:=,.\[\]{}()+-]+)*
 $
 """
 
 r_NEW_SYNTAX_WORD = r"""
 ^
 (?P<mod>[isfldo])?
- (?(mod)(?P<lim>\([\w|]+\)))?
+ (?(mod)(?P<lim>\([\w|-]+\)))?
  (?(mod):)
 (?P<key>[\w]+)
 (?P<eq>=)?
@@ -132,8 +132,18 @@ def validate(given, expected):
 
 
 def cast(value, mod, lim=None):
+    print('lim', lim)
     if mod == 'i':
         value = int(value)
+        if lim:
+            ints = lim.strip('()').split('-') # silent error
+            low, high = ints[0], ints[1]
+            print(low, high)
+            if low <= value <= high:
+                print("matches!")
+            else:
+                print("no match")
+                raise TypeError("Integer is out of limit!")
     elif mod == 'f':
         value = float(value)
     elif mod == 's':
@@ -152,6 +162,7 @@ def cast(value, mod, lim=None):
         # [1 2 3], 1 2 3, list=1 2 3, 
         value = list(value.strip('[]').split())
     elif mod == 'o':
+        lim = lim.strip('()').split('|')
         if value in lim:
             return value
         else:
