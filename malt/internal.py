@@ -72,10 +72,17 @@ def minput():
         return input(PROMPT)
 
 
-def clear():
-    global body
-    body = ""
-    if not blessed:
+def clear(to='body'):
+    global body, head, side, foot
+    if to == 'head':
+        head = ''
+    elif to == 'side':
+        side = ''
+    elif to == 'foot':
+        foot = ''
+    else:
+        body = ''
+    if not blessed and to == 'body':
         os.system('clear')
 
 
@@ -123,15 +130,6 @@ def render():
         for text, i in zip_longest(side_lines, fill_lines, fillvalue=""):
             print(term.move_x(x_off), term.bold_yellow(VER_BAR),
                 term.bold_white(text))
-
-#    if messages:
-#        print(term.move_y(term.height-offsets['foot']))
-#        for s in messages:
-#            print(term.move_up*3)
-#            if s:
-#                print(PROMPT+s)
-#            else:
-#                print()
 
     if body:
         lines = body.split('\n')

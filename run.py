@@ -26,10 +26,13 @@ def main():
     ]
     #(1:5)  # only two
     #(1|2|3|4|5)  # any number of options
-    malt.serve('this goes in the head', to='head')
-    malt.serve('this goes in the foot', to='foot')
-    malt.serve('this goes in the side', to='side')
     while True:
+        malt.clear('head')
+        malt.clear('foot')
+        malt.clear('side')
+        malt.serve('this goes in the head', to='head')
+        malt.serve('this goes in the foot', to='foot')
+        malt.serve('this goes in the side', to='side')
         r = malt.offer(options)
         if r == 'load':
             malt.serve(malt.load('items.malt'))
