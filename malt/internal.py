@@ -46,6 +46,7 @@ def decrease_indentation():
 
 def mprint(content, end=True, to='body'):
     global new_line, body, head, side, foot
+    content = str(content)
     endchar = '\n' if end else ''
     if new_line: content = ' '*tabs*tab_width + content
 

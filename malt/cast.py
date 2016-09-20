@@ -95,7 +95,7 @@ def s(value, items):
         if value in items:
             return value
         else:
-            raise NotAnOption(value=value, cast='str', options=items, bot=bot, top=top)
+            raise NotAnOption(value=value, cast='str', options=items)
     else:
         return value
 
