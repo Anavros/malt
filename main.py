@@ -1,8 +1,7 @@
-#!/usr/bin/env python3
-
 import malt
 import malt.helpers as helpers
 import malt.letters
+import malt.internal
 import os
 
 
@@ -25,9 +24,9 @@ def main():
         "baddiv s:anchor",
         "bless",
         "revert",
+        "log level=LOG",
+        "show l:levels",
     ]
-    #(1:5)  # only two
-    #(1|2|3|4|5)  # any number of options
     while True:
         malt.clear('head')
         malt.clear('foot')
@@ -48,6 +47,9 @@ def main():
                 malt.serve("Hello, there!")
                 with malt.indent():
                     malt.serve("I'm indented!")
+        elif r == 'log':
+            malt.log("This goes in the log!", level=r.level)
+
         #if r.valid:
             #malt.serve("success!")
             #malt.serve(r)

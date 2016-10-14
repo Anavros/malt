@@ -3,6 +3,7 @@ import re
 import malt.parse as parse
 from contextlib import contextmanager
 from malt.exceptions import *
+import malt.internal
 from malt.internal import mprint, minput, increase_indentation, decrease_indentation
 
 """Malt
@@ -76,7 +77,7 @@ def serve(content='', end=True, to='body'):
     for complex types.
     """
     if type(content) in [str, int, float]:
-        mprint(content, to=to)
+        mprint(content, to=to, end=end)
     elif type(content) in [list, set, frozenset, tuple]:
         #indent += 4
         mprint('[', to=to)
@@ -105,14 +106,18 @@ def serve(content='', end=True, to='body'):
         mprint(repr(content), end, to=to)
 
 
+def log(content, level='LOG', show_level=True):
+    if level in malt.internal.visible_logs:
+        if show_level:
+            serve("[{}] ".format(level), end=False)
+        serve(content)
+
+
 @contextmanager
 def indent():
     increase_indentation()
     yield
     decrease_indentation()
-
-
-def log(): pass 
 
 
 class Response:

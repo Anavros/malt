@@ -9,6 +9,8 @@ new_line = True
 side_offset = 0.5
 blessed = False
 
+visible_logs = ['LOG']
+
 head = ""
 foot = ""
 side = ""
@@ -21,10 +23,11 @@ HOR_BAR = '█'
 VER_BAR = '┇'
 
 
-def bless():
+def bless(sidebar_offset=0.5):
     import blessings  # raises uncaught ImportError
-    global term, blessed
+    global term, blessed, side_offset
     term = blessings.Terminal()
+    side_offset = sidebar_offset
     blessed = True
 
 
