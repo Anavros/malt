@@ -105,16 +105,22 @@ def l(value):
     return value
 
 
-# BUG: crashes on input similar to {4:5:7}
 def d(value, key, val):
     items = {}
     if key is not None and val is not None:
-        if key in 'dl' or val in 'dl': raise ValueError("Recursion is a bad idea here!")
+        if key in 'dl' or val in 'dl':
+            raise ValueError("Recursion is a bad idea here!")
         for pair in value.strip('{}').split():
-            k, v = pair.split(':')  # throws ValueError on bad input
+            halves = pair.split(':')
+            if len(halves) != 2:
+                raise WrongType(cast='dict', value=pair)
+            k, v = halves
             items[auto(key, k)] = auto(val, v)
     else:
         for pair in value.strip('{}').split():
-            k, v = pair.split(':')  # throws ValueError on bad input
-            items[k] = v 
+            halves = pair.split(':')
+            if len(halves) != 2:
+                raise WrongType(cast='dict', value=pair)
+            k, v = halves
+            items[k] = v
     return items
