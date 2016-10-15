@@ -20,7 +20,7 @@ body = ""
 PROMPT = '> '
 PREFIX = '[malt] '
 HOR_BAR = '█'
-VER_BAR = '┇'
+VER_BAR = '▒'
 
 
 def bless(sidebar_offset=0.5):
@@ -37,6 +37,18 @@ def revert():
     os.system('clear')
 
 
+def show(level):
+    global visible_logs
+    if level not in visible_logs:
+        visible_logs.append(level)
+
+
+def silence(level):
+    global visible_logs
+    if level in visible_logs:
+        visible_logs.remove(level)
+
+
 def increase_indentation():
     global tabs
     tabs += 1
@@ -45,7 +57,7 @@ def increase_indentation():
 def decrease_indentation():
     global tabs
     tabs -= 1
-    
+
 
 def mprint(content, end=True, to='body'):
     global new_line, body, head, side, foot
@@ -90,40 +102,47 @@ def clear(to='body'):
         os.system('clear')
 
 
-def listify(string, w=0):
-    return [" {:<{w}} ".format(s.strip(' \n'), w=w) for s in string.split('\n')]
+def format_multiline_string_into_list(string, line_width):
+    new_lines = []
+    raw_lines = string.split('\n')
+    if len(raw_lines[-1].strip(' \n')) > 0:
+        new_lines.append(" {:<{w}} ".format(raw_lines[-1], w=line_width))
+    for s in raw_lines[0:-1]:
+        s = s.strip(' \n')
+        new_lines.append(" {:<{w}} ".format(s, w=line_width))
+    return new_lines
 
 
 def render():
     print(term.clear)
 
-    head_lines = listify(head, w=term.width-4)
-    foot_lines = listify(foot, w=term.width-4)
-    side_lines = listify(side)
+    head_lines = format_multiline_string_into_list(head, term.width-4)
+    foot_lines = format_multiline_string_into_list(foot, term.width-4)
+    side_lines = format_multiline_string_into_list(side, 0)
     offsets = {
-        'head': 2+len(head_lines),
-        'foot': 4+len(foot_lines),
+        'head': 2+len(head_lines) if head else 0,
+        'foot': 4+len(foot_lines) if foot else 0,
         'side': 0,
     }
 
     if head:
         print(term.move_y(1))
-        print(term.bold_yellow(HOR_BAR*term.width))
+        print(term.blue(HOR_BAR*term.width))
         for hl in head_lines:
             sides()
             print(term.bold_white_on_black(hl))
-        print(term.bold_yellow(HOR_BAR*term.width))
+        print(term.blue(HOR_BAR*term.width))
 
     if foot:
         foot_lines.reverse()
         print(term.move_y(term.height-1))
-        print(term.bold_yellow(HOR_BAR*term.width))
+        print(term.blue(HOR_BAR*term.width))
         for fl in foot_lines:
             print(term.move_up*3)
             sides()
             print(term.bold_white_on_black(fl))
         print(term.move_up*3)
-        print(term.bold_yellow(HOR_BAR*term.width))
+        print(term.blue(HOR_BAR*term.width))
         #print(term.move_up*3)
         #print("Here's a popup!")
 
@@ -132,7 +151,7 @@ def render():
         fill_lines = range(offsets['head'], term.height-offsets['head']-offsets['foot'])
         print(term.move_y(offsets['head']))
         for text, i in zip_longest(side_lines, fill_lines, fillvalue=""):
-            print(term.move_x(x_off), term.bold_yellow(VER_BAR),
+            print(term.move_x(x_off), term.blue(VER_BAR),
                 term.bold_white(text))
 
     if body:
@@ -150,5 +169,5 @@ def render():
 
 
 def sides():
-    print(term.bold_yellow(term.move_x(term.width-1)+VER_BAR), end='')
-    print(term.bold_yellow(term.move_x(0)+VER_BAR), end='')
+    print(term.blue(term.move_x(term.width-1)+VER_BAR), end='')
+    print(term.blue(term.move_x(0)+VER_BAR), end='')
