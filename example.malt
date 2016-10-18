@@ -4,7 +4,6 @@
 keyword
 
 # Multiline comments.
-###
 
 # Comments can not be continued using the elipsis syntax ...
 this is not a comment
@@ -32,4 +31,3 @@ region plains ... # newline is ignored if elipsis is found
     needs = [
         house drive
     ] # and now line finished, next newline ends
-###

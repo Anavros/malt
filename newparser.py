@@ -12,12 +12,14 @@ DICT_BEGIN = '{'
 DICT_END = '}'
 LINE_CONTINUE = '...'
 LINE_END = '\n'
-COMMENT = '#'
-MULTILINE_COMMENT = '@'
 KEY_VALUE_JOIN = ':'
 DEFAULT_ARG_SETTER = '='
 EMPTY_DEFAULT_ARG = 'empty'
-SYNTAX_HINT = '?'
+SIGNATURE_HINT = '?'
+
+# For the comment remover.
+COMMENT = '#'
+SPACES = ' \t'
 
 # Tokens.
 class Tokens:
@@ -41,6 +43,52 @@ def load_file(path):
     return f.read()
 
 
+def preprocess(old_contents):
+    """
+    """
+    new_contents = ""
+    in_multiline_comment = False
+    for line in old_contents.split(LINE_END):
+        if marks_multiline_comment(line):
+            in_multiline_comment = not in_multiline_comment
+        if in_multiline_comment:
+            continue
+        if is_signature_hint(line):
+            continue
+        line = strip_inline_comments(line)
+        if is_empty(line):
+            continue
+        if is_continued(line):
+            new_contents += strip_continuation(line)
+        else:
+            new_contents += line + '\n'
+    return new_contents
+
+
+def is_continued(line):
+    return len(line) >= 3 and line[-3:] == LINE_CONTINUE
+
+
+def is_empty(line):
+    return not line.strip(SPACES)
+
+
+def marks_multiline_comment(line):
+    return len(line) == 3 and line[0:2] == COMMENT*3
+
+
+def strip_inline_comments(line):
+    return line.split(COMMENT)[0].strip()
+
+
+def is_signature_hint(line):
+    return len(line) >= 1 and line[0] == SIGNATURE_HINT
+
+
+def strip_continuation(line):
+    return line.replace('...', '')
+
+
 def parse(contents):
     state = ParserState()
     for c in contents:
@@ -51,36 +99,6 @@ def parse(contents):
         else:
             send_char(state, c)
         read(state)
-
-
-def preprocess(contents):
-    """
-    Remove comments from the file to make parsing easier.
-
-    Return the gutted file as a string.
-    """
-    cleaned_contents = []
-    in_multiline_comment = False
-    for line in contents.split('\n'):
-        if marks_multiline_comment(line):
-            in_multiline_comment = not in_multiline_comment
-            continue
-
-        if in_multiline_comment:
-            continue
-
-        clean = strip_comments(line)
-        if len(clean) > 0:
-            cleaned_contents.append(clean)
-    return cleaned_contents
-
-
-def marks_multiline_comment(line):
-    return (len(line) == 3) and (line[0:2] == '###')
-
-
-def strip_comments(line):
-    return line.split('#')[0]
 
 
 def send_nothing(state):
@@ -120,7 +138,5 @@ def read(state):
         print(state.last_char, end='')
 
 if __name__ == '__main__':
-    clean_lines = preprocess(load_file("example.malt"))
-    for l in clean_lines:
-        print(l)
+    print(preprocess(load_file("example.malt")))
     #parse_file("example.malt")
