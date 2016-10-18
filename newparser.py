@@ -21,26 +21,72 @@ SIGNATURE_HINT = '?'
 COMMENT = '#'
 SPACES = ' \t'
 
-# Tokens.
-class Tokens:
-    COMMENT, MULTICOMMENT, LIST, DICT = range(4)
-
-
-class ParserState:
-    def __init__(self):
-        self.in_comment = False
-        self.in_multi_comment = False
-        self.in_list = False
-        self.in_dict = False
-        self.new_line = True
-        self.continue_line = False
-        self.empty_line = True
-        self.last_char = ''
-
 
 def load_file(path):
     f = open(path, 'r')
     return f.read()
+
+
+# Tokens.
+class Tokens:
+    WORD, LIST, DICT= range(3)
+
+
+class MaltSyntaxError(ValueError):
+    pass
+
+
+class ParserState:
+    def __init__(self):
+        self.buffer = []
+        self.tokens = []
+        self.in_list = False
+        self.in_dict = False
+        self.new_line = True
+
+
+def parse(contents):
+    state = ParserState()
+    for c in contents:
+        if c == ' ':
+            if state.in_list or state.in_dict:
+                continue
+            state.tokens.append((Tokens.WORD, ''.join(state.buffer)))
+            state.buffer = []
+        elif c == LINE_END:
+            if state.in_list or state.in_dict:
+                continue
+            state.tokens.append((Tokens.WORD, ''.join(state.buffer)))
+            state.buffer = []
+        elif c == LIST_BEGIN:
+            # NOTE: no nested lists
+            if state.in_list:
+                raise MaltSyntaxError("Nested list.")
+            else:
+               state.in_list = True
+        elif c == LIST_END:
+            if not state.in_list:
+                raise MaltSyntaxError("Ended list that never began.")
+            else:
+                state.in_list = False
+                state.tokens.append((Tokens.LIST, ''.join(state.buffer)))
+                state.buffer = []
+        elif c == DICT_BEGIN:
+            if state.in_dict:
+                raise MaltSyntaxError("Nested dict.")
+            else:
+               state.in_dict = True
+        elif c == DICT_END:
+            if not state.in_dict:
+                raise MaltSyntaxError("Ended dict that never began.")
+            else:
+                state.in_dict = False
+                state.tokens.append((Tokens.DICT, ''.join(state.buffer)))
+                state.buffer = []
+        else:
+            state.buffer.append(c)
+    return state.tokens
+
 
 
 def preprocess(old_contents):
@@ -89,54 +135,9 @@ def strip_continuation(line):
     return line.replace('...', '')
 
 
-def parse(contents):
-    state = ParserState()
-    for c in contents:
-        if c == ' ' or c == '\t':
-            send_nothing(state)
-        elif c == '\n':
-            send_newline(state)
-        else:
-            send_char(state, c)
-        read(state)
-
-
-def send_nothing(state):
-    state.last_char = ''
-
-
-def send_newline(state):
-    state.last_char = ''
-    if state.continue_line:
-        pass
-    else:
-        state.new_line = True
-        state.empty_line = True
-        state.in_comment = False
-
-
-def send_char(state, c):
-    state.new_line = False
-    state.empty_line = False
-    # Single-line comments.
-    if c == COMMENT:
-        state.in_comment = True
-
-    # Multi-line comments.
-    elif c == MULTILINE_COMMENT:
-        if not state.in_comment:
-            if state.in_multi_comment:
-                state.in_multi_comment = False
-            else:
-                state.in_multi_comment = True
-
-    state.last_char = c
-
-
 def read(state):
-    if not (state.in_comment or state.in_multi_comment):
-        print(state.last_char, end='')
+    pass
 
 if __name__ == '__main__':
-    print(preprocess(load_file("example.malt")))
+    print(parse(preprocess(load_file("example.malt"))))
     #parse_file("example.malt")
