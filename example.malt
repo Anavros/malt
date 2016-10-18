@@ -6,6 +6,11 @@ keyword
 # Multiline comments.
 ###
 
+# Comments can not be continued using the elipsis syntax ...
+this is not a comment
+# Multiline indicators can not be in comments either.
+# The line has to start with three comment chars.
+
 # Malt syntax update planning.
 # Proper parser, required brackets around lists and dicts.
 # No commas required at all? Optional commas?
