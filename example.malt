@@ -2,13 +2,31 @@
 # Going to put full syntax definition in here.
 
 keyword
+keyword argument
+keyword [list of strings]
+keyword {0:here 1:is 2:a 3:dict}
+keyword [
+    list
+    of
+    strings
+]
+keyword {
+    0:here
+    1:is
+    2:a
+    3:dict
+}
+keyword "string w/ #special c:arac:ers"
 
-# Multiline comments.
+# take iron
+# take {iron: 5, wood: 10}
+# take iron:5 wood salt
 
-# Comments can not be continued using the elipsis syntax ...
-this is not a comment
-# Multiline indicators can not be in comments either.
-# The line has to start with three comment chars.
+###
+Multiline comments.
+Must be exactly (x) with no spaces.
+ERROR: strips everything after comment, even when in quotes.
+###
 
 # Malt syntax update planning.
 # Proper parser, required brackets around lists and dicts.
@@ -24,9 +42,9 @@ region plains {ingr:5 wood:5} [walk drive]
 region plains ... # newline is ignored if elipsis is found
     resources = {
         # inside brackets default to multiline
-        ingr: 5
-        wood: 5
-        iron: 5
+        ingr:5
+        wood:5
+        iron:5
     } ... # need to escape again once outside brackets
     needs = [
         house drive

@@ -38,53 +38,88 @@ class MaltSyntaxError(ValueError):
 
 class ParserState:
     def __init__(self):
-        self.buffer = []
+        self.word_buffer = []
+        self.list_buffer = []
+        self.dict_buffer = {}
         self.tokens = []
         self.in_list = False
         self.in_dict = False
         self.new_line = True
 
+    def add_word(self):
+        if self.word_buffer:
+            self.tokens.append(''.join(self.word_buffer))
+        else:
+            pass  # Don't add empty tokens.
+
+WORD_SEPARATORS = [' ', '\t', '\n']
 
 def parse(contents):
     state = ParserState()
     for c in contents:
-        if c == ' ':
-            if state.in_list or state.in_dict:
+        if c in WORD_SEPARATORS:
+            if not state.word_buffer:
                 continue
-            state.tokens.append((Tokens.WORD, ''.join(state.buffer)))
-            state.buffer = []
-        elif c == LINE_END:
-            if state.in_list or state.in_dict:
-                continue
-            state.tokens.append((Tokens.WORD, ''.join(state.buffer)))
-            state.buffer = []
+            if state.in_list:
+                state.list_buffer.append(''.join(state.word_buffer))
+            elif state.in_dict:
+                if state.word_buffer.count(KEY_VALUE_JOIN) != 1:
+                    raise MaltSyntaxError("Missing key:value separator or:too:many.")
+                i = state.word_buffer.index(KEY_VALUE_JOIN)
+                k = ''.join(state.word_buffer[:i])
+                v = ''.join(state.word_buffer[i:])
+                state.dict_buffer[k] = v
+            else:
+                state.tokens.append(''.join(state.word_buffer))
+                if c == '\n':
+                    state.tokens.append(None)
+            state.word_buffer = []
+
         elif c == LIST_BEGIN:
-            # NOTE: no nested lists
             if state.in_list:
                 raise MaltSyntaxError("Nested list.")
             else:
                state.in_list = True
+
         elif c == LIST_END:
             if not state.in_list:
                 raise MaltSyntaxError("Ended list that never began.")
             else:
                 state.in_list = False
-                state.tokens.append((Tokens.LIST, ''.join(state.buffer)))
-                state.buffer = []
+                if state.word_buffer:
+                    state.list_buffer.append(''.join(state.word_buffer))
+                    state.word_buffer = []
+                if state.list_buffer:
+                    state.tokens.append(state.list_buffer)
+                    state.list_buffer = []
+                state.tokens.append(None)
+
         elif c == DICT_BEGIN:
             if state.in_dict:
                 raise MaltSyntaxError("Nested dict.")
             else:
                state.in_dict = True
+
         elif c == DICT_END:
             if not state.in_dict:
                 raise MaltSyntaxError("Ended dict that never began.")
             else:
                 state.in_dict = False
-                state.tokens.append((Tokens.DICT, ''.join(state.buffer)))
-                state.buffer = []
+                if state.word_buffer:
+                    if state.word_buffer.count(KEY_VALUE_JOIN) != 1:
+                        raise MaltSyntaxError("Missing key:value separator or:too:many.")
+                    i = state.word_buffer.index(KEY_VALUE_JOIN)
+                    k = ''.join(state.word_buffer[:i])
+                    v = ''.join(state.word_buffer[i:])
+                    state.dict_buffer[k] = v
+                    state.word_buffer = []
+                if state.dict_buffer:
+                    state.tokens.append(state.dict_buffer)
+                    state.dict_buffer = {}
+                state.tokens.append(None)
+
         else:
-            state.buffer.append(c)
+            state.word_buffer.append(c)
     return state.tokens
 
 
@@ -120,7 +155,7 @@ def is_empty(line):
 
 
 def marks_multiline_comment(line):
-    return len(line) == 3 and line[0:2] == COMMENT*3
+    return len(line) == 3 and line[0:3] == COMMENT*3
 
 
 def strip_inline_comments(line):
@@ -139,5 +174,14 @@ def read(state):
     pass
 
 if __name__ == '__main__':
-    print(parse(preprocess(load_file("example.malt"))))
+    content = preprocess(load_file("example.malt"))
+    print("PREPROCESSOR")
+    print(content)
+    print("TOKENIZER")
+    tokens = parse(content)
+    for t in tokens:
+        if t is None:
+            print('='*10)
+        else:
+            print(t)
     #parse_file("example.malt")
