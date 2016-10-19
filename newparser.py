@@ -19,6 +19,7 @@ SIGNATURE_HINT = '?'
 
 # For the comment remover.
 COMMENT = '#'
+QUOTE = '\"'
 SPACES = ' \t'
 
 
@@ -27,30 +28,53 @@ def load_file(path):
     return f.read()
 
 
-# Tokens.
-class Tokens:
-    WORD, LIST, DICT= range(3)
-
-
 class MaltSyntaxError(ValueError):
     pass
 
 
 class ParserState:
     def __init__(self):
+        self.tokens = []
         self.word_buffer = []
         self.list_buffer = []
         self.dict_buffer = {}
-        self.tokens = []
         self.in_list = False
         self.in_dict = False
-        self.new_line = True
+        self.in_quotes = False
 
-    def add_word(self):
+    def tokenize_word(self, separator=' '):
         if self.word_buffer:
-            self.tokens.append(''.join(self.word_buffer))
-        else:
-            pass  # Don't add empty tokens.
+            if self.in_quotes:
+                self.word_buffer.append(separator)
+                return
+            elif self.in_list:
+                self.list_buffer.append(''.join(self.word_buffer))
+            elif self.in_dict:  # overwrites if nested? shouldn't nest anyway
+                if self.word_buffer.count(KEY_VALUE_JOIN) != 1:
+                    raise MaltSyntaxError("Missing key:value separator or:too:many.")
+                i = self.word_buffer.index(KEY_VALUE_JOIN)
+                k = ''.join(self.word_buffer[:i])
+                v = ''.join(self.word_buffer[i+1:])
+                self.dict_buffer[k] = v
+            else:
+                self.tokens.append(''.join(self.word_buffer))
+                if separator == '\n': self.tokens.append(None)
+            self.word_buffer = []
+
+    def tokenize_list(self):
+        if self.list_buffer:
+            self.tokens.append(self.list_buffer)
+            self.list_buffer = []
+        self.in_list = False
+        self.tokens.append(None)
+
+    def tokenize_dict(self):
+        if self.dict_buffer:
+            self.tokens.append(self.dict_buffer)
+            self.dict_buffer = {}
+        self.in_dict = False
+        self.tokens.append(None)
+
 
 WORD_SEPARATORS = [' ', '\t', '\n']
 
@@ -58,66 +82,32 @@ def parse(contents):
     state = ParserState()
     for c in contents:
         if c in WORD_SEPARATORS:
-            if not state.word_buffer:
-                continue
-            if state.in_list:
-                state.list_buffer.append(''.join(state.word_buffer))
-            elif state.in_dict:
-                if state.word_buffer.count(KEY_VALUE_JOIN) != 1:
-                    raise MaltSyntaxError("Missing key:value separator or:too:many.")
-                i = state.word_buffer.index(KEY_VALUE_JOIN)
-                k = ''.join(state.word_buffer[:i])
-                v = ''.join(state.word_buffer[i:])
-                state.dict_buffer[k] = v
-            else:
-                state.tokens.append(''.join(state.word_buffer))
-                if c == '\n':
-                    state.tokens.append(None)
-            state.word_buffer = []
-
+            state.tokenize_word(separator=c)
+        elif c == QUOTE:
+            state.in_quotes = not state.in_quotes
+            state.word_buffer.append(c)
         elif c == LIST_BEGIN:
             if state.in_list:
                 raise MaltSyntaxError("Nested list.")
             else:
                state.in_list = True
-
-        elif c == LIST_END:
-            if not state.in_list:
-                raise MaltSyntaxError("Ended list that never began.")
-            else:
-                state.in_list = False
-                if state.word_buffer:
-                    state.list_buffer.append(''.join(state.word_buffer))
-                    state.word_buffer = []
-                if state.list_buffer:
-                    state.tokens.append(state.list_buffer)
-                    state.list_buffer = []
-                state.tokens.append(None)
-
         elif c == DICT_BEGIN:
             if state.in_dict:
                 raise MaltSyntaxError("Nested dict.")
             else:
                state.in_dict = True
-
+        elif c == LIST_END:
+            if not state.in_list:
+                raise MaltSyntaxError("Ended list that never began.")
+            else:
+                state.tokenize_word()
+                state.tokenize_list()
         elif c == DICT_END:
             if not state.in_dict:
                 raise MaltSyntaxError("Ended dict that never began.")
             else:
-                state.in_dict = False
-                if state.word_buffer:
-                    if state.word_buffer.count(KEY_VALUE_JOIN) != 1:
-                        raise MaltSyntaxError("Missing key:value separator or:too:many.")
-                    i = state.word_buffer.index(KEY_VALUE_JOIN)
-                    k = ''.join(state.word_buffer[:i])
-                    v = ''.join(state.word_buffer[i:])
-                    state.dict_buffer[k] = v
-                    state.word_buffer = []
-                if state.dict_buffer:
-                    state.tokens.append(state.dict_buffer)
-                    state.dict_buffer = {}
-                state.tokens.append(None)
-
+                state.tokenize_word()
+                state.tokenize_dict()
         else:
             state.word_buffer.append(c)
     return state.tokens
@@ -159,7 +149,15 @@ def marks_multiline_comment(line):
 
 
 def strip_inline_comments(line):
-    return line.split(COMMENT)[0].strip()
+    new_line = ""
+    double_quoted = False
+    for c in line:
+        if c == QUOTE:
+            double_quoted = not double_quoted
+        if not double_quoted and c == COMMENT:
+            break
+        new_line += c
+    return new_line
 
 
 def is_signature_hint(line):

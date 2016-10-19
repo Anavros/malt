@@ -17,6 +17,14 @@ keyword {
     3:dict
 }
 keyword "string w/ #special c:arac:ers"
+keyword lots of separate arguments
+keyword ...
+    lots ...
+    of ...
+    separate ...
+    arguments
+
+keyword default=arguments a_couple=of_them
 
 # take iron
 # take {iron: 5, wood: 10}
