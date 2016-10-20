@@ -17,21 +17,51 @@ QUOTE = '\"'
 SPACES = ' \t'
 
 
-def strip_comments(contents):
-    return preprocess(contents)
-
-
-def join_continued_lines(contents):
-    return contents
-
-
-# Signature hints are normally removed in strip_comments().
+# Signature hints are normally removed in preprocess().
 def get_signature_hints(contents):
-    pass
+    """
+    Get a list of every signature line in the file.
+    Signature hints define the parameters for commands in the same file. They are
+    special comments and are normally removed in preprocessing.
+
+    >>> file_content = '''
+    ... ? add i:x i:y
+    ... add 3 1
+    ... add 6 10
+    ... '''
+    >>> get_signature_hints(file_content)
+    ['? add i:x i:y']
+    """
+    signatures = []
+    for line in contents.split(LINE_END):
+        if is_signature_hint(line):
+            signatures.append(line.strip())
+    return signatures
 
 
 def preprocess(old_contents):
     """
+    Removes comments and signature lines from the raw file. Also joins lines ending
+    with the continuation mark: '...'.
+
+    >>> file_content = '''
+    ... ###
+    ... The preprocessor is responsible for removing comments and joining lines!
+    ... ###
+    ...
+    ... config something setting 2  # inline comments are removed!
+    ...
+    ... # Signature hints count as comments! They are removed as well.
+    ... ? config s:id |setting|tweak|quirk|:type i:n_tiles
+    ...
+    ... # Any line (except for comments) ending in ...
+    ... # ...will be joined together!
+    ... config ...
+    ... another_thing quirk ...
+    ... 5
+    ... '''
+    >>> preprocess(file_content)
+    'config something setting 2\\nconfig another_thing quirk 5\\n'
     """
     new_contents = ""
     in_multiline_comment = False
@@ -48,23 +78,63 @@ def preprocess(old_contents):
         if is_continued(line):
             new_contents += strip_continuation(line)
         else:
-            new_contents += line + '\n'
+            new_contents += line.rstrip() + LINE_END
     return new_contents
 
 
 def is_continued(line):
+    """
+    Does this line end in the continuation mark '...'?
+    >>> is_continued('command arg_one arg_two')
+    False
+    >>> is_continued('command arg_one ...')
+    True
+    """
     return len(line) >= 3 and line[-3:] == LINE_CONTINUE
 
 
+def strip_continuation(line):
+    """
+    Remove the continuation mark after lines have been joined.
+    >>> strip_continuation('command arg_one ...arg_two')
+    'command arg_one arg_two'
+    """
+    return line.replace('...', '')
+
+
 def is_empty(line):
+    """
+    >>> is_empty('hello there')
+    False
+    >>> is_empty('')
+    True
+    >>> is_empty('\t\t        ')
+    True
+    """
     return not line.strip(SPACES)
 
 
 def marks_multiline_comment(line):
+    """
+    Does this line begin or end a multiline comment?
+    Multiline comments are marked with '###'. The line may only contain those chars.
+    >>> marks_multiline_comment('nothing to see here')
+    False
+    >>> marks_multiline_comment('###')
+    True
+
+    Whitespace IS important here. There must be no space before or after.
+    >>> marks_multiline_comment('  ###  ')
+    False
+    """
     return len(line) == 3 and line[0:3] == COMMENT*3
 
 
 def strip_inline_comments(line):
+    """
+    Removes comments that follow normal lines. Will ignore comment characters if they
+    are in quotes. Currently there is no way to escape quotes if you want the raw chars.
+    """
     new_line = ""
     double_quoted = False
     for c in line:
@@ -77,8 +147,20 @@ def strip_inline_comments(line):
 
 
 def is_signature_hint(line):
+    """
+    Signature hints are comments that start with a question mark: '?'. They are
+    used to define the syntax of commands in the same file.
+
+    >>> is_signature_hint('not a signature hint')
+    False
+    >>> is_signature_hint('# close, but no cigar')
+    False
+    >>> is_signature_hint('? command s:string_arg i:int_arg')
+    True
+
+    Leading whitespace is ignored.
+    >>> is_signature_hint('    ? command s:string_arg i:int_arg')
+    True
+    """
+    line = line.strip()
     return len(line) >= 1 and line[0] == SIGNATURE_HINT
-
-
-def strip_continuation(line):
-    return line.replace('...', '')
