@@ -45,27 +45,30 @@ def preprocess(old_contents):
     with the continuation mark: '...'.
 
     >>> file_content = '''
-    ... ###
-    ... The preprocessor is responsible for removing comments and joining lines!
-    ... ###
+    ...     ###
+    ...     The preprocessor is responsible for removing comments and joining lines!
+    ...     ###
     ...
-    ... config something setting 2  # inline comments are removed!
+    ...     config something setting 2  # inline comments are removed!
     ...
-    ... # Signature hints count as comments! They are removed as well.
-    ... ? config s:id |setting|tweak|quirk|:type i:n_tiles
+    ...     # Signature hints count as comments! They are removed as well.
+    ...     ? config s:id |setting|tweak|quirk|:type i:n_tiles
     ...
-    ... # Any line (except for comments) ending in ...
-    ... # ...will be joined together!
-    ... config ...
-    ... another_thing quirk ...
-    ... 5
-    ... '''
+    ...     # Any line (except for comments) ending in ...
+    ...     # ...will be joined together!
+    ...     config ...
+    ...     another_thing quirk ...
+    ...     5
+    ...
+    ...     # Also, everything here is indented! Unimportant whitespace is stripped.
+    ...     '''
     >>> preprocess(file_content)
     'config something setting 2\\nconfig another_thing quirk 5\\n'
     """
     new_contents = ""
     in_multiline_comment = False
     for line in old_contents.split(LINE_END):
+        line = line.strip()
         if marks_multiline_comment(line):
             in_multiline_comment = not in_multiline_comment
         if in_multiline_comment:
@@ -134,6 +137,15 @@ def strip_inline_comments(line):
     """
     Removes comments that follow normal lines. Will ignore comment characters if they
     are in quotes. Currently there is no way to escape quotes if you want the raw chars.
+
+    >>> strip_inline_comments('combine [these things]  # this is a list of strings!')
+    'combine [these things]'
+    >>> strip_inline_comments('lines may contain \"#\"hashes if double quoted!')
+    'lines may contain \"#\"hashes if double quoted!'
+    >>> strip_inline_comments('but #only in quotes! for obvious reasons')
+    'but'
+    >>> strip_inline_comments('do it\t   # Trailing whitespace is stripped too!')
+    'do it'
     """
     new_line = ""
     double_quoted = False
@@ -143,7 +155,7 @@ def strip_inline_comments(line):
         if not double_quoted and c == COMMENT:
             break
         new_line += c
-    return new_line
+    return new_line.rstrip(SPACES)
 
 
 def is_signature_hint(line):
