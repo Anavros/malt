@@ -140,10 +140,13 @@ def strip_inline_comments(line):
 
     >>> strip_inline_comments('combine [these things]  # this is a list of strings!')
     'combine [these things]'
+
     >>> strip_inline_comments('lines may contain \"#\"hashes if double quoted!')
     'lines may contain \"#\"hashes if double quoted!'
+
     >>> strip_inline_comments('but #only in quotes! for obvious reasons')
     'but'
+
     >>> strip_inline_comments('do it\t   # Trailing whitespace is stripped too!')
     'do it'
     """

@@ -20,7 +20,7 @@ def auto(mod, value, spec=""):
             top = float(top)
         if items:
             items = list(map(lambda n: float(n), items))
-        return i(value, bot, top, items)
+        return f(value, bot, top, items)
     elif mod == 's':
         return s(value, items)
     elif mod == 'l':
