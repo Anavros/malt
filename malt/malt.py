@@ -12,7 +12,7 @@ A tiny toolkit for structured input and output.
 
 
 # TODO: allow case-insensitive input
-def offer(options):
+def offer(options, leader=''):
     """Offer the user a list of options. Input is verified as returned as a
     Response object."""
     # TODO: extra function just to validate syntax
@@ -25,6 +25,13 @@ def offer(options):
         # Put special variable in response and allow user?
         # Possibly extensible options where user can define built-in funcs?
         raise SystemExit  # silent
+
+    # Hacky rough draft of command leader feature.
+    if leader:
+        if raw_text and raw_text[0] != leader:
+            return Response(raw_text, noncommand=True)
+        elif raw_text and raw_text[0] == leader:
+            raw_text = raw_text[1:]
 
     try:
         head, args, kwargs = parse.parse_response(raw_text)
@@ -129,7 +136,8 @@ class Response:
     response object using '=='. A new response is generated for each input.
     """
     def __init__(self, head=None, body=None,
-        raw_args=None, raw_kwargs=None, valid=False, empty=False, error=None):
+        raw_args=None, raw_kwargs=None,
+        valid=False, empty=False, error=None, noncommand=False):
 
         self.head = head if valid else None
         self.body = body
@@ -139,6 +147,7 @@ class Response:
 
         # new params
         self.valid = valid
+        self.noncommand = noncommand
         self.empty = empty
         self.error = error
         self.raw_head = head
@@ -147,16 +156,8 @@ class Response:
 
     def __eq__(self, x):
         """
-        A `Response` will compare directly to a string, as in:
-            response = malt.offer(options)
-            if response == 'string':
-                # do whatever
-        If the response in invalid, either because of an unknown command or bad
-        arguments, it will equate as `None`, not matching any strings. This way,
-        if the user enters a known command, but mistyped arguments, the response
-        will not match the command, and will not try to exec your code with
-        incorrect arguments. Raw inputs can still be accessed manually, but do
-        not affect equation operations.
+        Directly comparing a response to a string is being deprecated.
+        Compare response.head instead.
         """
         return self.head == x
 

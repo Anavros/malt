@@ -1,26 +1,16 @@
 
-Python Syntax Rework:
--> Clean up error codes.
+Bugs:
+-> Unknown commands in malt.load()'ed files throw KeyErrors.
+-> Special characters are not allowed on input, even in quotes.
+-> Helper functions/global functions and error printing is not clear on use.
+-> Input is case-sensitive.
 
 New Features:
--> Log output to file.
--> Modularize project and make into proper package?
 -> Color printing.
--> More advanced terminal manipulation with blessings.
 -> Tab completion!
 -> Helper functions to make testing easier.
-
-Documentation:
--> Everything.
-
-Interface Split:
-
-import malt
-malt.offer()
-malt.serve()
-malt.load()
-
-import malt.barbet as barbet
-barbet.message()
-barbet.footer()
-barbet.header()
+-> Better unit tests.
+-> Log levels should print by default, and have to be blacklisted manually.
+-> Enter raw strings unless prefixed by leader e.g. '/' then treat as command.
+-> There should be a built-in help function. e.g. cmd? gives help for cmd.
+-> Put config options in their own module.

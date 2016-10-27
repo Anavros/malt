@@ -23,7 +23,7 @@ $
 
 r_NEW_INPUT_LINE = r"""
 ^
-(?P<head>[\w]+)
+(?P<head>[\w/:]+)
 (?P<tail>\s+[\w\s|:=,+-\[\]{}]+)*
 $
 """
