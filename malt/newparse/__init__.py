@@ -1,6 +1,8 @@
 
 from malt.newparse.preprocessor import preprocess
 from malt.newparse.tokenizer import get_tokens
+from malt.newparse.compiler import comp
+from malt.malt import serve
 
 
 def _load_file(path):
@@ -19,6 +21,7 @@ if __name__ == '__main__':
     raw = _load_file("example.malt")
     pre = preprocess(raw)
     token_list = get_tokens(pre)
+    responses = comp(token_list)
 
     print("PREPROCESSOR")
     print(pre)
@@ -29,3 +32,6 @@ if __name__ == '__main__':
             print("===END===")
         else:
             print(t)
+
+    print("COMPILER")
+    serve(responses)

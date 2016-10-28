@@ -142,9 +142,10 @@ class Response:
         self.noncommand = noncommand
         self.empty = empty
         self.error = error
+
         self.raw_head = head
-        self.raw_args = raw_args
-        self.raw_kwargs = raw_kwargs
+        self.raw_args = raw_args if raw_args else []
+        self.raw_kwargs = raw_kwargs if raw_kwargs else {}
 
     def __eq__(self, x):
         """
