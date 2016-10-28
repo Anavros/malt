@@ -3,77 +3,58 @@ from itertools import zip_longest
 import os
 from . import state, config
 
-side_offset = 0.5
-blessed = False
-
-visible_logs = ['LOG']
-
-head = ""
-foot = ""
-side = ""
-messages = []
-body = ""
-
-PROMPT = '> '
-PREFIX = '[malt] '
-HOR_BAR = '█'
-VER_BAR = '▒'
-
 
 def bless(sidebar_offset=0.5):
-    import blessings  # raises uncaught ImportError
-    global term, blessed
+    import blessings  # raises uncaught ImportError if missing
+    global term
     term = blessings.Terminal()
     config.sidebar_offset = sidebar_offset
-    blessed = True
+    state.blessed = True
 
 
 def revert():
-    global blessed
-    blessed = False
+    state.blessed = False
     os.system('clear')
 
 
 def mprint(content, end=True, to='body'):
-    global body, head, side, foot
     content = str(content)
     endchar = '\n' if end else ''
     if state.new_line:
-        content = (' ' * state.tabs * state.tab_width) + content
+        content = (' ' * state.tabs * config.tab_width) + content
 
     if to == 'head':
-        head = head + content + endchar
+        state.head = state.head + content + endchar
     elif to == 'side':
-        side = side + content + endchar
+        state.side = state.side + content + endchar
     elif to == 'foot':
-        foot = foot + content + endchar
+        state.foot = state.foot + content + endchar
     else:
-        body = body + content + endchar
+        state.body = state.body + content + endchar
 
-    if not blessed and to == 'body':
+    if not state.blessed and to == 'body':
         print(content, end=endchar)
 
     state.new_line = end
 
 
 def minput():
-    if blessed:
+    if state.blessed:
         render()
-        return input(PROMPT)
+        return input(config.PROMPT)
     else:
-        return input(PROMPT)
+        return input(config.PROMPT)
 
 
 def clear(to='body'):
-    global body, head, side, foot
     if to == 'head':
-        head = ''
+        state.head = ''
     elif to == 'side':
-        side = ''
+        state.side = ''
     elif to == 'foot':
-        foot = ''
+        state.foot = ''
     else:
-        body = ''
+        state.body = ''
     if not blessed and to == 'body':
         os.system('clear')
 
@@ -92,45 +73,45 @@ def format_multiline_string_into_list(string, line_width):
 def render():
     print(term.clear)
 
-    head_lines = format_multiline_string_into_list(head, term.width-4)
-    foot_lines = format_multiline_string_into_list(foot, term.width-4)
-    side_lines = format_multiline_string_into_list(side, 0)
+    head_lines = format_multiline_string_into_list(state.head, term.width-4)
+    foot_lines = format_multiline_string_into_list(state.foot, term.width-4)
+    side_lines = format_multiline_string_into_list(state.side, 0)
     offsets = {
-        'head': 2+len(head_lines) if head else 0,
-        'foot': 4+len(foot_lines) if foot else 0,
+        'head': 2+len(head_lines) if state.head else 0,
+        'foot': 4+len(foot_lines) if state.foot else 0,
         'side': 0,
     }
 
-    if head:
+    if state.head:
         print(term.move_y(1))
-        print(term.blue(HOR_BAR*term.width))
+        print(term.blue(config.HOR_BAR*term.width))
         for hl in head_lines:
             sides()
             print(term.bold_white_on_black(hl))
-        print(term.blue(HOR_BAR*term.width))
+        print(term.blue(config.HOR_BAR*term.width))
 
-    if foot:
+    if state.foot:
         foot_lines.reverse()
         print(term.move_y(term.height-1))
-        print(term.blue(HOR_BAR*term.width))
+        print(term.blue(config.HOR_BAR*term.width))
         for fl in foot_lines:
             print(term.move_up*3)
             sides()
             print(term.bold_white_on_black(fl))
         print(term.move_up*3)
-        print(term.blue(HOR_BAR*term.width))
+        print(term.blue(config.HOR_BAR*term.width))
         #print(term.move_up*3)
         #print("Here's a popup!")
 
-    if side:
+    if state.side:
         x_off = int(term.width*config.sidebar_offset)
         fill_lines = range(offsets['head'], term.height-offsets['head']-offsets['foot'])
         print(term.move_y(offsets['head']))
         for text, i in zip_longest(side_lines, fill_lines, fillvalue=""):
-            print(term.move_x(x_off), term.blue(VER_BAR),
+            print(term.move_x(x_off), term.blue(config.VER_BAR),
                 term.bold_white(text))
 
-    if body:
+    if state.body:
         lines = body.split('\n')
         lines.reverse()
         print(term.move_y(term.height-offsets['foot']))
@@ -145,5 +126,5 @@ def render():
 
 
 def sides():
-    print(term.blue(term.move_x(term.width-1)+VER_BAR), end='')
-    print(term.blue(term.move_x(0)+VER_BAR), end='')
+    print(term.blue(term.move_x(term.width-1)+config.VER_BAR), end='')
+    print(term.blue(term.move_x(0)+config.VER_BAR), end='')

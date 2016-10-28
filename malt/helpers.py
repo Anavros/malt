@@ -2,16 +2,16 @@
 from os import system
 from malt.malt import serve
 from malt.exceptions import *
-import malt.internal as internal
+from .internal import clear
+from .config import PREFIX
 
-PREFIX = internal.PREFIX
 
 # TODO: function to specify extra global helpers
 def try_extra_functions(response, options, err=True):
     if response.raw_head == 'help':
         serve(options)
     elif response.raw_head == 'clear':
-        internal.clear()
+        clear()
     elif response.raw_head == 'quit':
         system('clear')
         raise SystemExit
