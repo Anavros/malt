@@ -9,10 +9,11 @@ import malt.helpers as helpers
 
 def main():
     options = [
+        'hello'
     ]
     while True:
         response = malt.offer(options)
-        malt.try_globals(response)
+        helpers.try_extra_functions(response, options)
 
 
 if __name__ == '__main__':

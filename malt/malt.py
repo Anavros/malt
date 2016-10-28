@@ -1,21 +1,19 @@
 
-import re
-import malt.parse as parse
 from contextlib import contextmanager
-from malt.exceptions import *
-import malt.internal
-from malt.internal import mprint, minput, increase_indentation, decrease_indentation
+
+from . import parse, state
+from .internal import mprint, minput
+from .exceptions import *
 
 """Malt
 A tiny toolkit for structured input and output.
 """
 
-
-# TODO: allow case-insensitive input
 def offer(options, leader=''):
     """Offer the user a list of options. Input is verified as returned as a
     Response object."""
     # TODO: extra function just to validate syntax
+    # TODO: finish proper parser
     syntax = parse.parse(options)
 
     try:
@@ -77,7 +75,8 @@ def load(filepath, options=None):
     return responses
 
 
-# TODO: add recursion guard to prevent infinite loops
+# TODO: Add recursion guard to prevent infinite loops.
+# TODO: Allow printing to file.
 def serve(content='', end=True, to='body'):
     """
     Prints content to stdout. Wrapper of print that provides special formatting
@@ -113,18 +112,11 @@ def serve(content='', end=True, to='body'):
         mprint(repr(content), end, to=to)
 
 
-def log(content, level='LOG', show_level=True):
-    if level in malt.internal.visible_logs:
-        if show_level:
-            serve("[{}] ".format(level), end=False)
-        serve(content)
-
-
 @contextmanager
 def indent():
-    increase_indentation()
+    state.tabs += 1
     yield
-    decrease_indentation()
+    state.tabs -= 1
 
 
 class Response:

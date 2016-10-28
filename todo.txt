@@ -3,7 +3,6 @@ Bugs:
 -> Unknown commands in malt.load()'ed files throw KeyErrors.
 -> Special characters are not allowed on input, even in quotes.
 -> Helper functions/global functions and error printing is not clear on use.
--> Input is case-sensitive.
 
 New Features:
 -> Color printing.

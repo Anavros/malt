@@ -1,11 +1,8 @@
 
 from itertools import zip_longest
 import os
+from . import state, config
 
-tabs = 0
-tab_width = 4
-max_width = 80
-new_line = True
 side_offset = 0.5
 blessed = False
 
@@ -25,9 +22,9 @@ VER_BAR = '▒'
 
 def bless(sidebar_offset=0.5):
     import blessings  # raises uncaught ImportError
-    global term, blessed, side_offset
+    global term, blessed
     term = blessings.Terminal()
-    side_offset = sidebar_offset
+    config.sidebar_offset = sidebar_offset
     blessed = True
 
 
@@ -37,33 +34,12 @@ def revert():
     os.system('clear')
 
 
-def show(level):
-    global visible_logs
-    if level not in visible_logs:
-        visible_logs.append(level)
-
-
-def silence(level):
-    global visible_logs
-    if level in visible_logs:
-        visible_logs.remove(level)
-
-
-def increase_indentation():
-    global tabs
-    tabs += 1
-
-
-def decrease_indentation():
-    global tabs
-    tabs -= 1
-
-
 def mprint(content, end=True, to='body'):
-    global new_line, body, head, side, foot
+    global body, head, side, foot
     content = str(content)
     endchar = '\n' if end else ''
-    if new_line: content = ' '*tabs*tab_width + content
+    if state.new_line:
+        content = (' ' * state.tabs * state.tab_width) + content
 
     if to == 'head':
         head = head + content + endchar
@@ -77,7 +53,7 @@ def mprint(content, end=True, to='body'):
     if not blessed and to == 'body':
         print(content, end=endchar)
 
-    new_line = end
+    state.new_line = end
 
 
 def minput():
@@ -147,7 +123,7 @@ def render():
         #print("Here's a popup!")
 
     if side:
-        x_off = int(term.width*side_offset)
+        x_off = int(term.width*config.sidebar_offset)
         fill_lines = range(offsets['head'], term.height-offsets['head']-offsets['foot'])
         print(term.move_y(offsets['head']))
         for text, i in zip_longest(side_lines, fill_lines, fillvalue=""):
