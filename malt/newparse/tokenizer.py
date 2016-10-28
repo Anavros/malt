@@ -61,16 +61,26 @@ class ParserState:
             elif self.in_list:
                 self.list_buffer.append(''.join(self.word_buffer))
             elif self.in_dict:  # overwrites if nested? shouldn't nest anyway
+                # TODO: use second argument to split() to prevent this.
                 if self.word_buffer.count(KEY_VALUE_JOIN) != 1:
-                    raise MaltSyntaxError("Missing key:value separator or:too:many.")
+                    raise MaltSyntaxError(
+                        "Wrong number of ':' separators in line: {}".format(
+                            self.word_buffer))
                 i = self.word_buffer.index(KEY_VALUE_JOIN)
                 k = ''.join(self.word_buffer[:i])
                 v = ''.join(self.word_buffer[i+1:])
                 self.dict_buffer[k] = v
             else:
                 self.tokens.append(''.join(self.word_buffer))
-                if separator == '\n': self.tokens.append(None)
+                if separator == '=':
+                    self.tokens.append('=')
+                elif separator == '\n':
+                    self.tokens.append(None)
             self.word_buffer = []
+        else:
+            # hacky
+            if separator == '=':
+                self.tokens.append('=')
 
     def tokenize_list(self):
         if self.list_buffer:

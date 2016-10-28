@@ -20,12 +20,11 @@ if __name__ == '__main__':
 
     raw = _load_file("example.malt")
     pre = preprocess(raw)
-    token_list = get_tokens(pre)
-    responses = comp(token_list)
 
     print("PREPROCESSOR")
     print(pre)
 
+    token_list = get_tokens(pre)
     print("TOKENIZER")
     for t in token_list:
         if t is None:
@@ -33,5 +32,6 @@ if __name__ == '__main__':
         else:
             print(t)
 
+    responses = comp(token_list)
     print("COMPILER")
     serve(responses)

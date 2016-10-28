@@ -60,6 +60,7 @@ def preprocess(old_contents):
         if is_signature_hint(line):
             continue
         line = strip_inline_comments(line)
+        #line = strip_whitespace_around_equals(line)
         if is_empty(line):
             continue
         if is_continued(line):
@@ -87,6 +88,17 @@ def strip_continuation(line):
     'command arg_one arg_two'
     """
     return line.replace('...', '')
+
+
+def strip_whitespace_around_equals(line):
+    """
+    Remove whitespace between equal signs and their surrounding keywords.
+    >>> strip_whitespace_around_equals('cmd one = pie two= balogna three  =pizza')
+    'cmd one=pie two=balogna three=pizza'
+    """
+    chunks = line.split('=')
+    new_line = '='.join([c.strip() for c in chunks])
+    return new_line
 
 
 def is_empty(line):
