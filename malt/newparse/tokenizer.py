@@ -1,14 +1,12 @@
 
 from malt.newparse.constants import *
+from malt import log
 
 def get_tokens(contents):
-    return parse(contents)
-
-def parse(contents):
     state = ParserState()
     for c in contents:
         if c in WORD_SEPARATORS:
-            state.tokenize_word(separator=c)
+            state.end_word(separator=c)
         elif c == QUOTE:
             state.in_quotes = not state.in_quotes
             state.word_buffer.append(c)
@@ -26,14 +24,14 @@ def parse(contents):
             if not state.in_list:
                 raise MaltSyntaxError("Ended list that never began.")
             else:
-                state.tokenize_word()
-                state.tokenize_list()
+                state.end_word()
+                state.end_list()
         elif c == DICT_END:
             if not state.in_dict:
                 raise MaltSyntaxError("Ended dict that never began.")
             else:
-                state.tokenize_word()
-                state.tokenize_dict()
+                state.end_word()
+                state.end_dict()
         else:
             state.word_buffer.append(c)
     return state.tokens
@@ -53,13 +51,16 @@ class ParserState:
         self.in_dict = False
         self.in_quotes = False
 
-    def tokenize_word(self, separator=' '):
+    def end_word(self, separator=' '):
         if self.word_buffer:
+            #log("tokenizing word, separator was '{}'.".format(separator), level="TOKENIZER")
             if self.in_quotes:
                 self.word_buffer.append(separator)
                 return
+
             elif self.in_list:
                 self.list_buffer.append(''.join(self.word_buffer))
+
             elif self.in_dict:  # overwrites if nested? shouldn't nest anyway
                 # TODO: use second argument to split() to prevent this.
                 if self.word_buffer.count(KEY_VALUE_JOIN) != 1:
@@ -70,28 +71,34 @@ class ParserState:
                 k = ''.join(self.word_buffer[:i])
                 v = ''.join(self.word_buffer[i+1:])
                 self.dict_buffer[k] = v
+
             else:
                 self.tokens.append(''.join(self.word_buffer))
-                if separator == '=':
-                    self.tokens.append('=')
-                elif separator == '\n':
-                    self.tokens.append(None)
             self.word_buffer = []
-        else:
-            # hacky
-            if separator == '=':
-                self.tokens.append('=')
+        if separator == '=':
+            log("Inserting assignment operator.", level="TOKENIZER")
+            self.tokens.append('=')
+        self.end_line(separator)
 
-    def tokenize_list(self):
+    def end_line(self, c):
+        if c != '\n':
+            return
+        if self.in_list or self.in_dict or self.in_quotes:
+            return
+        else:
+            log("Inserting newline token.", level="TOKENIZER")
+            self.tokens.append(None)
+
+    def end_list(self):
         if self.list_buffer:
             self.tokens.append(self.list_buffer)
             self.list_buffer = []
         self.in_list = False
-        self.tokens.append(None)
 
-    def tokenize_dict(self):
+    def end_dict(self):
+        log("tokenizing dict", level="TOKENIZER")
+        log(self.dict_buffer, level="TOKENIZER")
         if self.dict_buffer:
             self.tokens.append(self.dict_buffer)
             self.dict_buffer = {}
         self.in_dict = False
-        self.tokens.append(None)

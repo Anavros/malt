@@ -11,4 +11,4 @@ New Features:
 -> Better unit tests.
 -> Log levels should print by default, and have to be blacklisted manually.
 -> There should be a built-in help function. e.g. cmd? gives help for cmd.
--> Put config options in their own module.
+-> Set default logging level per module.

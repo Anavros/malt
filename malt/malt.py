@@ -77,6 +77,7 @@ def load(filepath, options=None):
 
 # TODO: Add recursion guard to prevent infinite loops.
 # TODO: Allow printing to file.
+# TODO: Allow arbitrary numbers of args like print().
 def serve(content='', end=True, to='body'):
     """
     Prints content to stdout. Wrapper of print that provides special formatting
