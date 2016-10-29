@@ -78,28 +78,28 @@ def load(filepath, options=None):
 # TODO: Add recursion guard to prevent infinite loops.
 # TODO: Allow printing to file.
 # TODO: Allow arbitrary numbers of args like print().
-def serve(content='', end=True, to='body'):
+def serve(content='', end=True):
     """
     Prints content to stdout. Wrapper of print that provides special formatting
     for complex types.
     """
     if type(content) in [str, int, float]:
-        mprint(content, to=to, end=end)
+        mprint(content, end=end)
     elif type(content) in [list, set, frozenset, tuple]:
         #indent += 4
-        mprint('[', to=to)
+        mprint('[')
         with indent():
             for i, item in enumerate(content):
-                mprint("[{}] ".format(i), end=False, to=to)
+                mprint("[{}] ".format(i), end=False)
                 serve(item)
-        mprint(']', to=to)
+        mprint(']')
     elif type(content) is dict:
-        mprint('{', to=to)
+        mprint('{')
         with indent():
             for (key, value) in content.items():
-                mprint("{}: ".format(key), end=False, to=to)
+                mprint("{}: ".format(key), end=False)
                 serve(value)
-        mprint('}', to=to)
+        mprint('}')
     # Helps with OrderedDict.
     elif hasattr(content, 'items'):
         serve(list(content.items()))
@@ -110,7 +110,7 @@ def serve(content='', end=True, to='body'):
         serve(list(content._get_args()))
     # When in doubt, use repr.
     else:
-        mprint(repr(content), end, to=to)
+        mprint(repr(content), end)
 
 
 @contextmanager

@@ -3,6 +3,7 @@ Bugs:
 -> Unknown commands in malt.load()'ed files throw KeyErrors.
 -> Special characters are not allowed on input, even in quotes.
 -> Helper functions/global functions and error printing is not clear on use.
+-> response == str is deprecated, use response.head == str.
 
 New Features:
 -> Color printing.
@@ -12,3 +13,15 @@ New Features:
 -> Log levels should print by default, and have to be blacklisted manually.
 -> There should be a built-in help function. e.g. cmd? gives help for cmd.
 -> Set default logging level per module.
+    * If different modules all import malt.log and set their own levels,
+    * whichever one is eval'd last will overwrite all other settings.
+-> New, simpler fancy interface.
+    * Set a persistent header.
+    * Always keep the cursor at the bottom.
+    * Probably needs to refresh the screen every turn.
+
+Scope (Anti-Features):
+-> Malt definitely doesn't need real-time interaction or threading.
+    * The screen only updates once per command, and it blocks in input().
+-> The blessed interface should be split into a separate project.
+    * It complicates things that should really be kept simple.

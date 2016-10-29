@@ -14,3 +14,6 @@ foot = ""
 side = ""
 messages = []
 body = ""
+
+show_new_header = False
+new_header = ""

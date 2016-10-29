@@ -1,7 +1,7 @@
 
 from .malt import offer, load, serve, indent
-from .internal import bless, revert, clear
 from .logging import log, show, silence
+from .internal import clear
 
 try:
     import readline
