@@ -1,8 +1,6 @@
 
-from contextlib import contextmanager
-
 from . import parse, state
-from .internal import mprint, minput
+from .internal import mprint, minput, indent
 from .exceptions import *
 
 """Malt
@@ -112,13 +110,6 @@ def serve(content='', end=True):
     # When in doubt, use repr.
     else:
         mprint(repr(content), end)
-
-
-@contextmanager
-def indent():
-    state.tabs += 1
-    yield
-    state.tabs -= 1
 
 
 class Response:
