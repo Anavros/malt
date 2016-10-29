@@ -1,6 +1,6 @@
 
 from . import parse, state
-from .internal import mprint, minput, indent
+from .internal import minput
 from .exceptions import *
 
 """Malt
@@ -71,45 +71,6 @@ def load(filepath, options=None):
             body = parse.validate((raw_args, raw_kwargs), syntax[head])
             responses.append(Response(head, body, raw_args, raw_kwargs, valid=True))
     return responses
-
-
-# TODO: Add recursion guard to prevent infinite loops.
-# TODO: Allow printing to file.
-# TODO: Allow arbitrary numbers of args like print().
-# TODO: Split into smaller, testable functions.
-def serve(content='', end=True):
-    """
-    Prints content to stdout. Wrapper of print that provides special formatting
-    for complex types.
-    """
-    if type(content) in [str, int, float]:
-        mprint(content, end=end)
-    elif type(content) in [list, set, frozenset, tuple]:
-        #indent += 4
-        mprint('[')
-        with indent():
-            for i, item in enumerate(content):
-                mprint("[{}] ".format(i), end=False)
-                serve(item)
-        mprint(']')
-    elif type(content) is dict:
-        mprint('{')
-        with indent():
-            for (key, value) in content.items():
-                mprint("{}: ".format(key), end=False)
-                serve(value)
-        mprint('}')
-    # Helps with OrderedDict.
-    elif hasattr(content, 'items'):
-        serve(list(content.items()))
-    # Stops objects like str from spewing everywhere.
-    elif hasattr(content, '__dict__') and type(content.__dict__) is dict:
-        serve(content.__dict__, end)
-    elif hasattr(content, '_get_args()'):
-        serve(list(content._get_args()))
-    # When in doubt, use repr.
-    else:
-        mprint(repr(content), end)
 
 
 class Response:

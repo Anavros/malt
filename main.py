@@ -4,7 +4,6 @@ Testing ground for new malt features.
 """
 
 import malt
-from malt import helpers, state, config
 
 """
 Important Functions:
@@ -17,30 +16,22 @@ malt.set_header()
 
 
 def main():
-    malt.set_header("I'm a header!")
-    malt.clear()
+    autocommands = {
+        'auto': (lambda: malt.serve('hi there')),
+    }
+    malt.autocommand(autocommands)
     options = [
         'hello',
-        'nest',
     ]
+    malt.clear()
+    i = 0
     while True:
+        i += 1
+        malt.set_header("+++ {} +++".format(i))
         response = malt.offer(options)
         if response.head == 'hello':
             malt.serve("hi there")
-        elif response.head == 'nest':
-            with malt.indent():
-                nested_loop()
-        else:
-            helpers.try_extra_functions(response, options)
-
-
-def nested_loop():
-    options = ['out']
-    while True:
-        response = malt.offer(options)
-        if response.head == 'out':
-            break
-        else: helpers.try_extra_functions(response, options)
+        else: malt.handle(response)
 
 
 if __name__ == '__main__':
