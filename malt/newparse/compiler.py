@@ -4,7 +4,8 @@ Compiler stage: probably not the best name.
 Takes a stream of tokens and builds a data structure.
 """
 
-from malt.malt import Response, serve
+from malt.malt import Response
+from malt.output import serve
 
 def comp(tokens):
     state = CompilerState()

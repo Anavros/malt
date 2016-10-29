@@ -1,5 +1,5 @@
 
-from malt.exceptions import WrongType, NotAnOption, UnexpectedProgrammingError
+from .exceptions import WrongType, NotAnOption, UnexpectedProgrammingError
 
 
 def auto(mod, value, spec=""):

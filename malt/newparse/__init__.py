@@ -2,7 +2,7 @@
 from malt.newparse.preprocessor import preprocess
 from malt.newparse.tokenizer import get_tokens
 from malt.newparse.compiler import comp
-from malt.malt import serve
+from malt.output import serve
 
 
 def _load_file(path):

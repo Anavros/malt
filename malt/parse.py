@@ -1,7 +1,7 @@
 
 import re
-import malt.cast as cast
-from malt.exceptions import *
+from . import cast
+from .exceptions import *
 
 r_NEW_SYNTAX_LINE = r"""
 ^
