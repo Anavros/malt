@@ -27,19 +27,20 @@ def mprint(content, end=True):
     endchar = '\n' if end else ''
     if state.new_line:
         content = (' ' * state.tabs * config.tab_width) + content
-    print(content, end=endchar)
+    state.backlog += (content + endchar)
+    if config.LEGACY_MODE:
+        print(content, end=endchar)
+    else:
+        print('\n'*config.N_LINES)
+        print(state.backlog)
     state.new_line = end
 
 
-# IDEA: Autoclear after `n` commands.
-# Store output in a list and when you autoclear, redraw that output.
 def minput():
     """
     Receive input from STDIN. Blocks thread.
     """
-    print('\n'*config.SPACING_LINES, end='')
-    if state.show_new_header and state.new_header:
-        print(state.new_header)
+    if state.header: print(state.header)
     return input(config.PROMPT)
 
 
@@ -51,8 +52,9 @@ def clear():
     system clear, placing the user's cursor at the bottom of the term rather
     than the top.
     """
-    if config.ALIGN_TO_BOTTOM:
-        print('\n'*config.CLEAR_NEWLINES)
-    else:
+    state.backlog = ""
+    if config.LEGACY_MODE:
         # TODO: windows
         os.system('clear')
+    else:
+        print('\n'*config.N_LINES)

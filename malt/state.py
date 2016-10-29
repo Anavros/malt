@@ -1,19 +1,17 @@
 
 """
-Internal state, not to be seen.
+Internal state, not to be seen by users.
 """
 
+# Used for indentation.
 tabs = 0
 new_line = True
-blessed = False
 
+# If present, a header will be drawn over every prompt.
+header = ""
+
+# Any log level in this blacklist will be silenced.
 log_level_blacklist = set()
 
-head = ""
-foot = ""
-side = ""
-messages = []
-body = ""
-
-show_new_header = False
-new_header = ""
+# History items.
+backlog = ""

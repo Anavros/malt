@@ -25,3 +25,8 @@ Scope (Anti-Features):
     * The screen only updates once per command, and it blocks in input().
 -> The blessed interface should be split into a separate project.
     * It complicates things that should really be kept simple.
+
+Recent Changes:
+-> Removed blessings.
+-> Added autoclear and headers.
+-> **Implemented new parser.
