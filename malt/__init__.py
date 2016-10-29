@@ -10,7 +10,7 @@ except ImportError:
     pass
 
 def set_header(text):
-    state.header = text
+    state.header = '\n'.join([line.strip() for line in text.split('\n')])
 
 
 def autocommand(commands):

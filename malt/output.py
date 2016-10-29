@@ -11,7 +11,7 @@ from .internal import mprint, indent
 # TODO: Allow printing to file.
 # TODO: Allow arbitrary numbers of args like print().
 # TODO: Split into smaller, testable functions.
-def serve(content='', end=True):
+def serve(content='', end=True, compact=False):
     """
     Prints content to stdout. Wrapper of print that provides special formatting
     for complex types.
@@ -19,12 +19,12 @@ def serve(content='', end=True):
     if type(content) in [str, int, float]:
         mprint(content, end=end)
     elif type(content) in [list, set, frozenset, tuple]:
-        mprint('[')
+        if not compact: mprint('[')
         with indent():
             for i, item in enumerate(content):
                 mprint("[{}] ".format(i), end=False)
-                serve(item)
-        mprint(']')
+                serve(item, compact=compact)
+        if not compact: mprint(']')
     elif type(content) is dict:
         mprint('{')
         with indent():

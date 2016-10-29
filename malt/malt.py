@@ -25,7 +25,7 @@ def offer(options, leader=''):
     # Hacky rough draft of command leader feature.
     if leader:
         if raw_text and raw_text[0] != leader:
-            return Response(raw_text, noncommand=True)
+            return Response(raw_text, noncommand=True, options=options)
         elif raw_text and raw_text[0] == leader:
             raw_text = raw_text[1:]
 
@@ -33,20 +33,22 @@ def offer(options, leader=''):
         head, args, kwargs = parse.parse_response(raw_text)
     except (EmptyCommand, InputForbiddenCharacters) as e:
         empty = type(e) is EmptyCommand
-        return Response(valid=False, error=e, empty=empty)
+        return Response(valid=False, error=e, empty=empty, options=options)
 
     try:
         syn = syntax[head]
     except KeyError:
         return Response(head=head, raw_args=args, raw_kwargs=kwargs,
-            valid=False, error=UnknownCommand())
+            valid=False, error=UnknownCommand(), options=options)
 
     try:
         body = parse.validate((args, kwargs), syn)
-    except (WrongType, NotAnOption, TooManyArgs, NotEnoughArgs, UnknownKeyword) as e:
+    except (WrongType, NotAnOption, 
+        TooManyArgs, NotEnoughArgs, UnknownKeyword) as e:
         return Response(head, raw_args=args, raw_kwargs=kwargs,
-            valid=False, error=e)
-    return Response(head, body, raw_args=args, raw_kwargs=kwargs, valid=True)
+            valid=False, error=e, options=options)
+    return Response(head, body, raw_args=args, raw_kwargs=kwargs,
+        valid=True, options=options)
 
 
 # TODO: allow loading list of strings
@@ -69,7 +71,8 @@ def load(filepath, options=None):
 
             head, raw_args, raw_kwargs = parse.parse_response(line)
             body = parse.validate((raw_args, raw_kwargs), syntax[head])
-            responses.append(Response(head, body, raw_args, raw_kwargs, valid=True))
+            responses.append(Response(head, body, raw_args, raw_kwargs,
+                valid=True, options=options))
     return responses
 
 
@@ -81,9 +84,17 @@ class Response:
     the user's response, the command, or head, can be compared directly to the
     response object using '=='. A new response is generated for each input.
     """
-    def __init__(self, head=None, body=None,
-        raw_args=None, raw_kwargs=None,
-        valid=False, empty=False, error=None, noncommand=False):
+    def __init__(self,
+        head=None,
+        body=None,
+        raw_args=None,
+        raw_kwargs=None,
+        valid=False,
+        empty=False,
+        error=None,
+        noncommand=False,
+        options=None
+    ):
 
         self.head = head if valid else None
         self.body = body
@@ -96,6 +107,7 @@ class Response:
         self.noncommand = noncommand
         self.empty = empty
         self.error = error
+        self.options = options
 
         self.raw_head = head
         self.raw_args = raw_args if raw_args else []

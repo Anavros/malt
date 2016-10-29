@@ -27,7 +27,7 @@ def mprint(something, end=True):
     # Clear the screen for redrawing.
     # Can't use clear() because it will wipe the backlog.
     flush()
-    something = str(something) + '\n' if end else ''
+    something = str(something) + ('\n' if end else '')
     if state.new_line:
         something = dent() + something
     state.backlog += (something)

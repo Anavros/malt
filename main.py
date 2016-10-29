@@ -22,16 +22,21 @@ def main():
     malt.autocommand(autocommands)
     options = [
         'hello',
+        'list style=expanded',
     ]
     malt.clear()
     i = 0
     while True:
         i += 1
         malt.set_header("+++ {} +++".format(i))
+
         response = malt.offer(options)
         if response.head == 'hello':
             malt.serve("hi there")
-        else: malt.handle(response)
+        elif response.head == 'list':
+            malt.serve([1, 2, [4, 5, 5]], compact=(response.style=='compact'))
+        else:
+            malt.handle(response)
 
 
 if __name__ == '__main__':
