@@ -10,15 +10,8 @@ New Features:
 -> Tab completion!
 -> Helper functions to make testing easier.
 -> Better unit tests.
--> Log levels should print by default, and have to be blacklisted manually.
 -> There should be a built-in help function. e.g. cmd? gives help for cmd.
--> Set default logging level per module.
-    * If different modules all import malt.log and set their own levels,
-    * whichever one is eval'd last will overwrite all other settings.
--> New, simpler fancy interface.
-    * Set a persistent header.
-    * Always keep the cursor at the bottom.
-    * Probably needs to refresh the screen every turn.
+-> More fully-featured header.
 
 Scope (Anti-Features):
 -> Malt definitely doesn't need real-time interaction or threading.
@@ -29,4 +22,5 @@ Scope (Anti-Features):
 Recent Changes:
 -> Removed blessings.
 -> Added autoclear and headers.
+-> Added log redirection.
 -> **Implemented new parser.
