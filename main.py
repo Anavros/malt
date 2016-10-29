@@ -4,6 +4,7 @@ Testing ground for new malt features.
 """
 
 import malt
+from contextlib import contextmanager
 
 """
 Important Functions:
@@ -15,6 +16,14 @@ malt.set_header()
 """
 
 
+@contextmanager
+def config():
+    logfile = open('logfile.txt', 'w')
+    malt.redirect('LOG', logfile)
+    yield
+    logfile.close()
+
+
 def main():
     autocommands = {
         'auto': (lambda: malt.serve('hi there')),
@@ -24,6 +33,7 @@ def main():
         'hello',
         'list',
         'dict',
+        'test',
     ]
     malt.clear()
     i = 0
@@ -33,14 +43,19 @@ def main():
 
         response = malt.offer(options)
         if response.head == 'hello':
-            malt.serve("hi there")
+            malt.log("hi there")
         elif response.head == 'list':
-            malt.serve(["one","two"])
+            malt.log(["one","two"], [3, 4])
         elif response.head == 'dict':
-            malt.serve({1:"one",2:"two"})
+            malt.log({1:"one",2:"two"})
+        elif response.head == 'test':
+            malt.log("line one: ", end='')
+            malt.log("still line one: ", end='\n')
+            malt.log("line two")
         else:
             malt.handle(response)
 
 
 if __name__ == '__main__':
-    main()
+    with config():
+        main()

@@ -11,7 +11,7 @@ new_line = True
 header = ""
 
 # Any log level in this blacklist will be silenced.
-log_level_blacklist = set()
+hidden_levels = set()
 
 # History items.
 backlog = ""

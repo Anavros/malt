@@ -1,6 +1,6 @@
 
 from .malt import offer, load
-from .output import serve, log, show, silence
+from .output import serve, log, show, hide, redirect, showing
 from .internal import clear, indent
 from .autocommands import handle
 
