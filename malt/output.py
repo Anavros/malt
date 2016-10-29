@@ -1,17 +1,21 @@
 
 from . import state
-from .config import LIST_BEGIN, LIST_END, DICT_BEGIN, DICT_END, TUPLE_BEGIN, TUPLE_END
 from .internal import mprint, indent
+from .formatting import form
 
 #levels = {
 #    'LOG': sys.stdout
 #}
 
+
+def serve(x='', end=True, compact=True):
+    print(form(x, compact=compact), end='')
+
 # TODO: Add recursion guard to prevent infinite loops.
 # TODO: Allow printing to file.
 # TODO: Allow arbitrary numbers of args like print().
 # TODO: Split into smaller, testable functions.
-def serve(content='', end=True, compact=False):
+def oldserve(content='', end=True, compact=False):
     """
     Prints content to stdout. Wrapper of print that provides special formatting
     for complex types.

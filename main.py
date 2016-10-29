@@ -22,7 +22,8 @@ def main():
     malt.autocommand(autocommands)
     options = [
         'hello',
-        'list style=expanded',
+        'list',
+        'dict',
     ]
     malt.clear()
     i = 0
@@ -34,7 +35,9 @@ def main():
         if response.head == 'hello':
             malt.serve("hi there")
         elif response.head == 'list':
-            malt.serve([1, 2, [4, 5, 5]], compact=(response.style=='compact'))
+            malt.serve(["one","two"])
+        elif response.head == 'dict':
+            malt.serve({1:"one",2:"two"})
         else:
             malt.handle(response)
 
