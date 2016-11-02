@@ -6,6 +6,7 @@ Internal state, not to be seen by users.
 # Used for indentation.
 tabs = 0
 new_line = True
+continuation = False
 
 # If present, a header will be drawn over every prompt.
 header = ""

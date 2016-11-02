@@ -4,6 +4,7 @@ Testing ground for new malt features.
 """
 
 import malt
+import malt.config
 from contextlib import contextmanager
 
 """
@@ -18,10 +19,10 @@ malt.set_header()
 
 @contextmanager
 def config():
-    logfile = open('logfile.txt', 'w')
-    malt.redirect('LOG', logfile)
+    #logfile = open('logfile.txt', 'w')
+    #malt.redirect('LOG', logfile)
     yield
-    logfile.close()
+    #logfile.close()
 
 
 def main():
@@ -34,7 +35,8 @@ def main():
         'list',
         'dict',
         'test',
-        'ip'
+        'ip',
+        'response',
     ]
     malt.clear()
     i = 0
@@ -55,6 +57,8 @@ def main():
             malt.log("line two")
         elif response.head == 'ip':
             malt.serve(malt.load('ip.malt'))
+        elif response.head == 'response':
+            malt.out(response)
         else:
             malt.handle(response)
 

@@ -4,6 +4,11 @@ Bugs:
 -> Special characters are not allowed on input, even in quotes.
 -> Helper functions/global functions and error printing is not clear on use.
 -> response == str is deprecated, use response.head == str.
+-> Printing more than one item doesn't work right.
+
+-> Ambiguity between usage for serve, log, and print.
+-> Overcomplication of new printing method.
+-> Serve too verbose for many uses.
 
 New Features:
 -> Color printing.
@@ -14,12 +19,7 @@ New Features:
 -> More fully-featured header.
 -> Allow a log message to have more than one level?
     * i.e. use LOG to print and also MIRROR to log to file in one call.
-
-Scope (Anti-Features):
--> Malt definitely doesn't need real-time interaction or threading.
-    * The screen only updates once per command, and it blocks in input().
--> The blessed interface should be split into a separate project.
-    * It complicates things that should really be kept simple.
+-> Right-justified text formatting.
 
 Recent Changes:
 -> Removed blessings.

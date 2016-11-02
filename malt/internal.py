@@ -9,6 +9,13 @@ from contextlib import contextmanager
 from . import state, config
 
 
+def iprint(item, continued=False):
+    if not state.continuation:
+        item = dent() + item
+    print(item, end=('' if continued else '\n'))
+    state.continuation = continued
+
+
 def mprint(item, file=None):
     """
     """
@@ -25,7 +32,7 @@ def mprint(item, file=None):
         print(state.backlog)
     else:
         # By default, just print.
-        print(item, end='')
+        print(item, end='\n')
 
 
 def minput():

@@ -32,21 +32,29 @@ def form(item, end='\n', indent=0, compact=False, depth=0):
         string += (' '*indent + str(item) + end)
 
     elif style == 'list':
-        if not compact: string += ('[\n')
-        indent += 4
-        for i, subitem in enumerate(item):
-            string += (' '*indent + "[{}] ".format(i))
-            string += (form(subitem, '', 0, compact, depth+1) + end)
-        indent -= 4
-        if not compact: string += (']\n')
+        if len(item) < 1:
+            string += '[]' + end
+        else:
+            if not compact: string += ('[\n')
+            indent += 4
+            for i, subitem in enumerate(item):
+                string += (' '*indent + "[{}] ".format(i))
+                string += (form(subitem, '', 0, compact, depth+1) + end)
+            indent -= 4
+            if not compact: string += (']\n')
 
     elif style == 'dict':
         if not compact: string += ('{\n')
         indent += 4
         for key, subitem in item.items():
             string += (' '*indent + "{}: ".format(key))
-            string += (form(subitem, '', 0, compact, depth+1) + end)
+            string += (form(subitem, '\n', 0, compact, depth+1) + end)
         indent -= 4
         if not compact: string += ('}\n')
 
     return string
+
+
+def flatten_sequence(items):
+    for item in items:
+        pass

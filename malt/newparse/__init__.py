@@ -17,7 +17,6 @@ def parse(path):
 
 
 if __name__ == '__main__':
-
     raw = _load_file("example.malt")
     pre = preprocess(raw)
 
