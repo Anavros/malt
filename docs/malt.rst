@@ -1,109 +1,82 @@
-malt package
-============
 
-Subpackages
------------
+Modules
+=======
 
-.. toctree::
-
-    malt.newparse
-
-Submodules
-----------
-
-malt.autocommands module
-------------------------
+malt.autocommands
+-----------------
 
 .. automodule:: malt.autocommands
     :members:
     :undoc-members:
     :show-inheritance:
 
-malt.cast module
-----------------
+malt.cast
+---------
 
 .. automodule:: malt.cast
     :members:
     :undoc-members:
     :show-inheritance:
 
-malt.config module
-------------------
+malt.config
+-----------
 
 .. automodule:: malt.config
     :members:
     :undoc-members:
     :show-inheritance:
 
-malt.exceptions module
-----------------------
+malt.exceptions
+---------------
 
 .. automodule:: malt.exceptions
     :members:
     :undoc-members:
     :show-inheritance:
 
-malt.formatting module
-----------------------
+malt.formatting
+---------------
 
 .. automodule:: malt.formatting
     :members:
     :undoc-members:
     :show-inheritance:
 
-malt.helpers module
--------------------
+malt.helpers
+------------
 
 .. automodule:: malt.helpers
     :members:
     :undoc-members:
     :show-inheritance:
 
-malt.internal module
---------------------
+malt.internal
+-------------
 
 .. automodule:: malt.internal
     :members:
     :undoc-members:
     :show-inheritance:
 
-malt.malt module
-----------------
+malt.malt
+---------
 
 .. automodule:: malt.malt
     :members:
     :undoc-members:
     :show-inheritance:
 
-malt.output module
-------------------
-
+malt.output
+-----------
 .. automodule:: malt.output
     :members:
     :undoc-members:
     :show-inheritance:
 
-malt.parse module
------------------
+malt.parse
+----------
 
 .. automodule:: malt.parse
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-malt.state module
------------------
-
-.. automodule:: malt.state
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-
-Module contents
----------------
-
-.. automodule:: malt
     :members:
     :undoc-members:
     :show-inheritance:

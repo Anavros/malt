@@ -12,6 +12,8 @@ New Features:
 -> Better unit tests.
 -> There should be a built-in help function. e.g. cmd? gives help for cmd.
 -> More fully-featured header.
+-> Allow a log message to have more than one level?
+    * i.e. use LOG to print and also MIRROR to log to file in one call.
 
 Scope (Anti-Features):
 -> Malt definitely doesn't need real-time interaction or threading.

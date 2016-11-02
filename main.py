@@ -34,6 +34,7 @@ def main():
         'list',
         'dict',
         'test',
+        'ip'
     ]
     malt.clear()
     i = 0
@@ -52,6 +53,8 @@ def main():
             malt.log("line one: ", end='')
             malt.log("still line one: ", end='\n')
             malt.log("line two")
+        elif response.head == 'ip':
+            malt.serve(malt.load('ip.malt'))
         else:
             malt.handle(response)
 

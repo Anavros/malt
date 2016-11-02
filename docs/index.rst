@@ -11,12 +11,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   auto
+   api
    type
    formatting
    malt
-   malt.newparse
-   modules
 
 Indices
 =======

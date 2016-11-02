@@ -12,14 +12,20 @@ from . import state, config
 def mprint(item, file=None):
     """
     """
-    # Clear the screen for redrawing.
-    # Can't use clear() because it will wipe the backlog.
-    flush()
     if file:
+        # All file printing uses basic method.
         print(item, end='', file=file, flush=True)
-    else:
+    elif config.AUTOCLEAR:
+        # Clear the screen for redrawing.
+        # Can't use clear() because it will wipe the backlog.
+        flush()
+        # Autoclear is for interactive sessions.
+        # It's easier to read and interact with, but not good for logs, etc.
         state.backlog += item
         print(state.backlog)
+    else:
+        # By default, just print.
+        print(item, end='')
 
 
 def minput():
