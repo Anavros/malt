@@ -1,18 +1,22 @@
 
-from .internal import clear
-from .output import serve
+from .internal import clear, indent, iprint
 from .helpers import print_error  # temporary
 
 
 def show_options(r):
-    serve("Options:")
-    serve(r.options, compact=True)
-    serve()
-    serve("Auto-Options (Available Everywhere):")
-    serve(list(included.keys()), compact=True)
+    iprint("Options:")
+    with indent():
+        for o in r.options:
+            iprint(o)
+    iprint('')
+    iprint("Auto-Options (Available Everywhere):")
+    with indent():
+        for k in included.keys():
+            iprint(k)
     if supplied:
-        serve()
-        serve(list(supplied.keys()), compact=True)
+        with indent():
+            for k in supplied.keys():
+                iprint(k)
 
 def clear_screen(r): clear()
 def quit(r): raise SystemExit

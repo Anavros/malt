@@ -7,41 +7,48 @@ from sys import stdout
 from contextlib import contextmanager
 from shutil import get_terminal_size
 
-from . import state
+from . import state, config
 from .internal import mprint, indent, iprint
 from .formatting import form, choose_style
 
 redirections = { }
 
 
-def out(*items, continued=False, compact=True):
+def out(*items, continued=False, compact=True, depth=0):
+    """
+    """
     for item in items:
-        item, style = choose_style(item)
+        if depth > config.RECURSION_LIMIT:
+            item, style = item, 'str'
+        else:
+            item, style = choose_style(item)
+
         if style == 'str':
             iprint(str(item), continued=continued)
         elif style == 'list':
             if len(item) < 1: iprint('[]')
-            else: _print_list(item, compact)
+            else: _print_list(item, compact, depth)
         elif style == 'dict':
             if len(item) < 1: iprint('{}')
-            else: _print_dict(item, compact)
+            else: _print_dict(item, compact, depth)
 
 
-def _print_list(item, compact):
+def _print_list(item, compact, depth):
     if not compact: iprint('[')
     with indent():
+        if compact and depth > 0: iprint('')
         for i, item in enumerate(item):
             iprint("[{}] ".format(i), continued=True)
-            out(item, compact=compact)
+            out(item, compact=compact, depth=depth+1)
     if not compact: iprint(']')
 
 
-def _print_dict(item, compact):
+def _print_dict(item, compact, depth):
     if not compact: iprint('{')
     with indent():
         for (key, value) in sorted(item.items()):
             iprint("{}: ".format(key), continued=True)
-            out(value, compact=compact)
+            out(value, compact=compact, depth=depth+1)
     if not compact: iprint('}')
 
 

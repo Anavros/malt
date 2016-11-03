@@ -46,19 +46,19 @@ def main():
 
         response = malt.offer(options)
         if response.head == 'hello':
-            malt.log("hi there")
+            print("hi there")
         elif response.head == 'list':
-            malt.log(["one","two"], [3, 4])
+            print(["one","two"], [3, 4])
         elif response.head == 'dict':
-            malt.log({1:"one",2:"two"})
+            print({1:"one",2:"two"})
         elif response.head == 'test':
-            malt.log("line one: ", end='')
-            malt.log("still line one: ", end='\n')
-            malt.log("line two")
+            print("line one: ", end='')
+            print("still line one: ", end='\n')
+            print("line two")
         elif response.head == 'ip':
-            malt.serve(malt.load('ip.malt'))
+            print(malt.load('ip.malt'))
         elif response.head == 'response':
-            malt.out(response)
+            print(response)
         else:
             malt.handle(response)
 

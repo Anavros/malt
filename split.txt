@@ -1,0 +1,17 @@
+
+Malt:
+- user input with validation
+- config loading with same syntax
+
+???:
+- fancy printing and logging
+
+BlessingsLib?:
+- console frontend
+
+Naming Scheme:
+malt (turn-based terminal input)
+???? (blessings-based graphic-term frontend)
+???? (real-time terminal input)
+???? (logging and formatted data output)
+???? (simple frontend)

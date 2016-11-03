@@ -31,5 +31,7 @@ An arbitrary number of lines meant to be larger than the number of rows in
 the terminal. Used for clearing the screen with newline spam.
 """
 
+RECURSION_LIMIT = 5
+
 # ADD: Formatting options, like which brackets to use, etc.
 # Could be merged with the new parser constants too.
