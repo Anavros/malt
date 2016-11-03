@@ -2,35 +2,62 @@
 from malt.newparse.preprocessor import preprocess
 from malt.newparse.tokenizer import get_tokens
 from malt.newparse.compiler import comp
-from malt.output import serve
+from malt.newparse.validator import validate, generate_signatures
+
+# TEMP::
+from malt import out
 
 
 def _load_file(path):
-    f = open(path, 'r')
-    string = f.read()
-    f.close()
+    with open(path, 'r') as f:
+        string = f.read()
     return string
 
 
-def parse(path):
-    pass
+def test(raw_file, options, show_steps):
+    sigs = generate_signatures(options)
+    if 'signatures' in show_steps:
+        print("SIGNATURES")
+        for k, v in sigs.items():
+            print(k, v)
+    preprocessed = preprocess(raw_file)
+    if "preprocessor" in show_steps:
+        print("PREPROCESSOR")
+        print(preprocess(raw_file))
+    token_list = get_tokens(preprocessed)
+    if "tokenizer" in show_steps:
+        print("TOKENIZER")
+        for t in token_list:
+            if t is None:
+                print("===END===")
+            else:
+                print(t)
+    responses = comp(token_list)
+    if "compiler" in show_steps:
+        print("COMPILER")
+        for r in responses:
+            out(r)
+    validated = validate(responses, options)
+    if "validator" in show_steps:
+        print("VALIDATOR")
+        for v in validated:
+            out(v)
 
 
 if __name__ == '__main__':
     raw = _load_file("example.malt")
-    pre = preprocess(raw)
-
-    print("PREPROCESSOR")
-    print(pre)
-
-    token_list = get_tokens(pre)
-    print("TOKENIZER")
-    for t in token_list:
-        if t is None:
-            print("===END===")
-        else:
-            print(t)
-
-    responses = comp(token_list)
-    print("COMPILER")
-    serve(responses)
+    options = [
+        'keyword',
+        'keyword argument',
+        'keyword argument=default',
+        'keyword i:int f:float s:string b:bool',
+        'keyword [s]:list_of_strings {s-i}:map_of_strings_to_ints',
+    ]
+    steps = [
+        #'preprocessor',
+        #'tokenizer',
+        #'compiler',
+        #'validator',
+        'signatures',
+    ]
+    test(raw, options, steps)

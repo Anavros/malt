@@ -1,6 +1,5 @@
 
 from malt.newparse.constants import *
-from malt import log
 
 def get_tokens(contents):
     state = ParserState()
@@ -53,7 +52,6 @@ class ParserState:
 
     def end_word(self, separator=' '):
         if self.word_buffer:
-            #log("tokenizing word, separator was '{}'.".format(separator), level="TOKENIZER")
             if self.in_quotes:
                 self.word_buffer.append(separator)
                 return
@@ -76,7 +74,7 @@ class ParserState:
                 self.tokens.append(''.join(self.word_buffer))
             self.word_buffer = []
         if separator == '=':
-            log("Inserting assignment operator.", level="TOKENIZER")
+            #print("Inserting assignment operator.")
             self.tokens.append('=')
         self.end_line(separator)
 
@@ -86,7 +84,7 @@ class ParserState:
         if self.in_list or self.in_dict or self.in_quotes:
             return
         else:
-            log("Inserting newline token.", level="TOKENIZER")
+            #print("Inserting newline token.")
             self.tokens.append(None)
 
     def end_list(self):
@@ -96,8 +94,8 @@ class ParserState:
         self.in_list = False
 
     def end_dict(self):
-        log("tokenizing dict", level="TOKENIZER")
-        log(self.dict_buffer, level="TOKENIZER")
+        #print("tokenizing dict")
+        #print(self.dict_buffer)
         if self.dict_buffer:
             self.tokens.append(self.dict_buffer)
             self.dict_buffer = {}

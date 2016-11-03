@@ -1,4 +1,4 @@
 #!/bin/bash
 cd ../..
-python3.4 malt/newparse/__init__.py | less; clear
+python3.4 malt/newparse/__init__.py
 cd malt/newparse

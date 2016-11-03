@@ -33,7 +33,6 @@ keyword default=arguments a_couple=of_them
 ###
 Multiline comments.
 Must be exactly (x) with no spaces.
-ERROR: strips everything after comment, even when in quotes.
 ###
 
 # Malt syntax update planning.
