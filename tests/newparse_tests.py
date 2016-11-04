@@ -3,12 +3,12 @@ def test_success():
     assert True
 
 
-def test_preprocessor():
+def hide_test_preprocessor():
     from malt.preprocessor import preprocess
     pass
 
 
-def test_tokenizer():
+def hide_test_tokenizer():
     from malt.tokenizer import tokenize
     tokens = tokenize("keyword scalar [a list] { a:1 dict:2 } def=arg")
     assert tokens == [
@@ -22,7 +22,7 @@ def test_tokenizer():
     ]
 
 
-def test_compiler():
+def hide_test_compiler():
     from malt.compiler import comp
     response = comp(['command', 'positional', 'keyword', '=', 'default'])
     assert response.raw_head == 'command'
