@@ -4,7 +4,7 @@ from malt.newparse.tokenizer import get_tokens
 from malt.newparse.compiler import comp
 from malt.newparse.validator import validate, generate_signatures
 
-# TEMP::
+# :TEMP:
 from malt import out
 
 

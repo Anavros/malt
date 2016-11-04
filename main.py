@@ -4,32 +4,22 @@ Testing ground for new malt features.
 """
 
 import malt
-import malt.config
-from contextlib import contextmanager
-
-"""
-Important Functions:
-malt.offer(options)
-malt.serve(output)
-malt.log(conditional_output)
-malt.clear()
-malt.set_header()
-"""
 
 
-@contextmanager
-def config():
-    #logfile = open('logfile.txt', 'w')
-    #malt.redirect('LOG', logfile)
-    yield
-    #logfile.close()
+def new_workflow():
+    options = [
+        'stuff',
+    ]
+    while True:
+        try: response = malt.parse(input('> '), options)
+        except (KeyboardInterrupt, EOFError): break
+        if response.head == 'stuff':
+            print("Correct!")
+        else:
+            print("Oh no!")
 
 
 def main():
-    autocommands = {
-        'auto': (lambda: malt.serve('hi there')),
-    }
-    malt.autocommand(autocommands)
     options = [
         'hello',
         'list',
@@ -38,12 +28,7 @@ def main():
         'ip',
         'response',
     ]
-    malt.clear()
-    i = 0
     while True:
-        i += 1
-        malt.set_header("+++ {} +++".format(i))
-
         response = malt.offer(options)
         if response.head == 'hello':
             print("hi there")
@@ -64,5 +49,5 @@ def main():
 
 
 if __name__ == '__main__':
-    with config():
-        main()
+    #main()
+    new_workflow()
