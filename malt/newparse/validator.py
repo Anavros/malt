@@ -1,4 +1,6 @@
 
+from malt.newparse.caster import autocast
+
 """
 Validation
 
@@ -14,11 +16,14 @@ def validate(responses, options):
             sig = signatures[response.raw_head]
         except KeyError:
             response.valid = False
-            raise
+            print("KeyError: Unknown Command")
+            continue
         try:
-            compare_args(response.raw_args, sig.args)
+            response.body = compare_args(response.raw_args, sig.args)
         except ValueError:
-            raise
+            print("ValueError: Arg Compairison")
+        else:
+            response.valid = True
     return responses
 
 
@@ -28,11 +33,11 @@ def compare_args(response_args, signature_args):
     validated = {}
     for r, s in zip(response_args, signature_args):
         try:
-            #valid = caster.cast(r, s.cast)
-            valid = "STAND-IN"
-        except ValueError:
-            raise
+            valid = autocast(r, s.cast)
+        except ValueError as e:
+            print("ValueError: Bad Cast ({})".format(e))
         else:
+            print("Good Cast: "+str(valid))
             validated[s.key] = valid
     return validated
 

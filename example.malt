@@ -1,6 +1,13 @@
 
 # Going to put full syntax definition in here.
 
+empty
+one thing
+default argument=butt
+types 1 1.0 True
+fancy [one two three] {one:1 two:2 three:3}
+
+###
 keyword
 keyword argument
 keyword [list of strings]
@@ -30,10 +37,9 @@ keyword default=arguments a_couple=of_them
 # take {iron: 5, wood: 10}
 # take iron:5 wood salt
 
-###
 Multiline comments.
-Must be exactly (x) with no spaces.
-###
+Must be exactly `###` with no spaces.
+Comments can contain any characters
 
 # Malt syntax update planning.
 # Proper parser, required brackets around lists and dicts.
@@ -56,3 +62,4 @@ region plains ... # newline is ignored if elipsis is found
     needs = [
         house drive
     ] # and now line finished, next newline ends
+###

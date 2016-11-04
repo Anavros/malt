@@ -47,17 +47,17 @@ def test(raw_file, options, show_steps):
 if __name__ == '__main__':
     raw = _load_file("example.malt")
     options = [
-        'keyword',
-        'keyword argument',
-        'keyword argument=default',
-        'keyword i:int f:float s:string b:bool',
-        'keyword [s]:list_of_strings {s-i}:map_of_strings_to_ints',
+        'empty',
+        'one argument',
+        'default argument=default',
+        'types i:int f:float s:string b:bool',
+        'fancy [s]:list_of_strings {s-i}:map_of_strings_to_ints',
     ]
     steps = [
         #'preprocessor',
         #'tokenizer',
         #'compiler',
         #'validator',
-        'signatures',
+        #'signatures',
     ]
     test(raw, options, steps)
