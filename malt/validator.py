@@ -1,5 +1,5 @@
 
-from malt.newparse.caster import autocast
+from malt.caster import autocast
 
 """
 Validation

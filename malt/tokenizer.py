@@ -1,5 +1,8 @@
 
-from malt.newparse.constants import *
+from malt.constants import *
+
+def tokenize(stream):
+    return get_tokens(stream)
 
 def get_tokens(contents):
     state = ParserState()

@@ -1,10 +1,10 @@
 
+from malt.objects import Response
+
 """
 Compiler stage: probably not the best name.
 Takes a stream of tokens and builds a data structure.
 """
-
-from malt.malt import Response
 
 def comp(tokens):
     state = CompilerState()

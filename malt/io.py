@@ -4,7 +4,7 @@ Definitions of malt.offer() and malt.load().
 Effectively compositions of lower-level parsing modules.
 """
 
-from malt.newparse import preprocessor, tokenizer, compiler, validator
+from malt import preprocessor, tokenizer, compiler, validator
 
 
 def offer(options):

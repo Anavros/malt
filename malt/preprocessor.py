@@ -1,5 +1,5 @@
 
-from malt.newparse.constants import *
+from malt.constants import *
 
 # Signature hints are normally removed in preprocess().
 def get_signature_hints(contents):
