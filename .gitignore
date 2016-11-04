@@ -7,3 +7,4 @@ malt.egg-info/*
 docs/.build
 docs/.static
 docs/.templates
+malt/archive/
