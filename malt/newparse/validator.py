@@ -19,19 +19,20 @@ def validate(responses, options):
             print("KeyError: Unknown Command")
             continue
         try:
-            response.body = compare_args(response.raw_args, sig.args)
+            response.body = compare_args(response, sig)
         except ValueError:
             print("ValueError: Arg Compairison")
         else:
             response.valid = True
+            response.head = response.raw_head
     return responses
 
 
 #? keyword i:int
 # keyword string
-def compare_args(response_args, signature_args):
+def compare_args(response, signature):
     validated = {}
-    for r, s in zip(response_args, signature_args):
+    for r, s in zip(response.raw_args, signature.args):
         try:
             valid = autocast(r, s.cast)
         except ValueError as e:
@@ -39,6 +40,19 @@ def compare_args(response_args, signature_args):
         else:
             print("Good Cast: "+str(valid))
             validated[s.key] = valid
+    for key in signature.kwargs.keys():
+        default = signature.kwargs[key]
+        try:
+            value = response.raw_kwargs[key]  # going to throw KeyError
+        except KeyError:
+            print("KeyError: Using Default Argument")
+            value = default.default
+        try:
+            value = autocast(value, signature.kwargs[key].cast)
+        except ValueError:
+            print("ValueError: Bad Cast on Keyword Arg")
+            continue
+        validated[key] = value
     return validated
 
 

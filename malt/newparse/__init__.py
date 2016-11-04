@@ -41,7 +41,9 @@ def test(raw_file, options, show_steps):
     if "validator" in show_steps:
         print("VALIDATOR")
         for v in validated:
-            out(v)
+            print("Valid:", v.valid)
+            print("Head:", v.head)
+            print("Body:", v.body)
 
 
 if __name__ == '__main__':
@@ -57,7 +59,7 @@ if __name__ == '__main__':
         #'preprocessor',
         #'tokenizer',
         #'compiler',
-        #'validator',
+        'validator',
         #'signatures',
     ]
     test(raw, options, steps)

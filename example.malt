@@ -4,6 +4,7 @@
 empty
 one thing
 default argument=butt
+default
 types 1 1.0 True
 fancy [one two three] {one:1 two:2 three:3}
 
