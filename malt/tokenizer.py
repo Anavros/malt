@@ -12,6 +12,10 @@ def get_tokens(contents):
         elif c == QUOTE:
             state.in_quotes = not state.in_quotes
             state.word_buffer.append(c)
+        elif c == DEFAULT_ARG_SETTER:
+            # kwarg=default
+            state.word_buffer.append(DEFAULT_ARG_SETTER)
+            state.end_word()
         elif c == LIST_BEGIN:
             if state.in_list:
                 raise MaltSyntaxError("Nested list.")
@@ -36,6 +40,7 @@ def get_tokens(contents):
                 state.end_dict()
         else:
             state.word_buffer.append(c)
+    state.end_word()
     return state.tokens
 
 
@@ -76,9 +81,6 @@ class ParserState:
             else:
                 self.tokens.append(''.join(self.word_buffer))
             self.word_buffer = []
-        if separator == '=':
-            #print("Inserting assignment operator.")
-            self.tokens.append('=')
         self.end_line(separator)
 
     def end_line(self, c):

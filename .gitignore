@@ -8,3 +8,4 @@ docs/.build
 docs/.static
 docs/.templates
 malt/archive/
+*.un~

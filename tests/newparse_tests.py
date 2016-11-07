@@ -16,8 +16,7 @@ def hide_test_tokenizer():
         'scalar',
         ['a', 'list'],
         {'a':'1', 'dict':'2'},
-        'def',
-        '=',
+        'def=',
         'arg',
     ]
 

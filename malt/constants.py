@@ -15,4 +15,4 @@ COMMENT = '#'
 QUOTE = '\"'
 SPACES = ' \t'
 
-WORD_SEPARATORS = [' ', '\t', '\n', '=']
+WORD_SEPARATORS = [' ', '\t', '\n']

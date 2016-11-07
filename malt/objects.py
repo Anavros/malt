@@ -36,6 +36,11 @@ class Response:
         self.raw_args = raw_args if raw_args else []
         self.raw_kwargs = raw_kwargs if raw_kwargs else {}
 
+    def finalize_args(self, body):
+        self.body = body
+        for k, v in body.items():
+            self.__dict__[k] = v
+
     def __eq__(self, x):
         """
         Directly comparing a response to a string is being deprecated.

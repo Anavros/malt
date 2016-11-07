@@ -9,23 +9,22 @@ argument is in the right place.
 """
 
 
-def validate(responses, options):
+def validate(response, options):
     signatures = generate_signatures(options)
-    for response in responses:
-        try:
-            sig = signatures[response.raw_head]
-        except KeyError:
-            response.valid = False
-            print("KeyError: Unknown Command")
-            continue
-        try:
-            response.body = compare_args(response, sig)
-        except ValueError:
-            print("ValueError: Arg Compairison")
-        else:
-            response.valid = True
-            response.head = response.raw_head
-    return responses
+    try:
+        sig = signatures[response.raw_head]
+    except KeyError:
+        response.valid = False
+        print("KeyError: Unknown Command")
+        return response
+    try:
+        response.finalize_args(compare_args(response, sig))
+    except ValueError:
+        print("ValueError: Arg Compairison")
+    else:
+        response.valid = True
+        response.head = response.raw_head
+    return response
 
 
 #? keyword i:int

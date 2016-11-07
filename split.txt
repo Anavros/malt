@@ -2,6 +2,7 @@
 Malt:
 - user input with validation
 - config loading with same syntax
+- interactive console
 
 ???:
 - fancy printing and logging
