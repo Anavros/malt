@@ -1,5 +1,5 @@
 
-from malt.compiler import build
+from malt.parser.compiler import build
 
 
 def test_compiler():

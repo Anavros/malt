@@ -1,6 +1,6 @@
 
-from malt.stripper import strip
-from malt import joiner
+from malt.parser.stripper import strip
+from malt.parser import joiner
 
 commented_file = r"""
 # There are single-line comments...

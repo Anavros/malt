@@ -1,5 +1,5 @@
 
-from malt.tokenizer import tokenize
+from malt.parser.tokenizer import tokenize
 
 def test_tokenizer():
     line = "keyword scalar [a list] { a:1 dict:2 } def=arg"

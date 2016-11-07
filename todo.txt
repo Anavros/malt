@@ -1,4 +1,9 @@
 
+Todo:
+-> Reimplement custom exceptions and custom error messages.
+-> Clean up response objects and object module.
+-> Clean up todo file and other documents.
+
 Bugs:
 -> Unknown commands in malt.load()'ed files throw KeyErrors.
 -> Special characters are not allowed on input, even in quotes.
@@ -23,6 +28,7 @@ New Features:
 -> Allow a default value for dict inputs, e.g. take salt -> {salt:1}
 -> Allow user input to omit brackets in list and dict input, use inference
 -> Allow commenting on options for detailed help.
+-> Config option to turn off error messages? or kwarg?
 
 Recent Changes:
 -> Removed blessings.
