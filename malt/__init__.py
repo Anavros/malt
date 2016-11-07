@@ -6,7 +6,7 @@
 
 try: import readline
 except ImportError: pass
-from .io import parse
+from .io import parse, offer
 
 #def set_header(text):
     #state.header = '\n'.join([line.strip() for line in text.split('\n')])

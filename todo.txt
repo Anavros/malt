@@ -20,6 +20,9 @@ New Features:
 -> Allow a log message to have more than one level?
     * i.e. use LOG to print and also MIRROR to log to file in one call.
 -> Right-justified text formatting.
+-> Allow a default value for dict inputs, e.g. take salt -> {salt:1}
+-> Allow user input to omit brackets in list and dict input, use inference
+-> Allow commenting on options for detailed help.
 
 Recent Changes:
 -> Removed blessings.

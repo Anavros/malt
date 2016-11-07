@@ -31,11 +31,15 @@ def validate(response, options):
 # keyword string
 def compare_args(response, signature):
     validated = {}
+    if len(response.raw_args) != len(signature.args):
+        print("ValueError: Mismatched arg lengths!")
+        raise ValueError()
     for r, s in zip(response.raw_args, signature.args):
         try:
             valid = autocast(r, s.cast)
         except ValueError as e:
             print("ValueError: Bad Cast ({})".format(e))
+            raise
         else:
             print("Good Cast: "+str(valid))
             validated[s.key] = valid
@@ -46,11 +50,12 @@ def compare_args(response, signature):
         except KeyError:
             print("KeyError: Using Default Argument")
             value = default.default
+            raise
         try:
             value = autocast(value, signature.kwargs[key].cast)
         except ValueError:
             print("ValueError: Bad Cast on Keyword Arg")
-            continue
+            raise
         validated[key] = value
     return validated
 

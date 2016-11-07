@@ -20,7 +20,7 @@ def parse(text, options):
     """
     Parse a single line of input.
     """
-    return validator.validate(compiler.compile(tokenizer.tokenize(text)))
+    return validator.validate(compiler.build(tokenizer.tokenize(text)), options)
 
 
 def read(lines, options):
