@@ -3,35 +3,23 @@ Todo:
 -> Reimplement custom exceptions and custom error messages.
 -> Clean up response objects and object module.
 -> Clean up todo file and other documents.
+-> Polish and clarify use of global functions.
 
 Bugs:
--> Unknown commands in malt.load()'ed files throw KeyErrors.
--> Special characters are not allowed on input, even in quotes.
--> Helper functions/global functions and error printing is not clear on use.
--> response == str is deprecated, use response.head == str.
--> Printing more than one item doesn't work right.
-
--> Ambiguity between usage for serve, log, and print.
--> Overcomplication of new printing method.
--> Serve too verbose for many uses.
+-> Ints can not be cast from strings shaped like floats, e.g. '1.0'.
+-> Omitting key in kwarg raises arg len error.
 
 New Features:
--> Color printing.
 -> Tab completion!
 -> Helper functions to make testing easier.
--> Better unit tests.
 -> There should be a built-in help function. e.g. cmd? gives help for cmd.
--> More fully-featured header.
--> Allow a log message to have more than one level?
-    * i.e. use LOG to print and also MIRROR to log to file in one call.
--> Right-justified text formatting.
 -> Allow a default value for dict inputs, e.g. take salt -> {salt:1}
 -> Allow user input to omit brackets in list and dict input, use inference
 -> Allow commenting on options for detailed help.
 -> Config option to turn off error messages? or kwarg?
+-> Infer positional inputs as keyword inputs if they match position.
 
 Recent Changes:
--> Removed blessings.
--> Added autoclear and headers.
--> Added log redirection.
+-> Removed output features.
+-> Greatly improved unit tests.
 -> **Implemented new parser.

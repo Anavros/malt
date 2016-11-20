@@ -20,7 +20,7 @@ def autocast(value, typestring):
     Lists of one type can be specified as '[i]'. Dicts contain a type for both
     key and value as '{s-i}'.
 
-    Raises ValueError on impossible casts and BadTypePrefix when the given
+    Raises WrongType on impossible casts and BadTypePrefix when the given
     typestring doesn't match anything.
     """
     if typestring == 's':
@@ -30,13 +30,13 @@ def autocast(value, typestring):
         try:
             return int(value)
         except ValueError:
-            raise WrongType(cast='i', value=value)
+            raise WrongType(cast='i', value=value) from None
 
     elif typestring == 'f':
         try:
             return float(value)
         except ValueError:
-            raise WrongType(cast='f', value=value)
+            raise WrongType(cast='f', value=value) from None
 
     elif typestring == 'b':
         return (value != '0' and value.lower() != 'false')  # no errors

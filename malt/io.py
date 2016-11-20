@@ -4,7 +4,8 @@ Definitions of malt.offer() and malt.load().
 Effectively compositions of lower-level parsing modules.
 """
 
-from malt.parser import preprocessor, tokenizer, compiler, validator
+from malt.parser import preprocessor, tokenizer, validator
+from malt.parser import signaturebuilder, responsebuilder
 
 
 def offer(options):
@@ -20,7 +21,10 @@ def parse(text, options):
     """
     Parse a single line of input.
     """
-    return validator.validate(compiler.build(tokenizer.tokenize(text)), options)
+    tokens = tokenizer.tokenize(text)
+    response = responsebuilder.build_response(tokens)
+    signatures = signaturebuilder.generate_signatures(options)
+    return validator.validate(response, signatures)
 
 
 def read(lines, options):

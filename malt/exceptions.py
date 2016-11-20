@@ -60,6 +60,10 @@ class BadTypePrefix(ValueError):
         self.typestring = typestring
 
 
+class EmptyOptionString(ValueError):
+    """ An option string was completely empty. """
+
+
 # General mishaps.
 class UnexpectedProgrammingError(ValueError):
     """

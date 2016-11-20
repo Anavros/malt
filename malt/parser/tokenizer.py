@@ -1,9 +1,13 @@
 
 from malt.constants import *
 
+# TODO: use errors from malt.exceptions
+# TODO: clean this mess up
+
 def tokenize(stream):
     return get_tokens(stream)
 
+# TODO: replace with tokenize
 def get_tokens(contents):
     state = ParserState()
     for c in contents:
@@ -12,10 +16,10 @@ def get_tokens(contents):
         elif c == QUOTE:
             state.in_quotes = not state.in_quotes
             state.word_buffer.append(c)
-        elif c == DEFAULT_ARG_SETTER:
-            # kwarg=default
-            state.word_buffer.append(DEFAULT_ARG_SETTER)
-            state.end_word()
+#        elif c == DEFAULT_ARG_SETTER:
+#            # kwarg=default
+#            state.word_buffer.append(DEFAULT_ARG_SETTER)
+#            state.end_word()
         elif c == LIST_BEGIN:
             if state.in_list:
                 raise MaltSyntaxError("Nested list.")

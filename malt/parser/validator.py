@@ -1,14 +1,16 @@
 
-from malt.parser.caster import autocast
+from malt.objects import Argument, Signature
+from malt.exceptions import TooManyArgs, NotEnoughArgs
+from malt.parser.specifier import generate_signatures
+from malt.parser.caster import autocast  # TODO: Remove
 
 """
-Validation
-
 Take each response, filled out with raw arguments, and verify that each
-argument is in the right place.
+argument is in the right place, and typecast too.
 """
 
 
+# TODO: separate typecasting
 def validate(response, options):
     signatures = generate_signatures(options)
     try:
@@ -20,17 +22,45 @@ def validate(response, options):
     try:
         response.finalize_args(compare_args(response, sig))
     except ValueError:
-        print("ValueError: Arg Compairison")
+        print("ValueError: Arg Comparison")
     else:
         response.valid = True
         response.head = response.raw_head
     return response
+
+# res = [arg1 arg2 arg3] {key4:nondefault}  # key5 is missing
+# sig = [key1 key2] {key3:arg3 key4:arg4 key5:arg5}
+def tally(args, kwargs, need, kwneed):
+    pass
+
+
+#response = [
+#    (None, 'val1'),
+#    (None, 'val2'),
+#    (key3, 'otherval3'),
+#]
+#signature = [
+#    (key1, None),
+#    (key2, None),
+#    (key3, 'val3'),
+#    (key4, 'val4'),
+#]
+def map_arguments(response, signature):
+    mappings = {}
+    if len(response) != len(signature):
+        raise ValueError()
+    for i, (key, value) in enumerate(response):
+        if key is None:
+            key = signature[i][0]
+        # Losing positional information when putting into normal dictionary.
+        mappings[key] = value
 
 
 #? keyword i:int
 # keyword string
 def compare_args(response, signature):
     validated = {}
+    # BUG: Kwargs without keys will show up in response.raw_args!
     if len(response.raw_args) != len(signature.args):
         print("ValueError: Mismatched arg lengths!")
         raise ValueError()
@@ -50,7 +80,7 @@ def compare_args(response, signature):
         except KeyError:
             print("KeyError: Using Default Argument")
             value = default.default
-            raise
+            #raise
         try:
             value = autocast(value, signature.kwargs[key].cast)
         except ValueError:
@@ -58,62 +88,3 @@ def compare_args(response, signature):
             raise
         validated[key] = value
     return validated
-
-
-example = [
-    'keyword',
-    'keyword argument',
-    'keyword argument=default',
-    'keyword i:int f:float s:string b:bool',
-    'keyword [s]:list_of_strings {s-i}:map_of_strings_to_ints',
-]
-def generate_signatures(options):
-    signatures = {}
-    for opt in options:
-        sig = Signature(opt)
-        words = opt.split()
-        if len(words) < 1: raise ValueError()
-        sig.head = words.pop(0)
-        for word in words:
-            if '=' in word:
-                word, default = word.split('=', 1)
-            else:
-                word, default = word, None
-
-            if ':' in word:
-                cast, key = word.split(':', 1)
-            else:
-                cast, key = 's', word
-
-            if default:
-                sig.kwargs[key] = Argument(word, key, cast, default)
-            else:
-                sig.args.append(Argument(word, key, cast, default))
-        signatures[sig.head] = sig
-    return signatures
-
-
-class Signature:
-    def __init__(self, raw):
-        self.raw = raw
-        self.head = ""
-        self.args = []
-        self.kwargs = {}
-
-    def __repr__(self):
-        return "HEAD: {}, ARGS: {}, KWARGS: {}".format(
-            self.head, self.args, self.kwargs)
-
-
-class Argument:
-    def __init__(self, raw, key, cast, default):
-        self.raw = raw
-        self.key = key
-        self.cast = cast
-        self.default = default
-
-    def __repr__(self):
-        if self.default:
-            return "def={} ({})".format(self.default, self.cast)
-        else:
-            return "{} ({})".format(self.key, self.cast)

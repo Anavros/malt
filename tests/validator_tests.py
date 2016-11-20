@@ -1,6 +1,6 @@
 
 from malt.objects import Response
-from malt.parser.validator import validate
+from malt.parser.validator import validate, tally
 
 
 def test_validator():
