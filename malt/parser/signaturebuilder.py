@@ -8,13 +8,14 @@ Signatures are easier to use when validating input.
 """
 
 
-example = [
-    'keyword',
-    'keyword argument',
-    'keyword argument=default',
-    'keyword i:int f:float s:string b:bool',
-    'keyword [s]:list_of_strings {s-i}:map_of_strings_to_ints',
-]
+#example = [
+#    'keyword',
+#    'keyword argument',
+#    'keyword argument=default',
+#    'keyword i:int f:float s:string b:bool',
+#    'keyword [s]:list_of_strings {s-i}:map_of_strings_to_ints',
+#]
+
 def generate_signatures(option_strings):
     """
     Convert a list of option strings to signatures. Returns a dictionary where
@@ -30,38 +31,34 @@ def parse(string):
     """
     Parse a single option string into a Signature object.
     """
-    sig = Signature(string)
-    words = string.split()
-
-    # Throw an error on empty strings.
-    # Errors in this stage propogate up to caller code.
-    # This is the caller's chance to verify their options are bug free,
-    # before their program is in use.
-    if not words:
+    if not string:
         raise EmptyOptionString()
 
-    # The first word in the option string is the command.
-    # These are functionally different from the rest of the args.
-    sig.head = words.pop(0)
-    for word in words:
-        # Split kwargs into keys and default values.
-        if '=' in word:
-            word, default = word.split('=', 1)
-        else:
-            word, default = word, None
+    head, tail = string.split(' ', 1)
+    body = []
+    for index, castkeydefault in enumerate(tail.split()):
+        cast, key, default = separate(castkeydefault)
+        body.append(Argument(index, key, default, cast))
+    return Signature(head, body)
 
-        # Split type specifiers too.
-        if ':' in word:
-            cast, key = word.split(':', 1)
-        else:
-            cast, key = 's', word
 
-        # TODO: what about casts?
-        sig.add(key, value=default)
+def separate(castkeydefault):
+    # 'i:power=3' == cast:key=default == castkeydefault
+    castkey, default = split_key_value(castkeydefault)
+    cast, key = split_cast_key(castkey)
+    return cast, key, default
 
-        # REMOVE:
-        if default:
-            sig.kwargs[key] = Argument(word, key, cast, default)
-        else:
-            sig.args.append(Argument(word, key, cast, default))
-    return sig
+
+def split_key_value(word):
+    if '=' in word:
+        return word.split('=', 1)
+    else:
+        return word, None
+
+
+def split_cast_key(word):
+    if ':' in word:
+        return word.split(':', 1)
+    else:
+        # default to string cast, i.e. no cast
+        return 's', word

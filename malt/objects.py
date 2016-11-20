@@ -7,33 +7,62 @@ class Response:
         self.head = head
         self.body = body
 
+        # Put arguments in body for easy access.
+        for k, v in self.body.items():
+            self.__dict__[k] = v
+
     def __iter__(self):
-        for item in self.body:
-            yield item
+        for k, v in self.body.items():
+            yield k, v
 
     def __repr__(self): return self.head
     def __str__(self): return self.__repr__()
     def __len__(self): return len(self.body)
 
 
-# sig.get(0)
-# sig.get('key')
-class Signature:
+class UserInput:
     """
-    An orderly representation of an option string used for parsing.
+    Iterable storage of user input tokens used for parsing.
     """
-    def __init__(self, raw):
-        self.raw = raw  # the raw option string, used for help messages
-        self.head = ""  # first word in the string
-        self.body = []  # list of (key, value) args, ordered
-
-    def __repr__(self):
-        return "HEAD: {}, ARGS: {}, KWARGS: {}".format(
-            self.head, self.args, self.kwargs)
+    def __init__(self, head, body):
+        self.head = head  # first word in the string
+        self.body = body  # list of (key, value) args, ordered
 
     def __iter__(self):
         for item in self.body:
             yield item
+
+    def __len__(self): return len(self.body)
+
+    def get(self, index, key):
+        """
+        """
+        pass
+
+    def lookup(self, key):
+        """
+        Return first value associated with key. There may be duplicates!
+        """
+        for k, v in self.body:
+            if k == key:
+                return k, v
+        raise KeyError("Item not found.")
+
+
+class Signature:
+    """
+    An orderly representation of an option string used for parsing.
+    """
+    def __init__(self, head, body):
+        self.head = head  # first word in the string
+        self.body = body  # list of (key, value) args, ordered
+
+    def __iter__(self):
+        for item in self.body:
+            yield item
+
+    def __len__(self):
+        return len(self.body)
 
     # TODO: what about casts?
     def add(self, key, value=None):
@@ -65,14 +94,8 @@ class Signature:
 
 
 class Argument:
-    def __init__(self, raw, key, cast, default):
-        self.raw = raw
+    def __init__(self, position, key, value, cast):
+        self.position = position
         self.key = key
+        self.value = value
         self.cast = cast
-        self.default = default
-
-    def __repr__(self):
-        if self.default:
-            return "def={} ({})".format(self.default, self.cast)
-        else:
-            return "{} ({})".format(self.key, self.cast)

@@ -24,6 +24,12 @@ def parse(text, options):
     tokens = tokenizer.tokenize(text)
     response = responsebuilder.build_response(tokens)
     signatures = signaturebuilder.generate_signatures(options)
+    try:
+        sig = signatures[response.head]
+    except KeyError:
+        # The given command doesn't match any known signature.
+        print("KeyError: Unknown Command")
+        raise
     return validator.validate(response, signatures)
 
 

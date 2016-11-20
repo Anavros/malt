@@ -1,5 +1,5 @@
 
-from malt.objects import Response
+from malt.objects import Signature, Argument
 
 
 def build_response(tokens):
@@ -24,4 +24,4 @@ def build_response(tokens):
 
         body.append((key, value))
         i += 1
-    return Response(head, body)
+    return Signature(head, body)

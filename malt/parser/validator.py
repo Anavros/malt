@@ -1,90 +1,85 @@
 
-from malt.objects import Argument, Signature
-from malt.exceptions import TooManyArgs, NotEnoughArgs
-from malt.parser.specifier import generate_signatures
-from malt.parser.caster import autocast  # TODO: Remove
+from malt.objects import Signature, Argument
 
 """
-Take each response, filled out with raw arguments, and verify that each
-argument is in the right place, and typecast too.
+...
 """
 
 
-# TODO: separate typecasting
-def validate(response, options):
-    signatures = generate_signatures(options)
-    try:
-        sig = signatures[response.raw_head]
-    except KeyError:
-        response.valid = False
-        print("KeyError: Unknown Command")
-        return response
-    try:
-        response.finalize_args(compare_args(response, sig))
-    except ValueError:
-        print("ValueError: Arg Comparison")
-    else:
-        response.valid = True
-        response.head = response.raw_head
-    return response
+# Take two signatures full of arguments and combine them into one.
+def validate(userinput, signature):
+    """
+    """
+    head = signature.head  # what if they don't match?
+    body = []
 
-# res = [arg1 arg2 arg3] {key4:nondefault}  # key5 is missing
-# sig = [key1 key2] {key3:arg3 key4:arg4 key5:arg5}
-def tally(args, kwargs, need, kwneed):
-    pass
+    # Raises ValueError if any user-given keys are unknown.
+    # This happens in a separate step because the iteration coming up only
+    # goes over signatures: if there is something extra in userinput, it won't
+    # come up. Errors should not be silently ignored, therefore: this step.
+    check_for_incorrect_keys(userinput, signature)
 
-
-#response = [
-#    (None, 'val1'),
-#    (None, 'val2'),
-#    (key3, 'otherval3'),
-#]
-#signature = [
-#    (key1, None),
-#    (key2, None),
-#    (key3, 'val3'),
-#    (key4, 'val4'),
-#]
-def map_arguments(response, signature):
-    mappings = {}
-    if len(response) != len(signature):
-        raise ValueError()
-    for i, (key, value) in enumerate(response):
-        if key is None:
-            key = signature[i][0]
-        # Losing positional information when putting into normal dictionary.
-        mappings[key] = value
-
-
-#? keyword i:int
-# keyword string
-def compare_args(response, signature):
-    validated = {}
-    # BUG: Kwargs without keys will show up in response.raw_args!
-    if len(response.raw_args) != len(signature.args):
-        print("ValueError: Mismatched arg lengths!")
-        raise ValueError()
-    for r, s in zip(response.raw_args, signature.args):
+    for s in signature:  # can never be more sigs than inputs
         try:
-            valid = autocast(r, s.cast)
-        except ValueError as e:
-            print("ValueError: Bad Cast ({})".format(e))
-            raise
-        else:
-            print("Good Cast: "+str(valid))
-            validated[s.key] = valid
-    for key in signature.kwargs.keys():
-        default = signature.kwargs[key]
-        try:
-            value = response.raw_kwargs[key]  # going to throw KeyError
+            u = match(s, userinput)
         except KeyError:
-            print("KeyError: Using Default Argument")
-            value = default.default
-            #raise
-        try:
-            value = autocast(value, signature.kwargs[key].cast)
-        except ValueError:
-            print("ValueError: Bad Cast on Keyword Arg")
-            raise
-        validated[key] = value
-    return validated
+            # No matches. Just use defaults, if present.
+            if s.value is not None:
+                # Use the default argument if there is a default.
+                body.append(s)
+            else:
+                # Otherwise we have a problem.
+                raise ValueError("No given value and no default either.")
+        else:
+            body.append(combine(s, u))
+    return Signature(head, body)
+
+
+def check_for_incorrect_keys(userinput, signature):
+    for u in userinput:
+        if u.key is None:
+            continue
+        if u.key not in [s.key for s in signature]:
+            raise ValueError("Unknown key in user input!")
+
+
+# Probably where we can implement out-of-order kwargs.
+def match(s, userinput):
+    """
+    Find the user argument that matches the next expected one.
+    Raises KeyError if no user arguments match.
+    """
+    # Try to find the key first.
+    for u in userinput:
+        if u.key == s.key:
+            return u
+    # If the key isn't explicitely marked, use the position instead.
+    for u in userinput:
+        if u.position == s.position:
+            return u
+    # If nothing matches, raise KeyError and let the caller handle it.
+    raise KeyError("No matches found for {}/{}.".format(s.position, s.key))
+
+
+def combine(sig, usr):
+    """
+    Take two halves of the same argument and combine them, using information
+    from one to fill in the other.
+    """
+    # Example:
+    # UserInput = Argument(0, None, 'value', None)
+    # Signature = Argument(0, 'key', None, 's')
+    # Output = Argument(0, 'key', 'value', 's')
+    position = sig.position  # might cause problems with out-of-order args
+    if usr.key is None:
+        # This is a positional argument, no key=value pair, just value.
+        key = sig.key
+    else:
+        # This is a keyword argument, contains both a key and a value.
+        key = usr.key  # might cause problems with out-of-order args
+
+    # Guarenteed to have a user value because no value means no argument.
+    # And no argument means it will be handled upstream.
+    value = usr.value
+    cast = sig.cast  # user input never provides casts
+    return Argument(position, key, value, cast)
