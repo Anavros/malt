@@ -19,7 +19,7 @@ def validate(userinput, signature):
     # come up. Errors should not be silently ignored, therefore: this step.
     check_for_incorrect_keys(userinput, signature)
 
-    for s in signature:  # can never be more sigs than inputs
+    for s in signature:
         try:
             u = match(s, userinput)
         except KeyError:
@@ -36,11 +36,10 @@ def validate(userinput, signature):
 
 
 def check_for_incorrect_keys(userinput, signature):
-    for u in userinput:
-        if u.key is None:
-            continue
-        if u.key not in [s.key for s in signature]:
-            raise ValueError("Unknown key in user input!")
+    known_keys = [s.key for s in signature]
+    given_keys = [u.key for u in userinput if u.key is not None]
+    if not all(key in known_keys for key in given_keys):
+        raise ValueError("Unknown key in user input!")
 
 
 # Probably where we can implement out-of-order kwargs.
@@ -56,7 +55,12 @@ def match(s, userinput):
     # If the key isn't explicitely marked, use the position instead.
     for u in userinput:
         if u.position == s.position:
-            return u
+            if u.key is not None:
+                # We found a kwarg where there should be a positional.
+                # This is also where we would implement kwarg/arg switching.
+                raise ValueError("Found kwarg before end of positional args.")
+            else:
+                return u
     # If nothing matches, raise KeyError and let the caller handle it.
     raise KeyError("No matches found for {}/{}.".format(s.position, s.key))
 

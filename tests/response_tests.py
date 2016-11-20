@@ -3,8 +3,8 @@ from malt.objects import Signature, Argument
 from malt.parser.responsebuilder import build_response
 
 def test_signature():
-    userinput = "pow 2 power=4"
-    result = build_response(userinput)
+    tokens = ['pow', '2', 'power=4']
+    result = build_response(tokens)
     assert result.head == 'pow'
     assert result.body[0].position == 0
     assert result.body[0].key == None

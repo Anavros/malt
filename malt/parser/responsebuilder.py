@@ -20,8 +20,8 @@ def build_response(tokens):
             key, value = token.split('=', 1)
         else:
             # If a key is not provided, use the integer position of the arg.
-            key, value = i, token
+            key, value = None, token
 
-        body.append((key, value))
+        body.append(Argument(i, key, value, None))
         i += 1
     return Signature(head, body)

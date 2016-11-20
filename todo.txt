@@ -1,13 +1,9 @@
 
 Todo:
--> Reimplement custom exceptions and custom error messages.
--> Clean up response objects and object module.
--> Clean up todo file and other documents.
--> Polish and clarify use of global functions.
+-> Seriously come up with better names for the parser modules.
 
 Bugs:
 -> Ints can not be cast from strings shaped like floats, e.g. '1.0'.
--> Omitting key in kwarg raises arg len error.
 
 New Features:
 -> Tab completion!
@@ -18,6 +14,7 @@ New Features:
 -> Allow commenting on options for detailed help.
 -> Config option to turn off error messages? or kwarg?
 -> Infer positional inputs as keyword inputs if they match position.
+-> Polish and clarify use of global functions.
 
 Recent Changes:
 -> Removed output features.

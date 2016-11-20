@@ -4,7 +4,9 @@ Definitions of malt.offer() and malt.load().
 Effectively compositions of lower-level parsing modules.
 """
 
-from malt.parser import preprocessor, tokenizer, validator
+from malt.objects import Response
+from malt.exceptions import WrongType
+from malt.parser import preprocessor, tokenizer, validator, finalizer
 from malt.parser import signaturebuilder, responsebuilder
 
 
@@ -24,13 +26,20 @@ def parse(text, options):
     tokens = tokenizer.tokenize(text)
     response = responsebuilder.build_response(tokens)
     signatures = signaturebuilder.generate_signatures(options)
+    # TODO:
+    # Error handling on unknown commands should probably be somewhere else.
     try:
         sig = signatures[response.head]
     except KeyError:
         # The given command doesn't match any known signature.
         print("KeyError: Unknown Command")
-        raise
-    return validator.validate(response, signatures)
+        return Response(None, {})
+    else:
+        combined = validator.validate(response, sig)
+        try:
+            return finalizer.finalize(combined)
+        except WrongType:
+            return Response(None, {})
 
 
 def read(lines, options):

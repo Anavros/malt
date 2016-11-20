@@ -39,19 +39,20 @@ def test_unknown_keyword():
         val = validate(uin, sig)
 
 
-def est_failure_repeat_same_key():
+# Positional arguments are not allowed after the first keyword arg.
+def test_positional_arg_after_kwarg():
     """
-    sig: add i:x i:y
-    usr: add 5 x=10
-    val: Error, x specified twice, once positionally, once by keyword
+    sig: pow i:number i:power=2
+    usr: pow power=4 8
+    val: pow number=8 power=4
     """
-    uin = Signature('add', [
-        Arg(0, None, '5', None),  # gets positionally mapped to x
-        Arg(1, 'x', '10', None),  # also maps to x, this time by key
+    uin = Signature('pow', [
+        Arg(0, 'power', '4', None),
+        Arg(1, None, '8', None),
     ])
-    sig = Signature('add', [
-        Arg(0, 'x', None, 'i'),
-        Arg(1, 'y', None, 'i'),
+    sig = Signature('pow', [
+        Arg(0, 'number', None, 'i'),
+        Arg(1, 'power', '2', 'i'),
     ])
-    with pytest.raises(KeyError):
+    with pytest.raises(ValueError):
         val = validate(uin, sig)

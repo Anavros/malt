@@ -1,8 +1,14 @@
 
+import pytest
 from malt.objects import Signature, Argument
 from malt.parser.signaturebuilder import parse
+from malt.exceptions import EmptyOptionString
+
 
 def test_signature():
+    """
+    Parsing takes an option string and creates a Signature. Basic operation test.
+    """
     option = "pow i:number i:power=2"
     result = parse(option)
     assert result.head == 'pow'
@@ -14,3 +20,20 @@ def test_signature():
     assert result.body[1].key == 'power'
     assert result.body[1].value == '2'
     assert result.body[1].cast == 'i'
+
+
+def test_parse_on_no_args():
+    """
+    Parsing a command with no arguments should not raise any errors.
+    """
+    result = parse("command")
+    assert result.head == "command"
+    assert result.body == []
+
+
+def test_failure_empty_input():
+    """
+    Raise ValueError when given empty input.
+    """
+    with pytest.raises(EmptyOptionString):
+        parse('')

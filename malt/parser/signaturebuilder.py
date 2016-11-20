@@ -31,15 +31,20 @@ def parse(string):
     """
     Parse a single option string into a Signature object.
     """
-    if not string:
+    words = string.split()
+    count = len(words)
+    if count == 0:
         raise EmptyOptionString()
-
-    head, tail = string.split(' ', 1)
-    body = []
-    for index, castkeydefault in enumerate(tail.split()):
-        cast, key, default = separate(castkeydefault)
-        body.append(Argument(index, key, default, cast))
-    return Signature(head, body)
+    elif count == 1:
+        return Signature(words[0], [])
+    else:
+        head = words[0]
+        tail = words[1:]
+        body = []
+        for index, castkeydefault in enumerate(tail):
+            cast, key, default = separate(castkeydefault)
+            body.append(Argument(index, key, default, cast))
+        return Signature(head, body)
 
 
 def separate(castkeydefault):
