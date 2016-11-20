@@ -1,5 +1,6 @@
 
 from malt.parser.stripper import strip
+from malt.parser.stripper import strip_inline_comments
 from malt.parser import joiner
 
 commented_file = r"""
@@ -55,3 +56,20 @@ def test_line_continuation():
         "cmd arg1\n"  # adds an extra newline, benign for now
     )
     assert list(joiner.continue_lines(given)) == list(result)
+
+
+def test_inline_comment_removal():
+    """
+    """
+    with_comments = [
+        "keyword arg  # everything following a hash is removed",
+        "hashes are allowed \"#\" in quotes",
+        "trailing spaces     # are removed",
+    ]
+    without_comments = [
+        "keyword arg",
+        "hashes are allowed \"#\" in quotes",
+        "trailing spaces",
+    ]
+    for wi, wo in zip(with_comments, without_comments):
+        assert strip_inline_comments(wi) == wo

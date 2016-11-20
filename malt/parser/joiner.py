@@ -1,5 +1,5 @@
 
-
+# TODO: Include malt-specific errors.
 def collapse_lists(filestring):
     joined_string = ""
     in_list = False

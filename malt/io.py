@@ -6,7 +6,7 @@ Effectively compositions of lower-level parsing modules.
 
 from malt.objects import Response
 from malt.exceptions import WrongType
-from malt.parser import preprocessor, tokenizer, validator, finalizer
+from malt.parser import joiner, stripper, tokenizer, validator, finalizer
 from malt.parser import signaturebuilder, responsebuilder
 
 
@@ -14,7 +14,7 @@ def offer(options):
     try:
         text = input('> ')
     except (KeyboardInterrupt, EOFError):
-        raise SystemExit
+        raise SystemExit # silent exit without stack trace
     else:
         return parse(text, options)
 
@@ -42,6 +42,17 @@ def parse(text, options):
             return Response(None, {})
 
 
+def fantasy(text, options):
+    if multiline:
+        text = preprocess(text)
+
+    userinput = structure(tokenize(text))
+    signature = match_head(signatures, userinput)
+    combined = match(userinput, signature)
+    response = cast(combined)
+    return response
+
+
 def read(lines, options):
     return [parse(line, options) for line in lines]
 
@@ -56,3 +67,5 @@ def check_syntax(options):
     """
     Optional function to verify a given option list is usable.
     """
+    # Raises errors if any problems are found.
+    signaturebuilder.generate_signatures(options)

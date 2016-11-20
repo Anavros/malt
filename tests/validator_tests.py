@@ -1,7 +1,7 @@
 
 import pytest
 from malt.parser.validator import validate, combine
-from malt.objects import UserInput, Signature, Argument as Arg
+from malt.objects import Signature, Argument as Arg
 
 
 def test_combination():

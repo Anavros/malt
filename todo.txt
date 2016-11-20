@@ -2,6 +2,16 @@
 Todo:
 -> Seriously come up with better names for the parser modules.
 
+- Response <<< Signature (cast)
+    - Signature <<< Signature + Signature (match)
+        - Signature <<< [token] (build?)
+            - [token] <<< str (tokenize)
+                - str <<< [str] (preprocess)
+                    - [str] <<< INPUT (load)
+                - str <<< INPUT (offer)
+        - Signature <<< [option] (build?)
+            - [option] <<< INPUT
+
 Bugs:
 -> Ints can not be cast from strings shaped like floats, e.g. '1.0'.
 
@@ -15,6 +25,7 @@ New Features:
 -> Config option to turn off error messages? or kwarg?
 -> Infer positional inputs as keyword inputs if they match position.
 -> Polish and clarify use of global functions.
+-> Allow raw characters in inputs using backslash escapes.
 
 Recent Changes:
 -> Removed output features.
