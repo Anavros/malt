@@ -7,7 +7,6 @@ Take list of plain strings as options and generate signature objects.
 Signatures are easier to use when validating input.
 """
 
-
 #example = [
 #    'keyword',
 #    'keyword argument',
@@ -16,7 +15,7 @@ Signatures are easier to use when validating input.
 #    'keyword [s]:list_of_strings {s-i}:map_of_strings_to_ints',
 #]
 
-def generate_signatures(option_strings):
+def parse_all(option_strings):
     """
     Convert a list of option strings to signatures. Returns a dictionary where
     keys are commands and values are signature objects.

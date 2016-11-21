@@ -1,14 +1,14 @@
 
 from malt.constants import *
 from malt.exceptions import MaltSyntaxError
+from malt.objects import Argument, Signature
 
 # TODO: use errors from malt.exceptions
 # TODO: clean this mess up
-# TODO: combine with response builder?
 
 
-def build():
-    pass
+def parse(text):
+    return build_response(tokenize(text))
 
 
 # Does this not throw any errors?

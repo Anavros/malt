@@ -1,6 +1,6 @@
 
-from malt.objects import Signature, Argument
-from malt.parser.responsebuilder import build_response
+from malt.parser.syntaxparser import tokenize, build_response
+
 
 def test_signature():
     tokens = ['pow', '2', 'power=4']
@@ -14,3 +14,15 @@ def test_signature():
     assert result.body[1].key == 'power'
     assert result.body[1].value == '4'
     assert result.body[1].cast == None
+
+
+def test_tokenizer():
+    line = "keyword scalar [a list] { a:1 dict:2 } def=arg"  # what about deflist=[1 2 3]?
+    result = [
+        'keyword',
+        'scalar',
+        ['a', 'list'],
+        {'a':'1', 'dict':'2'},
+        'def=arg',
+    ]
+    assert tokenize(line) == result

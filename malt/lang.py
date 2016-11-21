@@ -8,15 +8,6 @@ from malt import parser
 from malt.exceptions import *
 
 
-def offer(options):
-    try:
-        text = input('> ')
-    except (KeyboardInterrupt, EOFError):
-        raise SystemExit # silent exit without stack trace
-    else:
-        return parse(text, options)
-
-
 def parse(text, options):
     """
     Parse a single line of input.
@@ -35,18 +26,25 @@ def parse(text, options):
 
 
 def read(lines, options):
+    """
+    Parse a list of lines all at once. Returns a list of Response objects.
+    """
     return [parse(line, options) for line in lines]
 
 
+def offer(options):
+    try:
+        text = input('> ')
+    except (KeyboardInterrupt, EOFError):
+        raise SystemExit # silent exit without stack trace
+    else:
+        return parse(text, options)
+
+
 def load(filepath, options):
+    """
+    Load and read a text file. Wrapper around read() that takes filename.
+    """
     with open(filepath, 'r') as f:
         lines = f.readlines()
     return read(lines, options)
-
-
-def check_syntax(options):
-    """
-    Optional function to verify a given option list is usable.
-    """
-    # Raises errors if any problems are found.
-    signaturebuilder.generate_signatures(options)

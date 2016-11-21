@@ -1,7 +1,6 @@
 
 import pytest
-from malt.objects import Signature, Argument
-from malt.parser.signaturebuilder import parse
+from malt.parser.optionparser import parse, parse_all
 from malt.exceptions import EmptyOptionString
 
 
@@ -33,7 +32,7 @@ def test_parse_on_no_args():
 
 def test_failure_empty_input():
     """
-    Raise ValueError when given empty input.
+    Raise EmptyOptionString when given empty input.
     """
     with pytest.raises(EmptyOptionString):
         parse('')

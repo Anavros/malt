@@ -1,6 +1,6 @@
 
-from malt.parser import preprocessor, tokenizer, matcher, caster
-from malt.parser import responsebuilder, signaturebuilder, errorhandler
+from malt.parser import preprocessor, optionparser, syntaxparser, matcher, caster
+from malt.objects import Response
 
 
 def preprocess(text):
@@ -11,19 +11,15 @@ def preprocess(text):
 
 
 def parse_options(options):
-    available = signaturebuilder.generate_signatures(options)
-    return available
+    return optionparser.parse_all(options)
 
 
 def parse_user_input(text):
-    tokens = tokenizer.tokenize(text)
-    submitted = responsebuilder.build_response(tokens)
-    return submitted
+    return syntaxparser.parse(text)
 
 
 def match_command(submitted, available):
-    expected = matcher.find(submitted, available)
-    return expected
+    return matcher.find(submitted, available)
 
 
 def match_arguments(userinput, signature):
@@ -34,5 +30,6 @@ def cast(complete):
     return caster.cast_arguments(complete)
 
 
-def handle(error):
-    return errorhandler.mock_response(error)
+def handle(error, silent=False):
+    if not silent: print("[malt]", str(error))
+    return Response("", {})

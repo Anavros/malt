@@ -1,9 +1,7 @@
 
-from .io import parse, offer
+from malt.lang import parse, offer, read, load
 
 try:
     import readline
 except ImportError:
     pass
-
-# TODO: function to verify option syntax before sending it to offer
