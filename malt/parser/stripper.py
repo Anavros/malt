@@ -4,6 +4,7 @@
 Strips comments and whitespace from multi-line input strings.
 """
 
+SPACES = ' \t'
 COMMENTS = '#?'
 MULTILINE_COMMENT = '###'
 
@@ -13,47 +14,40 @@ def strip(filestring):
     commented = False
     for line in filestring.split('\n'):
         line = line.strip()
+
         # Remove empty lines.
-        if not line:
+        if len(line) < 1:
             continue
-        # Toggle the 'commented' bool if a multi-line comment marker is found.
-        if line.strip() == MULTILINE_COMMENT:
+
+        # Everything between multiline comment markers is ignored.
+        if line == MULTILINE_COMMENT:
             commented = not commented
             continue
-        # ...
+
         if not commented:
-            if line[0] not in COMMENTS:
-                clean.append(strip_inline_comments(line))
-            else:
+            stripped = strip_inline_comments(line)
+            if len(stripped) < 1:
                 continue
+            else:
+                clean.append(stripped)
+
     return '\n'.join(clean)
 
 
-# TODO: Could use some polish, use constants instead of characters.
 # TODO: Allow single quotes and literal characters.
+# TODO: Allow backslashed comments and quotes.
 def strip_inline_comments(line):
     """
-    Removes comments that follow normal lines. Will ignore comment characters if they
-    are in quotes. Currently there is no way to escape quotes if you want the raw chars.
-
-    >>> strip_inline_comments('combine [these things]  # this is a list of strings!')
-    'combine [these things]'
-
-    >>> strip_inline_comments('lines may contain \"#\"hashes if double quoted!')
-    'lines may contain \"#\"hashes if double quoted!'
-
-    >>> strip_inline_comments('but #only in quotes! for obvious reasons')
-    'but'
-
-    >>> strip_inline_comments('do it\t   # Trailing whitespace is stripped too!')
-    'do it'
+    Removes comments that follow normal lines. Will ignore comment characters
+    if they are in quotes. Currently there is no way to escape quotes if you
+    want the raw chars.
     """
     new_line = ""
     double_quoted = False
     for c in line:
-        if c == '"':
+        if c == '"':  # that's a " inside two '
             double_quoted = not double_quoted
-        if not double_quoted and c == '#':
+        if not double_quoted and c in COMMENTS:
             break
         new_line += c
-    return new_line.rstrip(' \t')
+    return new_line.rstrip(SPACES)

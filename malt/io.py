@@ -5,9 +5,11 @@ Effectively compositions of lower-level parsing modules.
 """
 
 from malt.objects import Response
-from malt.exceptions import WrongType
+from malt.exceptions import WrongType, MaltSyntaxError, MissingValue
+from malt.exceptions import UnknownKeyword, UnknownCommand
 from malt.parser import joiner, stripper, tokenizer, validator, finalizer
-from malt.parser import signaturebuilder, responsebuilder
+from malt.parser import signaturebuilder, responsebuilder, errorhandler
+from malt.parser import matcher
 
 
 def offer(options):
@@ -23,34 +25,40 @@ def parse(text, options):
     """
     Parse a single line of input.
     """
-    tokens = tokenizer.tokenize(text)
-    response = responsebuilder.build_response(tokens)
-    signatures = signaturebuilder.generate_signatures(options)
-    # TODO:
-    # Error handling on unknown commands should probably be somewhere else.
     try:
-        sig = signatures[response.head]
-    except KeyError:
-        # The given command doesn't match any known signature.
-        print("KeyError: Unknown Command")
-        return Response(None, {})
-    else:
-        combined = validator.validate(response, sig)
-        try:
-            return finalizer.finalize(combined)
-        except WrongType:
-            return Response(None, {})
+        tokens = tokenizer.tokenize(text)
+    except MaltSyntaxError as e:
+        return errorhandler.mock_response(e)
+
+    # Throws no errors?
+    # Assuming correct tokens.
+    response = responsebuilder.build_response(tokens)
+
+    try:
+        signatures = signaturebuilder.generate_signatures(options)
+    except EmptyOptionString as e:
+        return errorhandler.mock_response(e)
+
+    try:
+        signature = matcher.find(response, signatures)
+    except UnknownCommand as e:
+        return errorhandler.mock_response(e)
+
+    try:
+        combined = validator.validate(response, signature)
+    except (UnknownKeyword, MissingValue) as e:
+        return errorhandler.mock_response(e)
+
+    try:
+        final = finalizer.finalize(combined)  # should be renamed to caster
+    except WrongType as e:
+        return errorhandler.mock_response(e)
+
+    return final
 
 
 def fantasy(text, options):
-    if multiline:
-        text = preprocess(text)
-
-    userinput = structure(tokenize(text))
-    signature = match_head(signatures, userinput)
-    combined = match(userinput, signature)
-    response = cast(combined)
-    return response
+    pass
 
 
 def read(lines, options):

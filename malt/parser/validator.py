@@ -1,5 +1,6 @@
 
 from malt.objects import Signature, Argument
+from malt.exceptions import UnknownKeyword, MissingValue
 
 """
 ...
@@ -29,17 +30,21 @@ def validate(userinput, signature):
                 body.append(s)
             else:
                 # Otherwise we have a problem.
-                raise ValueError("No given value and no default either.")
+                raise MissingValue()
         else:
             body.append(combine(s, u))
     return Signature(head, body)
 
 
 def check_for_incorrect_keys(userinput, signature):
+    """
+    Check the user-given arguments for any keys that are not known in the
+    signature. If bad keys are found, raise UnknownKeyword.
+    """
     known_keys = [s.key for s in signature]
     given_keys = [u.key for u in userinput if u.key is not None]
     if not all(key in known_keys for key in given_keys):
-        raise ValueError("Unknown key in user input!")
+        raise UnknownKeyword()
 
 
 # Probably where we can implement out-of-order kwargs.

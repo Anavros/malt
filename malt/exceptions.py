@@ -12,7 +12,8 @@ class WrongType(TypeError):
     def __init__(self, cast='str', value=''):
         self.cast = cast
         self.value = value
-        self.message = '[malt] argument does not match expected type'
+        self.message = "unable to cast '{}' to type({})".format(
+            value, cast)
 
 
 class NotAnOption(TypeError):
@@ -27,30 +28,42 @@ class NotAnOption(TypeError):
         self.top = top
 
 
-class TooManyArgs(ValueError):
-    """ The user's input has too many arguments. """
+class MismatchedArgs(ValueError):
+    """ User input has either too many or too few arguments. """
+    def __init__(self):
+        self.message = "wrong number of arguments"
 
 
-class NotEnoughArgs(ValueError):
-    """ The user's input is missing arguments. """
+class MissingValue(ValueError):
+    """ User input is missing a required argument. """
+    def __init__(self):
+        self.message = "missing positional values"
 
 
 class UnknownKeyword(ValueError):
-    pass
+    """ User input contains a known command, but unknown argument keys. """
+    def __init__(self, keyword=''):
+        self.message = "unknown keyword argument"
 
 
 class UnknownCommand(ValueError):
     """
     Ther user has given a command that is not included in the supplied options.
     """
+    def __init__(self, command=''):
+        self.message = "unknown command"
 
 
 class EmptyCommand(ValueError):
     """ The user has entered an empty line. """
+    def __init__(self):
+        self.message = "empty line"
 
 
-class InputForbiddenCharacters(ValueError):
-    pass
+class MaltSyntaxError(ValueError):
+    """ The parser has encountered incorrect syntax and can not continue. """
+    def __init__(self):
+        self.message = "syntax error on input"
 
 
 # Errors raised when parsing option arrays.
@@ -62,6 +75,8 @@ class BadTypePrefix(ValueError):
 
 class EmptyOptionString(ValueError):
     """ An option string was completely empty. """
+    def __init__(self):
+        self.message = "unknown command"
 
 
 # General mishaps.

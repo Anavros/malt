@@ -1,25 +1,19 @@
 
 from malt.constants import *
+from malt.exceptions import MaltSyntaxError
 
 # TODO: use errors from malt.exceptions
 # TODO: clean this mess up
+# TODO: combine with response builder?
 
 def tokenize(stream):
-    return get_tokens(stream)
-
-# TODO: replace with tokenize
-def get_tokens(contents):
     state = ParserState()
-    for c in contents:
+    for c in stream:
         if c in WORD_SEPARATORS:
             state.end_word(separator=c)
         elif c == QUOTE:
             state.in_quotes = not state.in_quotes
             state.word_buffer.append(c)
-#        elif c == DEFAULT_ARG_SETTER:
-#            # kwarg=default
-#            state.word_buffer.append(DEFAULT_ARG_SETTER)
-#            state.end_word()
         elif c == LIST_BEGIN:
             if state.in_list:
                 raise MaltSyntaxError("Nested list.")
@@ -46,10 +40,6 @@ def get_tokens(contents):
             state.word_buffer.append(c)
     state.end_word()
     return state.tokens
-
-
-class MaltSyntaxError(ValueError):
-    pass
 
 
 class ParserState:

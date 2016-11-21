@@ -59,8 +59,6 @@ def test_line_continuation():
 
 
 def test_inline_comment_removal():
-    """
-    """
     with_comments = [
         "keyword arg  # everything following a hash is removed",
         "hashes are allowed \"#\" in quotes",

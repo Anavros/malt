@@ -2,6 +2,8 @@
 from malt.objects import Signature, Argument
 
 
+# Does this not throw any errors?
+# It's not externally callable, so maybe not?
 def build_response(tokens):
     """
     Turn a line of tokens into a Response object.
