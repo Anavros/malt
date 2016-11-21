@@ -1,7 +1,20 @@
 
-from malt.parser.caster import autocast
+from malt.parser.caster import autocast, cast_arguments
 from malt.exceptions import BadTypePrefix, WrongType
+from malt.objects import Signature, Argument
 from pytest import raises
+
+
+def test_finalization():
+    args = Signature('keyword', [
+        Argument(0, 'str', 'value', 's'),
+        Argument(1, 'int', '10', 'i'),
+        Argument(1, 'float', '1.0', 'f'),
+    ])
+    response = cast_arguments(args)
+    assert response.str == 'value'
+    assert response.int == 10
+    assert response.float == 1.0
 
 
 def test_strings():

@@ -1,6 +1,6 @@
 
 import pytest
-from malt.parser.validator import validate, combine
+from malt.parser.matcher import match_arguments, combine
 from malt.objects import Signature, Argument as Arg
 
 
@@ -20,7 +20,7 @@ def test_easy_validation():
     """
     uin = Signature('pow', [Arg(0, None, '8', None), Arg(1, 'power', '3', None)])
     sig = Signature('pow', [Arg(0, 'number', None, 'i'), Arg(1, 'power', '2', 'i')])
-    val = validate(uin, sig)
+    val = match_arguments(uin, sig)
     assert val.body[0].position == 0
     assert val.body[0].key == 'number'
     assert val.body[0].value == '8'
@@ -40,7 +40,7 @@ def test_fallback_kwarg():
     # Use default value if kwarg is missing.
     # Positional args can not be missing.
     # Note that argument lists are different lengths.
-    val = validate(uin, sig)
+    val = match_arguments(uin, sig)
     assert val.body[0].position == 0
     assert val.body[0].key == 'number'
     assert val.body[0].value == '8'
@@ -60,7 +60,7 @@ def test_key_inference():
     # Use default value if kwarg is missing.
     # Positional args can not be missing.
     # Note that argument lists are different lengths.
-    val = validate(uin, sig)
+    val = match_arguments(uin, sig)
     assert val.body[0].position == 0
     assert val.body[0].key == 'number'
     assert val.body[0].value == '8'
@@ -86,7 +86,7 @@ def test_key_position_swap():
         Arg(2, 'vol', '50', 'i'),
     ])
     # Kwargs can be swapped in position if they both have marked keys when input.
-    val = validate(uin, sig)
+    val = match_arguments(uin, sig)
     assert val.body[0].position == 0
     assert val.body[0].key == 'word'
     assert val.body[0].value == 'hi'
@@ -115,7 +115,7 @@ def test_explicit_keyword_for_positional_arg():
         Arg(0, 'x', None, 'i'),
         Arg(1, 'y', None, 'i'),
     ])
-    val = validate(uin, sig)
+    val = match_arguments(uin, sig)
     assert val.body[0].position == 0
     assert val.body[0].key == 'x'
     assert val.body[0].value == '5'

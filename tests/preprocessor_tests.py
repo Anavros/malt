@@ -1,7 +1,6 @@
 
-from malt.parser.stripper import strip
-from malt.parser.stripper import strip_inline_comments
-from malt.parser import joiner
+from malt.parser.preprocessor import strip, strip_inline_comments
+from malt.parser.preprocessor import collapse_lists, continue_lines
 
 commented_file = r"""
 # There are single-line comments...
@@ -42,7 +41,7 @@ def test_comment_removal():
 
 
 def test_line_joining():
-    assert joiner.collapse_lists(to_be_joined) == joined_file
+    assert collapse_lists(to_be_joined) == joined_file
 
 
 def test_line_continuation():
@@ -55,7 +54,7 @@ def test_line_continuation():
         "cmd arg1 arg2 arg3\n"
         "cmd arg1\n"  # adds an extra newline, benign for now
     )
-    assert list(joiner.continue_lines(given)) == list(result)
+    assert list(continue_lines(given)) == list(result)
 
 
 def test_inline_comment_removal():

@@ -1,11 +1,23 @@
 
 import re
-from malt.exceptions import WrongType, BadTypePrefix, UnexpectedProgrammingError
+from malt.exceptions import WrongType, BadTypePrefix
+from malt.objects import Response
 
 
 # Typestring Regex
 LIST_TYPE = r"^\[[sifb]\]$"
 DICT_TYPE = r"\{[sifb]-[sifb]\}"
+
+
+# caster.cast_arguments(combined)
+def cast_arguments(userinput):
+    head = userinput.head
+    body = {}
+    for argument in userinput.body:
+        key = argument.key
+        value = autocast(argument.value, argument.cast)
+        body[key] = value
+    return Response(head, body)
 
 
 # TODO: Internal logging?

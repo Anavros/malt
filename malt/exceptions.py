@@ -40,6 +40,12 @@ class MissingValue(ValueError):
         self.message = "missing positional values"
 
 
+class AmbiguousArgs(ValueError):
+    """ User arguments can not be ordered, likely due to kwargs out of place. """
+    def __init__(self):
+        self.message = "positional arg found after kwarg"
+
+
 class UnknownKeyword(ValueError):
     """ User input contains a known command, but unknown argument keys. """
     def __init__(self, keyword=''):

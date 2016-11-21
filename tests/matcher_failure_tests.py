@@ -1,6 +1,6 @@
 
 import pytest
-from malt.parser.validator import validate, combine
+from malt.parser.matcher import match_arguments, combine
 from malt.objects import Signature, Argument as Arg
 
 
@@ -18,7 +18,7 @@ def test_missing_positional_argument():
         Arg(1, 'y', None, 'i'),
     ])
     with pytest.raises(ValueError):
-        val = validate(uin, sig)
+        val = match_arguments(uin, sig)
 
 
 def test_unknown_keyword():
@@ -36,7 +36,7 @@ def test_unknown_keyword():
         Arg(1, 'y', None, 'i'),
     ])
     with pytest.raises(ValueError):
-        val = validate(uin, sig)
+        val = match_arguments(uin, sig)
 
 
 # Positional arguments are not allowed after the first keyword arg.
@@ -55,4 +55,4 @@ def test_positional_arg_after_kwarg():
         Arg(1, 'power', '2', 'i'),
     ])
     with pytest.raises(ValueError):
-        val = validate(uin, sig)
+        val = match_arguments(uin, sig)

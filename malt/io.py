@@ -4,12 +4,8 @@ Definitions of malt.offer() and malt.load().
 Effectively compositions of lower-level parsing modules.
 """
 
-from malt.objects import Response
-from malt.exceptions import WrongType, MaltSyntaxError, MissingValue
-from malt.exceptions import UnknownKeyword, UnknownCommand
-from malt.parser import joiner, stripper, tokenizer, validator, finalizer
-from malt.parser import signaturebuilder, responsebuilder, errorhandler
-from malt.parser import matcher
+from malt import parser
+from malt.exceptions import *
 
 
 def offer(options):
@@ -26,39 +22,16 @@ def parse(text, options):
     Parse a single line of input.
     """
     try:
-        tokens = tokenizer.tokenize(text)
-    except MaltSyntaxError as e:
-        return errorhandler.mock_response(e)
-
-    # Throws no errors?
-    # Assuming correct tokens.
-    response = responsebuilder.build_response(tokens)
-
-    try:
-        signatures = signaturebuilder.generate_signatures(options)
-    except EmptyOptionString as e:
-        return errorhandler.mock_response(e)
-
-    try:
-        signature = matcher.find(response, signatures)
-    except UnknownCommand as e:
-        return errorhandler.mock_response(e)
-
-    try:
-        combined = validator.validate(response, signature)
-    except (UnknownKeyword, MissingValue) as e:
-        return errorhandler.mock_response(e)
-
-    try:
-        final = finalizer.finalize(combined)  # should be renamed to caster
-    except WrongType as e:
-        return errorhandler.mock_response(e)
-
-    return final
-
-
-def fantasy(text, options):
-    pass
+        available = parser.parse_options(options)
+        userinput = parser.parse_user_input(text)
+        expecting = parser.match_command(userinput, available)
+        matched = parser.match_arguments(userinput, expecting)
+        response = parser.cast(matched)
+    except (EmptyOptionString, MaltSyntaxError, UnknownCommand, UnknownKeyword,
+        MissingValue, WrongType) as e:
+        return parser.handle(e)
+    else:
+        return response
 
 
 def read(lines, options):
