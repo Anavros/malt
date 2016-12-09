@@ -9,7 +9,7 @@ from malt.objects import Response
 from malt.exceptions import MaltException
 
 
-def parse(text, options):
+def parse(text, options, silent=False):
     """
     Parse a single line of input.
     """
@@ -20,32 +20,34 @@ def parse(text, options):
         matched = parser.match_arguments(userinput, expecting)
         head, body = parser.cast(matched)
     except MaltException as e:
-        return parser.handle(e, text)
+        if not silent:
+            print("[malt]", str(e))
+        return Response("", {}, text)
     else:
         return Response(head, body, text)
 
 
-def read(lines, options):
+def read(lines, options, silent=False):
     """
     Parse a list of lines all at once. Returns a list of Response objects.
     """
-    return [parse(line, options) for line in lines]
+    return [parse(line, options, silent) for line in lines]
 
 
-def offer(options):
+def offer(options, silent=False):
     try:
         text = input('> ')
     except (KeyboardInterrupt, EOFError):
         raise SystemExit # silent exit without stack trace
     else:
-        return parse(text, options)
+        return parse(text, options, silent)
 
 
 # What about preprocessor steps?
-def load(filepath, options):
+def load(filepath, options, silent=False):
     """
     Load and read a text file. Wrapper around read() that takes filename.
     """
     with open(filepath, 'r') as f:
         lines = f.readlines()
-    return read(lines, options)
+    return read(lines, options, silent)

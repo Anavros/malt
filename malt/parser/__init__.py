@@ -1,6 +1,5 @@
 
 from malt.parser import preprocessor, optionparser, syntaxparser, matcher, caster
-from malt.objects import Response
 
 
 def preprocess(text):
@@ -28,8 +27,3 @@ def match_arguments(userinput, signature):
 
 def cast(complete):
     return caster.cast_arguments(complete)
-
-
-def handle(error, text, silent=False):
-    if not silent: print("[malt]", str(error))
-    return Response("", {}, text)

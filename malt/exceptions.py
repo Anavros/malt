@@ -10,6 +10,11 @@ class MaltException(ValueError):
     Generic superclass for malt errors. Allows `except MaltException:` to
     easily catch all internal errors.
     """
+    def __init__(self):
+        self.message = "error"
+
+    def __str__(self):
+        return self.message
 
 # Errors raised on user input.
 class WrongType(MaltException):
@@ -84,6 +89,7 @@ class BadTypePrefix(MaltException):
     """ Unknown or misformatted type prefix in supplied options. """
     def __init__(self, typestring):
         self.typestring = typestring
+        self.message = "unknown type prefix: " + typestring
 
 
 class EmptyOptionString(MaltException):
