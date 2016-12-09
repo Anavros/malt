@@ -1,13 +1,18 @@
 
 """
-malt.exceptions
-
-Contains custom exceptions for parsing errors to prevent getting mixed up with
+Custom exceptions for parsing errors to prevent getting mixed up with
 normal errors.
 """
 
+
+class MaltException(ValueError):
+    """
+    Generic superclass for malt errors. Allows `except MaltException:` to
+    easily catch all internal errors.
+    """
+
 # Errors raised on user input.
-class WrongType(TypeError):
+class WrongType(MaltException):
     """ A given value can not be casted to the expected type. """
     def __init__(self, cast='str', value=''):
         self.cast = cast
@@ -16,7 +21,7 @@ class WrongType(TypeError):
             value, cast)
 
 
-class NotAnOption(TypeError):
+class NotAnOption(MaltException):
     """
     Deprecated for now: User input is not in the explicitly allowed options.
     """
@@ -28,31 +33,31 @@ class NotAnOption(TypeError):
         self.top = top
 
 
-class MismatchedArgs(ValueError):
+class MismatchedArgs(MaltException):
     """ User input has either too many or too few arguments. """
     def __init__(self):
         self.message = "wrong number of arguments"
 
 
-class MissingValue(ValueError):
+class MissingValue(MaltException):
     """ User input is missing a required argument. """
     def __init__(self):
         self.message = "missing positional values"
 
 
-class AmbiguousArgs(ValueError):
+class AmbiguousArgs(MaltException):
     """ User arguments can not be ordered, likely due to kwargs out of place. """
     def __init__(self):
         self.message = "positional arg found after kwarg"
 
 
-class UnknownKeyword(ValueError):
+class UnknownKeyword(MaltException):
     """ User input contains a known command, but unknown argument keys. """
     def __init__(self, keyword=''):
         self.message = "unknown keyword argument"
 
 
-class UnknownCommand(ValueError):
+class UnknownCommand(MaltException):
     """
     Ther user has given a command that is not included in the supplied options.
     """
@@ -60,13 +65,13 @@ class UnknownCommand(ValueError):
         self.message = "unknown command"
 
 
-class EmptyCommand(ValueError):
+class EmptyCommand(MaltException):
     """ The user has entered an empty line. """
     def __init__(self):
         self.message = "empty line"
 
 
-class MaltSyntaxError(ValueError):
+class MaltSyntaxError(MaltException):
     """ The parser has encountered incorrect syntax and can not continue. """
     def __init__(self, details=''):
         self.details = details
@@ -75,20 +80,20 @@ class MaltSyntaxError(ValueError):
 
 
 # Errors raised when parsing option arrays.
-class BadTypePrefix(ValueError):
+class BadTypePrefix(MaltException):
     """ Unknown or misformatted type prefix in supplied options. """
     def __init__(self, typestring):
         self.typestring = typestring
 
 
-class EmptyOptionString(ValueError):
+class EmptyOptionString(MaltException):
     """ An option string was completely empty. """
     def __init__(self):
         self.message = "unknown command"
 
 
 # General mishaps.
-class UnexpectedProgrammingError(ValueError):
+class UnexpectedProgrammingError(MaltException):
     """
     Something unexpected happened due to programming error and not user input.
     """
