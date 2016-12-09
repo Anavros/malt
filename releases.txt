@@ -13,12 +13,14 @@ v0.3:
 - Simplification and tighter scoping.
 - Removal of formatted output features.
 
-Future:
+v0.4:
 - Line leader feature.
+- Further improved documentation.
+
+Future:
 - Tab completion of commands.
 - Output coloring.
 - Integrated help functions.
 - Autocommands.
 - Replacement for giant if/else trees.
-- Further improved documentation.
 - Release onto pypi.

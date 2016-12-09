@@ -47,11 +47,10 @@ sausage
 
 ## Installation
 #### Github
-`TODO (v0.3): double check these instructions.`
 ```
 $ git clone https://github.com/anavros/malt.git malt
 $ cd malt
 $ pip3 install .
 ```
 #### PyPi
-`TODO (v0.3): upload to pypi`
+`TODO: upload to pypi`
