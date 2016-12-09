@@ -1,34 +1,10 @@
 
 Todo:
--> Seriously come up with better names for the parser modules.
+-> Upload to pypi.
 
-- Response <<< Signature (cast)
-    - Signature <<< Signature + Signature (match)
-        - Signature <<< [token] (build?)
-            - [token] <<< str (tokenize)
-                - str <<< [str] (preprocess)
-                    - [str] <<< INPUT (load)
-                - str <<< INPUT (offer)
-        - Signature <<< [option] (build?)
-            - [option] <<< INPUT
+Fix for Release v0.3:
+-> Inputs with too many positional arguments are silently accepted, should throw error.
 
 Bugs:
 -> Ints can not be cast from strings shaped like floats, e.g. '1.0'.
--> Inputs with too many positional arguments are silently accepted, should throw error.
-
-New Features:
--> Tab completion!
--> Helper functions to make testing easier.
--> There should be a built-in help function. e.g. cmd? gives help for cmd.
--> Allow a default value for dict inputs, e.g. take salt -> {salt:1}
--> Allow user input to omit brackets in list and dict input, use inference
--> Allow commenting on options for detailed help.
--> Config option to turn off error messages? or kwarg?
--> Infer positional inputs as keyword inputs if they match position.
--> Polish and clarify use of global functions.
--> Allow raw characters in inputs using backslash escapes.
-
-Recent Changes:
--> Removed output features.
--> Greatly improved unit tests.
--> **Implemented new parser.
+    - Cast to float first and then int.

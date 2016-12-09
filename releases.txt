@@ -1,0 +1,24 @@
+
+v0.1:
+- Initial release.
+
+v0.2:
+- Proper packaging using pip3.
+- Beginning of malt syntax.
+- Inclusion of config loading functions.
+
+v0.3:
+- Parser improvements.
+- Better documentation and unit testing.
+- Simplification and tighter scoping.
+- Removal of formatted output features.
+- Release onto pypi.
+
+Future:
+- Line leader feature.
+- Tab completion of commands.
+- Output coloring.
+- Integrated help functions.
+- Autocommands.
+- Replacement for giant if/else trees.
+- Further improved documentation.

@@ -1,0 +1,17 @@
+
+Ideas:
+- Tab completion!
+- There should be a built-in help function. e.g. cmd? gives help for cmd.
+- Allow a default value for dict inputs, e.g. take salt -> {salt:1}
+- Allow user input to omit brackets in list and dict input, use inference
+- Allow commenting on options for detailed help.
+- Config option to turn off error messages? or kwarg?
+- Infer positional inputs as keyword inputs if they match position.
+- Polish and clarify use of global functions.
+- Allow raw characters in inputs using backslash escapes. +++
+- Optional function to parse argv in same malt syntax.
+- Helper functions to make testing easier?
+
+Release v0.3:
+
+Release v0.4:

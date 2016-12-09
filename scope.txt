@@ -1,31 +1,14 @@
 
 Focus:
-- A toolset, not a framework, for building interactive terminal loops.
-- Never take over control flow or feature internal loops.
-- Primary feature is input validation.
-- Provides optional shortcuts for common interface tasks.
-- Secondary feature is logging and formatted output for debugging.
-- Output for interactivity?
-- There's an important split between debugging and interactivity here.
+- Tools for command-driven terminal user interfaces.
 
-- Debug Features:
-    - log()
-    - serve()
-- Interface Features:
-    - offer()
-    - clear()
-    - set_header()
-    - indent()?
-    - confirm()?
-- Configuration Features
-    - load()
-
-- So we should split logging and formatted output features into a separate
-  library, and focus more on interactivity.
-
+Features:
+- Primary feature is strong input validation.
+- Optional secondary features for common interface tasks.
+- Bias towards text-adventure style games.
+- Simple usage that doesn't take over control flow.
 
 Anti-Features:
--> Malt definitely doesn't need real-time interaction or threading.
-    * The screen only updates once per command, and it blocks in input().
--> The blessed interface should be split into a separate project.
-    * It complicates things that should really be kept simple.
+- No real-time interaction.
+- No multithreading.
+- No complicated curses-style interfaces.
