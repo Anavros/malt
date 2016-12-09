@@ -41,6 +41,7 @@ def offer(options):
         return parse(text, options)
 
 
+# What about preprocessor steps?
 def load(filepath, options):
     """
     Load and read a text file. Wrapper around read() that takes filename.

@@ -19,6 +19,11 @@ def build_response(tokens):
     body = []
     i = 0
     for token in tokens:
+        # BUG: What are the None tokens used for?
+        # They were supposed to be for newlines, right?
+        if token is None:
+            continue
+
         # The first token always becomes the head.
         if not head:
             head = token

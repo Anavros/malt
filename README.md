@@ -53,4 +53,6 @@ $ cd malt
 $ pip3 install .
 ```
 #### PyPi
-`TODO: upload to pypi`
+```
+pip3 install maltcmd
+```

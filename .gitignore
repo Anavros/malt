@@ -3,7 +3,7 @@
 *cache*
 local/*
 old/*
-malt.egg-info/*
+*.egg-info/*
 docs/.build
 docs/.static
 docs/.templates

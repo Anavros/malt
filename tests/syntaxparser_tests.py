@@ -26,3 +26,17 @@ def test_tokenizer():
         'def=arg',
     ]
     assert tokenize(line) == result
+
+
+def test_empty_line():
+    assert tokenize("") == []
+    sig = build_response([])
+    assert sig.head == ''
+    assert sig.body == []
+
+
+def test_only_newline():
+    assert tokenize("\n") == [None]
+    sig = build_response([None])
+    assert sig.head == ''
+    assert sig.body == []

@@ -3,7 +3,7 @@ import setuptools
 
 
 setuptools.setup(
-    name='malt',
+    name='maltcmd',
     version='0.3',
     description='a toolset for command-driven terminal user interfaces',
     url='https://github.com/anavros/malt',
