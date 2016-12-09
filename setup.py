@@ -4,16 +4,10 @@ import setuptools
 
 setuptools.setup(
     name='malt',
-    version='0.2',
-    description='a tiny toolkit for structured input and output in the terminal',
+    version='0.3',
+    description='a toolset for command-driven terminal user interfaces',
     url='https://github.com/anavros/malt',
-    author='Anavros',
+    author='John Dobbs (Anavros)',
     license='MIT',
-    classifiers=[
-        'Development Status :: 3 - Alpha',
-        'Intended Audience :: Developers',
-        'License :: MIT License',
-        'Programming Language :: Python 3.4',
-    ],
     packages=['malt'],
 )

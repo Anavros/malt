@@ -1,18 +1,23 @@
 
+# Characters
 LIST_BEGIN = '['
 LIST_END = ']'
 DICT_BEGIN = '{'
 DICT_END = '}'
-LINE_CONTINUE = '...'
 LINE_END = '\n'
-KEY_VALUE_JOIN = ':'
-DEFAULT_ARG_SETTER = '='
-EMPTY_DEFAULT_ARG = 'empty'
-SIGNATURE_HINT = '?'
-
-# For the comment remover.
+JOIN = ':'
+EQUALS = '='
 COMMENT = '#'
-QUOTE = '\"'
-SPACES = ' \t'
+HINT = '?'
+DOUBLE_QUOTE = '\"'
+SINGLE_QUOTE = '\''
 
-WORD_SEPARATORS = [' ', '\t', '\n']
+# Character Groups
+COMMENTS = '#?'
+SEPARATORS = ' \t\n'
+QUOTES = '\'\"'
+BRACES = '[]{}'
+
+# Literal Strings
+LINE_CONTINUE = '...'
+BLOCK_COMMENT = '###'

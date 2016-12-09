@@ -1,5 +1,6 @@
 
 from malt.objects import Signature, Argument
+from malt.constants import EQUALS, JOIN
 from malt.exceptions import EmptyOptionString
 
 """
@@ -54,15 +55,15 @@ def separate(castkeydefault):
 
 
 def split_key_value(word):
-    if '=' in word:
-        return word.split('=', 1)
+    if EQUALS in word:
+        return word.split(EQUALS, 1)
     else:
         return word, None
 
 
 def split_cast_key(word):
-    if ':' in word:
-        return word.split(':', 1)
+    if JOIN in word:
+        return word.split(JOIN, 1)
     else:
         # default to string cast, i.e. no cast
         return 's', word

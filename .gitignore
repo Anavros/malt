@@ -10,3 +10,5 @@ docs/.templates
 malt/archive/
 *.un~
 brunch
+build
+dist

@@ -1,10 +1,27 @@
 
 Todo:
--> Upload to pypi.
+- Replace hardcoded chars with constants.
+- General clean up.
 
 Fix for Release v0.3:
--> Inputs with too many positional arguments are silently accepted, should throw error.
+- Inputs with too many positional arguments are silently accepted, should throw error.
 
 Bugs:
--> Ints can not be cast from strings shaped like floats, e.g. '1.0'.
+- Ints can not be cast from strings shaped like floats, e.g. '1.0'.
     - Cast to float first and then int.
+- Comment chars can not be escaped with backslashes or single quotes.
+- Preprocessor can't handle nested lists and dicts.
+- Proprocessor iterates over files multiple times.
+- Tokenizer and preprocessor have duplicate functionality.
+
+Feature Ideas:
+- Allow a default value for dict inputs, e.g. take salt -> {salt:1}
+- Allow user input to omit brackets in list and dict input, use inference
+- Allow commenting on options for detailed help.
+- Config option to turn off error messages? or kwarg?
+- Infer positional inputs as keyword inputs if they match position.
+- Polish and clarify use of global functions.
+- Allow raw characters in inputs using backslash escapes. +++
+- Optional function to parse argv in same malt syntax.
+- Helper functions to make testing easier?
+- Allow implicitly given options i.e. autocommands.

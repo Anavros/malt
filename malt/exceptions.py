@@ -68,8 +68,10 @@ class EmptyCommand(ValueError):
 
 class MaltSyntaxError(ValueError):
     """ The parser has encountered incorrect syntax and can not continue. """
-    def __init__(self):
-        self.message = "syntax error on input"
+    def __init__(self, details=''):
+        self.details = details
+        # TODO: line numbers for easier debugging
+        self.message = "syntax error on input: " + details
 
 
 # Errors raised when parsing option arrays.
