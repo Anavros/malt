@@ -11,10 +11,11 @@ def test_finalization():
         Argument(1, 'int', '10', 'i'),
         Argument(1, 'float', '1.0', 'f'),
     ])
-    response = cast_arguments(args)
-    assert response.str == 'value'
-    assert response.int == 10
-    assert response.float == 1.0
+    head, body = cast_arguments(args)
+    assert head == 'keyword'
+    assert body['str'] == 'value'
+    assert body['int'] == 10
+    assert body['float'] == 1.0
 
 
 def test_strings():

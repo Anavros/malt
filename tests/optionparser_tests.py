@@ -30,6 +30,15 @@ def test_parse_on_no_args():
     assert result.body == []
 
 
+def test_prefixed_command():
+    """
+    Commands can be prefixed by literally including the prefix char in the name.
+    """
+    result = parse("/fixed")
+    assert result.head == "/fixed"
+    assert result.body == []
+
+
 def test_failure_empty_input():
     """
     Raise EmptyOptionString when given empty input.
