@@ -41,7 +41,6 @@ def build_response(tokens):
     return Signature(head, body)
 
 
-# BUG: duplicate functionality with preprocessor.collapse_lists
 def tokenize(stream):
     state = ParserState()
     for c in stream:
