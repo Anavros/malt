@@ -3,21 +3,26 @@ class Response:
     """
     Easily-accessible user input stored with metadata.
     """
-    def __init__(self, head, body):
-        self.head = head
-        self.body = body
+    def __init__(self, head, body, text):
+        self._head = head
+        self._body = body
+        self._text = text
 
-        # Put arguments in dict for easy access.
-        for k, v in self.body.items():
+        for k, v in body.items():
             self.__dict__[k] = v
 
+    def __eq__(self, x):
+        return self._head == x
+
     def __iter__(self):
-        for k, v in self.body.items():
+        for k, v in self._body.items():
             yield k, v
 
-    def __repr__(self): return self.head
-    def __str__(self): return self.__repr__()
-    def __len__(self): return len(self.body)
+    def __repr__(self):
+        return self._head
+
+    def __len__(self):
+        return len(self._body)
 
 
 class Signature:

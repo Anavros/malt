@@ -1,7 +1,6 @@
 
 import re
 from malt.exceptions import WrongType, BadTypePrefix
-from malt.objects import Response
 
 
 # Typestring Regex
@@ -17,7 +16,7 @@ def cast_arguments(userinput):
         key = argument.key
         value = autocast(argument.value, argument.cast)
         body[key] = value
-    return Response(head, body)
+    return head, body
 
 
 # TODO: Internal logging?

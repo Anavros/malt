@@ -30,6 +30,6 @@ def cast(complete):
     return caster.cast_arguments(complete)
 
 
-def handle(error, silent=False):
+def handle(error, text, silent=False):
     if not silent: print("[malt]", str(error))
-    return Response("", {})
+    return Response("", {}, text)

@@ -6,6 +6,7 @@ Effectively compositions of lower-level parsing modules.
 
 from malt import parser
 from malt.exceptions import *
+from malt.objects import Response
 
 
 def parse(text, options):
@@ -17,12 +18,12 @@ def parse(text, options):
         userinput = parser.parse_user_input(text)
         expecting = parser.match_command(userinput, available)
         matched = parser.match_arguments(userinput, expecting)
-        response = parser.cast(matched)
+        head, body = parser.cast(matched)
     except (EmptyOptionString, MaltSyntaxError, UnknownCommand, UnknownKeyword,
         MissingValue, WrongType) as e:
-        return parser.handle(e)
+        return parser.handle(e, text)
     else:
-        return response
+        return Response(head, body, text)
 
 
 def read(lines, options):

@@ -8,6 +8,7 @@ Bugs:
 - Preprocessor can't handle nested lists and dicts.
 - Proprocessor iterates over files multiple times.
 - Tokenizer and preprocessor have duplicate functionality.
+- Add a parent class for all malt exceptions.
 
 Feature Ideas:
 - Allow a default value for dict inputs, e.g. take salt -> {salt:1}
