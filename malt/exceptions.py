@@ -67,7 +67,7 @@ class UnknownCommand(MaltException):
     Ther user has given a command that is not included in the supplied options.
     """
     def __init__(self, command=''):
-        self.message = "unknown command"
+        self.message = "unknown command: " + command
 
 
 class EmptyCommand(MaltException):

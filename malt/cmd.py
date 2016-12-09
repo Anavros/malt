@@ -31,7 +31,16 @@ def read(lines, options, silent=False):
     """
     Parse a list of lines all at once. Returns a list of Response objects.
     """
-    return [parse(line, options, silent) for line in lines]
+    responses = []
+    for line in lines:
+
+        # TODO: this should be a preprocessor step
+        line = line.strip()
+        if not line:
+            continue
+
+        responses.append(parse(line, options, silent))
+    return responses
 
 
 def offer(options, silent=False):
