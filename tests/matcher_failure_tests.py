@@ -56,3 +56,24 @@ def test_positional_arg_after_kwarg():
     ])
     with pytest.raises(ValueError):
         val = match_arguments(uin, sig)
+
+
+def test_excess_args():
+    """
+    expected: add i:a i:b i:c
+    recieves: add 1 2 3 4 5
+    """
+    expected = Signature('add', [
+        Arg(0, 'a', None, 'i'),
+        Arg(1, 'b', None, 'i'),
+        Arg(2, 'c', None, 'i'),
+    ])
+    recieves = Signature('add', [
+        Arg(0, None, '1', None),
+        Arg(1, None, '2', None),
+        Arg(2, None, '3', None),
+        Arg(3, None, '4', None),
+        Arg(4, None, '5', None),
+    ])
+    with pytest.raises(ValueError):
+        match_arguments(recieves, expected)

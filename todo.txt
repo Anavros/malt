@@ -1,10 +1,7 @@
 
 Todo:
-- Replace hardcoded chars with constants.
-- General clean up.
 
 Fix for Release v0.3:
-- Inputs with too many positional arguments are silently accepted, should throw error.
 
 Bugs:
 - Ints can not be cast from strings shaped like floats, e.g. '1.0'.

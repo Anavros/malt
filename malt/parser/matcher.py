@@ -5,7 +5,7 @@ Selects the matching signature for a given userinput.
 
 from malt.objects import Signature, Argument
 from malt.exceptions import UnknownKeyword, MissingValue, AmbiguousArgs
-from malt.exceptions import UnknownCommand
+from malt.exceptions import UnknownCommand, MismatchedArgs
 
 
 def find(given, expected):
@@ -28,11 +28,9 @@ def match_arguments(userinput, signature):
     head = signature.head  # what if they don't match?
     body = []
 
-    # Raises ValueError if any user-given keys are unknown.
-    # This happens in a separate step because the iteration coming up only
-    # goes over signatures: if there is something extra in userinput, it won't
-    # come up. Errors should not be silently ignored, therefore: this step.
-    check_for_incorrect_keys(userinput, signature)
+    # Raises an error if the user provides unknown keys or too many pos. args.
+    # Done in a separate step because loop below only goes over signatures.
+    error_if_bad_argc(userinput, signature)
 
     for s in signature:
         try:
@@ -50,15 +48,19 @@ def match_arguments(userinput, signature):
     return Signature(head, body)
 
 
-def check_for_incorrect_keys(userinput, signature):
+def error_if_bad_argc(userinput, signature):
     """
-    Check the user-given arguments for any keys that are not known in the
-    signature. If bad keys are found, raise UnknownKeyword.
+    Raise UnknownKeyword if user input contains an unknown key=value key and
+    MismatchedArgs if it has too many positional arguments.
     """
+    total_argc = len(signature)
+    n_positional_args = sum(1 for arg in userinput.body if arg.key is None)
     known_keys = [s.key for s in signature]
     given_keys = [u.key for u in userinput if u.key is not None]
     if not all(key in known_keys for key in given_keys):
         raise UnknownKeyword()
+    if n_positional_args > total_argc:
+        raise MismatchedArgs()
 
 
 def match(s, userinput):
