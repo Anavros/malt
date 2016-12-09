@@ -12,9 +12,9 @@ v0.3:
 - Better documentation and unit testing.
 - Simplification and tighter scoping.
 - Removal of formatted output features.
+- Upload to pypi as maltcmd.
 
 v0.4:
-- Line leader feature.
 - Further improved documentation.
 
 Future:
@@ -23,4 +23,3 @@ Future:
 - Integrated help functions.
 - Autocommands.
 - Replacement for giant if/else trees.
-- Release onto pypi.

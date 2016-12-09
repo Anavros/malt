@@ -43,6 +43,11 @@ def parse(string):
         body = []
         for index, castkeydefault in enumerate(tail):
             cast, key, default = separate(castkeydefault)
+
+            # TODO: Clean up.
+            if cast == '[]': cast = '[s]'
+            elif cast == '{}': cast = '{s-s}'
+
             body.append(Argument(index, key, default, cast))
         return Signature(head, body)
 

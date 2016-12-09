@@ -28,6 +28,25 @@ def test_tokenizer():
     assert tokenize(line) == result
 
 
+# TODO;
+# Tokens might have to become objects not just primitives.
+def hide_test_default_value_list():
+    line = "keyword deflist=[1 2 3]"
+    assert tokenize(line) == [
+        'keyword',
+        'deflist=???'  # uh oh: it's supposed to be a list but also a string
+    ]
+
+
+def test_empty_structs():
+    line = "keyword [] {}"
+    assert tokenize(line) == [
+        'keyword',
+        [],
+        {},
+    ]
+
+
 def test_empty_line():
     assert tokenize("") == []
     sig = build_response([])

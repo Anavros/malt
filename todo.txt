@@ -8,6 +8,9 @@ Bugs:
 - Comment chars can not be escaped with backslashes or single quotes.
 - Preprocessor can't handle nested lists and dicts.
 - Proprocessor iterates over files multiple times.
+- Syntax hints no longer work.
+- List and dict types in option strings can not have default values.
+- Providing a string as an option list doesn't throw an error but still breaks.
 
 Feature Ideas:
 - Allow a default value for dict inputs, e.g. take salt -> {salt:1}
@@ -15,3 +18,4 @@ Feature Ideas:
 - Allow commenting on options for detailed help.
 - Optional function to parse argv in same malt syntax.
 - Allow implicitly given options i.e. autocommands.
+- Use typestring like {i} for sets instead of dicts.

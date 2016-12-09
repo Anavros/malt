@@ -45,3 +45,33 @@ def test_failure_empty_input():
     """
     with pytest.raises(EmptyOptionString):
         parse('')
+
+
+def test_default_list_values():
+    """
+    Default values for lists and dicts are given like so:
+        [f]:list=[]
+        {i-s}:dict={}
+    """
+    result = parse("test [s]:list=[] {s-s}:dict={}")
+    assert result.body[0].key == 'list'
+    assert result.body[0].value == '[]'
+    assert result.body[0].cast == '[s]'
+    assert result.body[1].key == 'dict'
+    assert result.body[1].value == '{}'
+    assert result.body[1].cast == '{s-s}'
+
+
+def test_default_list_internal_types():
+    """
+    Structs default to string type for internal items.
+        []:list == [s]:list
+        {}:dict == {s-s}:dict
+    """
+    result = parse("test []:list {}:dict")
+    assert result.body[0].key == 'list'
+    assert result.body[0].value == None
+    assert result.body[0].cast == '[s]'
+    assert result.body[1].key == 'dict'
+    assert result.body[1].value == None
+    assert result.body[1].cast == '{s-s}'

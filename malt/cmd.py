@@ -53,6 +53,7 @@ def offer(options, silent=False):
 
 
 # What about preprocessor steps?
+# TODO: Raise error if file doesn't exist? or just propagate?
 def load(filepath, options, silent=False):
     """
     Load and read a text file. Wrapper around read() that takes filename.

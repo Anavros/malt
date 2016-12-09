@@ -122,13 +122,12 @@ class ParserState:
             self.tokens.append(None)
 
     def end_list(self):
-        if self.list_buffer:
-            self.tokens.append(self.list_buffer)
-            self.list_buffer = []
+        # Add lists even if they're empty.
+        self.tokens.append(self.list_buffer)
+        self.list_buffer = []
         self.in_list = False
 
     def end_dict(self):
-        if self.dict_buffer:
-            self.tokens.append(self.dict_buffer)
-            self.dict_buffer = {}
+        self.tokens.append(self.dict_buffer)
+        self.dict_buffer = {}
         self.in_dict = False
