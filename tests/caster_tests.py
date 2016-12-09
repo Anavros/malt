@@ -27,6 +27,10 @@ def test_integers():
     assert type(autocast('15', 'i')) is int
 
 
+def test_ints_shaped_like_floats():
+    assert autocast('1.0', 'i') == 1
+
+
 def test_floats():
     assert autocast('5.0', 'f') == 5.0
     assert type(autocast('5.0', 'f')) is float

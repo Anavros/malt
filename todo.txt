@@ -4,8 +4,6 @@ Todo:
 Fix for Release v0.3:
 
 Bugs:
-- Ints can not be cast from strings shaped like floats, e.g. '1.0'.
-    - Cast to float first and then int.
 - Comment chars can not be escaped with backslashes or single quotes.
 - Preprocessor can't handle nested lists and dicts.
 - Proprocessor iterates over files multiple times.

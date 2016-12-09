@@ -40,7 +40,8 @@ def autocast(value, typestring):
 
     elif typestring == 'i':
         try:
-            return int(value)
+            # Cast to float first so strings like '1.0' don't throw errors.
+            return int(float(value))
         except ValueError:
             raise WrongType(cast='i', value=value) from None
 
