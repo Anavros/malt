@@ -3,6 +3,7 @@
 *cache*
 local/*
 old/*
+*.log
 *.egg-info/*
 docs/.build
 docs/.static

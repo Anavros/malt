@@ -3,6 +3,10 @@ from malt.constants import *
 from malt.exceptions import MaltSyntaxError
 from malt.objects import Argument, Signature
 
+import logging
+logging.basicConfig(filename="parser.log", level=logging.DEBUG)
+logging.info("Starting parser log.")
+
 
 # Steps:
 # "stream 3 [words and things] key=value xs=[]"
@@ -51,7 +55,7 @@ class Stack:
     def _match(self, c):
         """
         Does the last character in the stack syntactically match the new one?
-        Example: [ + ], ' + ', { + }
+        For example: [ + ], ' + ', { + }
         """
         if not self.chars:
             return False
@@ -70,28 +74,20 @@ def tokenize(line):
     """
     tokens = []
     buffer = ""
-    bracestack = []
+    braces = Stack()
     for c in line:
         if c in SEPARATORS:
-            if not bracestack:
+            if not braces.enclosed():
                 tokens.append(buffer)
                 buffer = ""
-            else:
-                buffer.append(c)
-
-        elif c in QUOTES:
-            # ['] + ' -> []
-            # ["]
-            pass
-
-        elif c in BRACES:
-            if   c == LIST_BEGIN: pass
-            elif c == LIST_END: pass
-            elif c == DICT_BEGIN: pass
-            elif c == DICT_END: pass
-
-        else:
-            buffer.append(c)
+                continue  # don't add char to buffer
+            # If enclosed, just add the literal character.
+        elif c in QUOTES+BRACES:
+            braces.push(c)
+        buffer += c
+        logging.debug("adding '{}' to buffer; buffer = {}; stack = {} ".format(
+            c, buffer, braces.chars))
+    tokens.append(buffer)
     return tokens
 
 
