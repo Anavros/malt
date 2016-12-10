@@ -64,15 +64,16 @@ def tokenize(line):
     for c in line:
         if c in SEPARATORS:
             if not braces.enclosed():
-                tokens.append(buffer)
-                buffer = ""
-                continue  # don't add char to buffer
+                if buffer:
+                    tokens.append(buffer)
+                    buffer = ""
+                continue  # don't add spaces to buffer
             # If enclosed, just add the literal character.
         elif c in QUOTES+BRACES:
             braces.push(c)
         buffer += c
-        logging.debug("adding '{}' to buffer; buffer = {}; stack = {} ".format(
-            c, buffer, braces.chars))
+        #logging.debug("adding '{}' to buffer; buffer = {}; stack = {} ".format(
+            #c, buffer, braces.chars))
     tokens.append(buffer)
     return tokens
 

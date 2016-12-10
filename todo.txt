@@ -12,6 +12,8 @@ Bugs:
 - Providing a string as an option list doesn't throw an error but still breaks.
 - Loading a file should halt on first error.
 - Strings in quotes containing spaces count as seperate arguments.
+- Strings in quotes are never stripped of their quotes.
+- Lines with extra spaces count as extra args.
 
 Feature Ideas:
 - Allow a default value for dict inputs, e.g. take salt -> {salt:1}

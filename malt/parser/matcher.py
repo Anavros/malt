@@ -48,6 +48,7 @@ def match_arguments(userinput, signature):
     return Signature(head, body)
 
 
+# False error on "quoted strings with spaces".
 def error_if_bad_argc(userinput, signature):
     """
     Raise UnknownKeyword if user input contains an unknown key=value key and

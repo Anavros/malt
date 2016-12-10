@@ -33,6 +33,18 @@ def test_tokenizer_integration():
     ]
 
 
+def test_tokenizer_with_excess_spaces():
+    # not sure if spaces around ':' or '=' will be allowed
+    assert tokenize("keyword    scalar   [a  list] { a:1  dict:2} def=arg deflist=[1 2 3]") == [
+        "keyword",
+        "scalar",
+        "[a  list]",  # unsure if literal spaces will always be preserved like that
+        "{ a:1  dict:2}",
+        "def=arg",
+        "deflist=[1 2 3]",
+    ]
+
+
 def test_quoted_strings():
     assert tokenize("keyword 15 \"this should count as one argument\"") == [
         "keyword",
