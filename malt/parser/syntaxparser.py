@@ -1,132 +1,96 @@
 
-from malt.constants import EQUALS, SEPARATORS, JOIN, DOUBLE_QUOTE
-from malt.constants import LIST_BEGIN, LIST_END, DICT_BEGIN, DICT_END
+from malt.constants import *
 from malt.exceptions import MaltSyntaxError
 from malt.objects import Argument, Signature
 
+import logging
+logging.basicConfig(filename="parser.log", level=logging.DEBUG)
+logging.info("Starting parser log.")
+
 
 def parse(text):
-    return build_response(tokenize(text))
+    tokens = tokenize(text)
+    signature = convert(tokens)
+    return signature
 
 
-# Does this not throw any errors?
-# It's not externally callable, so maybe not?
-def build_response(tokens):
-    """
-    Turn a line of tokens into a Response object.
-    """
-    head = ""
-    body = []
-    i = 0
-    for token in tokens:
-        # BUG: What are the None tokens used for?
-        # They were supposed to be for newlines, right?
-        if token is None:
-            continue
-
-        # The first token always becomes the head.
-        if not head:
-            head = token
-            continue
-
-        # ex: 'key=value'
-        if EQUALS in token:
-            key, value = token.split(EQUALS, 1)
-        else:
-            # If a key is not provided, use the integer position of the arg.
-            key, value = None, token
-
-        body.append(Argument(i, key, value, None))
-        i += 1
-    return Signature(head, body)
-
-
-def tokenize(stream):
-    state = ParserState()
-    for c in stream:
-        if c in SEPARATORS:
-            state.end_word(separator=c)
-        elif c == DOUBLE_QUOTE:  # TODO: allow single quotes
-            state.in_quotes = not state.in_quotes
-            state.word_buffer.append(c)
-        elif c == LIST_BEGIN:
-            if state.in_list:
-                raise MaltSyntaxError("nested list")
-            else:
-               state.in_list = True
-        elif c == DICT_BEGIN:
-            if state.in_dict:
-                raise MaltSyntaxError("nested dict")
-            else:
-               state.in_dict = True
-        elif c == LIST_END:
-            if not state.in_list:
-                raise MaltSyntaxError("ended list that never began")
-            else:
-                state.end_word()
-                state.end_list()
-        elif c == DICT_END:
-            if not state.in_dict:
-                raise MaltSyntaxError("ended dict that never began")
-            else:
-                state.end_word()
-                state.end_dict()
-        else:
-            state.word_buffer.append(c)
-    state.end_word()
-    return state.tokens
-
-
-class ParserState:
+# Might be useful in preprocessor.
+# Better name: PairStack?
+class Stack:
     def __init__(self):
-        self.tokens = []
-        self.word_buffer = []
-        self.list_buffer = []
-        self.dict_buffer = {}
-        self.in_list = False
-        self.in_dict = False
-        self.in_quotes = False
+        self.chars = []
 
-    def end_word(self, separator=' '):
-        if self.word_buffer:
-            if self.in_quotes:
-                self.word_buffer.append(separator)
-                return
+    def enclosed(self):
+        """
+        The stack is considered enclosed if there is at least one unresolved
+        opening bracket or quote.
+        """
+        return len(self.chars) > 0
 
-            elif self.in_list:
-                self.list_buffer.append(''.join(self.word_buffer))
-
-            elif self.in_dict:  # overwrites if nested? shouldn't nest anyway
-                # TODO: use second argument to split() to prevent this.
-                if self.word_buffer.count(JOIN) != 1:
-                    raise MaltSyntaxError(
-                        "Wrong number of ':' separators in line: {}".format(
-                            self.word_buffer))
-                i = self.word_buffer.index(JOIN)
-                k = ''.join(self.word_buffer[:i])
-                v = ''.join(self.word_buffer[i+1:])
-                self.dict_buffer[k] = v
-
-            else:
-                self.tokens.append(''.join(self.word_buffer))
-            self.word_buffer = []
-        self.end_line(separator)
-
-    def end_line(self, c):
-        if c != '\n':
-            return
-        if self.in_list or self.in_dict or self.in_quotes:
-            return
+    def push(self, char):
+        """
+        Add a char to the stack. If it matches the previously pushed char,
+        cancel the two out, removing the enclosure.
+        """
+        if self._match(char):
+            self.chars.pop()
         else:
-            self.tokens.append(None)
+            self.chars.append(char)
 
-    def end_list(self):
-        # Add lists even if they're empty.
-        self.tokens.append(self.list_buffer)
-        self.list_buffer = []
-        self.in_list = False
+    def _match(self, c):
+        """
+        Does the last character in the stack syntactically match the new one?
+        For example: [ + ], ' + ', { + }
+        """
+        if not self.chars:
+            return False
+        prev = self.chars[-1]
+        if prev == LIST_BEGIN:
+            return c == LIST_END
+        elif prev == DICT_BEGIN:
+            return c == DICT_END
+        elif prev in QUOTES:
+            return c == prev
 
-    def end_dict(self):
-        self.tokens.append(self.dict_buffer)
-        self.dict_buffer = {}
-        self.in_dict = False
+
+# Should brackets in quotes (or after backslashes) be escaped?
+def tokenize(line):
+    """
+    Separate one line into string tokens.
+    """
+    tokens = []
+    buffer = ""
+    braces = Stack()
+    for c in line:
+        if c in SEPARATORS:
+            if not braces.enclosed():
+                tokens.append(buffer)
+                buffer = ""
+                continue  # don't add char to buffer
+            # If enclosed, just add the literal character.
+        elif c in QUOTES+BRACES:
+            braces.push(c)
+        buffer += c
+        logging.debug("adding '{}' to buffer; buffer = {}; stack = {} ".format(
+            c, buffer, braces.chars))
+    tokens.append(buffer)
+    return tokens
+
+
+def convert(strings):
+    """
+    Turn a list of token strings into a signature.
+    """
+    try:
+        head = strings.pop(0)
+    except IndexError:
+        return Signature("", [])
+
+    body = []
+    for i, string in enumerate(strings):
+        if EQUALS in string:
+            key, val = string.split(EQUALS, 1)
+        else:
+            key, val = None, string
+        body.append(Argument(i, key, val, None))
+    return Signature(head, body)

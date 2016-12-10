@@ -1,6 +1,12 @@
 
+import re
 from malt.constants import BRACES, JOIN
 from malt.exceptions import WrongType, BadTypePrefix
+
+
+# Typestring Regex
+LIST_TYPE = r"^\[[sifb]\]$"
+DICT_TYPE = r"\{[sifb]-[sifb]\}"
 
 
 def cast(value, typestring):
