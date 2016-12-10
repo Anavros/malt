@@ -40,6 +40,13 @@ class Signature:
     def __len__(self):
         return len(self.body)
 
+    def __eq__(self, other):
+        return all([
+            type(other) is Signature,
+            self.head == other.head,
+            all(a==b for a, b in zip(self.body, other.body)),
+        ])
+
 
 class Argument:
     def __init__(self, position, key, value, cast):
@@ -47,3 +54,13 @@ class Argument:
         self.key = key
         self.value = value
         self.cast = cast
+
+    def __eq__(self, other):
+        # there's probably an easier way to do this
+        return all([
+            type(other) is Argument,
+            self.position == other.position,
+            self.key == other.key,
+            self.value == other.value,
+            self.cast == other.cast,
+        ])

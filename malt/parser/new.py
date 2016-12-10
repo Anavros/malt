@@ -91,17 +91,20 @@ def tokenize(line):
     return tokens
 
 
-def convert(tokens):
+def convert(strings):
     """
-    Turn a list of tokens into a signature.
+    Turn a list of token strings into a signature.
     """
     try:
-        head = tokens.pop(0)
+        head = strings.pop(0)
     except IndexError:
         return Signature("", [])
 
     body = []
-    for i, token in enumerate(tokens):
-        body.append(Argument(i, token.key, token.val, None))
-    #[Argument(i, t.key, t.val, None) for i, t in enumerate(tokens)]
+    for i, string in enumerate(strings):
+        if EQUALS in string:
+            key, val = string.split(EQUALS, 1)
+        else:
+            key, val = None, string
+        body.append(Argument(i, key, val, None))
     return Signature(head, body)
