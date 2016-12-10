@@ -25,5 +25,6 @@ def test_sig_eq():
         Arg(1, "other", "thing", None),
     ])
     assert one == two
+    assert not one != two  # test the __ne__ operator
     assert one != three
     assert one != four

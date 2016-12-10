@@ -41,11 +41,7 @@ class Signature:
         return len(self.body)
 
     def __eq__(self, other):
-        return all([
-            type(other) is Signature,
-            self.head == other.head,
-            all(a==b for a, b in zip(self.body, other.body)),
-        ])
+        return type(other) is Signature and self.__dict__ == other.__dict__
 
 
 class Argument:
@@ -56,11 +52,4 @@ class Argument:
         self.cast = cast
 
     def __eq__(self, other):
-        # there's probably an easier way to do this
-        return all([
-            type(other) is Argument,
-            self.position == other.position,
-            self.key == other.key,
-            self.value == other.value,
-            self.cast == other.cast,
-        ])
+        return type(other) is Argument and self.__dict__ == other.__dict__
