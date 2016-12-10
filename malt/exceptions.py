@@ -40,8 +40,9 @@ class NotAnOption(MaltException):
 
 class MismatchedArgs(MaltException):
     """ User input has either too many or too few arguments. """
-    def __init__(self):
-        self.message = "wrong number of arguments"
+    def __init__(self, head='', expected=0, given=0):
+        self.message = ("wrong number of arguments: "
+            "'{}' expected {} but got {}.".format(head, expected, given))
 
 
 class MissingValue(MaltException):

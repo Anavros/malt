@@ -43,6 +43,9 @@ class Signature:
     def __eq__(self, other):
         return type(other) is Signature and self.__dict__ == other.__dict__
 
+    def __repr__(self):
+        return self.head + str(self.body)
+
 
 class Argument:
     def __init__(self, position, key, value, cast):
@@ -53,3 +56,7 @@ class Argument:
 
     def __eq__(self, other):
         return type(other) is Argument and self.__dict__ == other.__dict__
+
+    def __repr__(self):
+        return "Argument({position}, {key}, {value}, {cast})".format(
+            **self.__dict__)

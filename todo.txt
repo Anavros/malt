@@ -1,8 +1,5 @@
 
 Todo:
-- Rewrite tokenizer.
-
-Fix for Release v0.4:
 
 Bugs:
 - Comment chars can not be escaped with backslashes or single quotes.
@@ -13,6 +10,8 @@ Bugs:
 - Syntax hints no longer work.
 - List and dict types in option strings can not have default values.
 - Providing a string as an option list doesn't throw an error but still breaks.
+- Loading a file should halt on first error.
+- Strings in quotes containing spaces count as seperate arguments.
 
 Feature Ideas:
 - Allow a default value for dict inputs, e.g. take salt -> {salt:1}

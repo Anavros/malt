@@ -60,7 +60,7 @@ def error_if_bad_argc(userinput, signature):
     if not all(key in known_keys for key in given_keys):
         raise UnknownKeyword()
     if n_positional_args > total_argc:
-        raise MismatchedArgs()
+        raise MismatchedArgs(signature.head, total_argc, n_positional_args)
 
 
 def match(s, userinput):

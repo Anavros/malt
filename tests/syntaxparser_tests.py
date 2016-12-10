@@ -33,6 +33,19 @@ def test_tokenizer_integration():
     ]
 
 
+def test_quoted_strings():
+    assert tokenize("keyword 15 \"this should count as one argument\"") == [
+        "keyword",
+        "15",
+        "\"this should count as one argument\"",
+    ]
+    assert tokenize("keyword 15 \'this should count as one argument\'") == [
+        "keyword",
+        "15",
+        "\'this should count as one argument\'",
+    ]
+
+
 def test_signature_generation():
     sig = convert(["keyword", "posarg", "key=val", "list=[]"])
     exp = Sig("keyword", [
@@ -41,3 +54,13 @@ def test_signature_generation():
         Arg(2, "list", "[]", None),
     ])
     assert sig == exp
+
+
+def test_signature_of_quoted_string():
+    sig = convert(['a', 'time', '\"early morning\"'])
+    exp = Sig('a', [
+        Arg(0, None, 'time', None),
+        Arg(1, None, '\"early morning\"', None),
+    ])
+    assert sig == exp
+    assert len(sig) == len(exp)
