@@ -8,29 +8,14 @@ logging.basicConfig(filename="parser.log", level=logging.DEBUG)
 logging.info("Starting parser log.")
 
 
-# Steps:
-# "stream 3 [words and things] key=value xs=[]"
-# ["stream", "3", "[words and things]", "key=value", "xs=[]"]
-# [(None, "stream"), (None, "3"), (None, "[words and things]"),
-# ("key", "value"), ("xs", "[]")]
-# ["stream", 3, ["words", "and", "things"], ("key", "value"), ("xs", [])]
-
-# Stack-Based Parsing
-# hello [is 'it really' me] 'youre looking for?'
-
-
 def parse(text):
-    return Signature()
+    tokens = tokenize(text)
+    signature = convert(tokens)
+    return signature
 
 
-class Token:
-    def __init__(self, string):
-        if EQUALS in string:
-            self.key, self.val = string.split(EQUALS, 1)
-        else:
-            self.key, self.val = None, string
-
-
+# Might be useful in preprocessor.
+# Better name: PairStack?
 class Stack:
     def __init__(self):
         self.chars = []
@@ -68,6 +53,7 @@ class Stack:
             return c == prev
 
 
+# Should brackets in quotes (or after backslashes) be escaped?
 def tokenize(line):
     """
     Separate one line into string tokens.
