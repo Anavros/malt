@@ -22,3 +22,9 @@ Feature Ideas:
 - Optional function to parse argv in same malt syntax.
 - Allow implicitly given options i.e. autocommands.
 - Use typestring like {i} for sets instead of dicts.
+- Typestring inference from default argument.
+    - "i:int=100" -> "int=100"
+    - "f:float=1.0" -> "float=1.0"
+    - "[]:list=[]" -> "list=[]"
+    - "{}:dict={}" -> "dict={}"
+    - "b:bool=True" -> ???

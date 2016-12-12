@@ -8,9 +8,9 @@ from malt import parser
 from malt.objects import Response
 from malt.exceptions import MaltException
 
-import logging
-logging.basicConfig(filestring="parser.log", level=logging.DEBUG)
-logging.info("cmd.py loaded")
+#import logging
+#logging.basicConfig(filestring="parser.log", level=logging.DEBUG)
+#logging.info("cmd.py loaded")
 
 
 def parse(text, options, silent=False):
@@ -39,13 +39,13 @@ def read(lines, options, silent=False):
         raise ValueError("Read requires a list of strings, not a single string.")
     responses = []
     for line in lines:
-        logging.debug("Reading line: {}".format(line))
+        #logging.debug("Reading line: {}".format(line))
         # TODO: this should be a preprocessor step
         line = line.strip()
         if not line:
             continue
 
-        logging.debug("Parsing modified line: {}".format(line))
+        #logging.debug("Parsing modified line: {}".format(line))
         responses.append(parse(line, options, silent))
     return responses
 

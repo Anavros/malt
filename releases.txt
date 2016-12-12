@@ -15,8 +15,10 @@ v0.3:
 - Upload to pypi as maltcmd.
 
 v0.4:
+- Integrated help functions.
 - Further improved documentation.
 - Improved syntaxparser and typecaster.
+- Error logging and better error presentation.
 
 Future:
 - Tab completion of commands.

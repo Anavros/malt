@@ -3,9 +3,9 @@ from malt.constants import *
 from malt.exceptions import MaltSyntaxError
 from malt.objects import Argument, Signature
 
-import logging
-logging.basicConfig(filename="parser.log", level=logging.DEBUG)
-logging.info("Starting parser log.")
+#import logging
+#logging.basicConfig(filename="parser.log", level=logging.DEBUG)
+#logging.info("Starting parser log.")
 
 
 def parse(text):
