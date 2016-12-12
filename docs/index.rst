@@ -11,10 +11,12 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   quickstart
+   usagedetails
+   optionsyntax
+   maltsyntax
+   typestrings
    api
-   type
-   formatting
-   malt
 
 Indices
 =======
@@ -23,3 +25,11 @@ Indices
 * :ref:`modindex`
 * :ref:`search`
 
+Documentation Plans
+===================
+
+* General usage quickstart.
+* Detailed function parameters.
+* Malt syntax overview.
+* Option string syntax.
+* Allowed typestrings.

@@ -1,5 +1,5 @@
 
-Parameter Types
+Getting Started
 ***************
 
 When taking input, you specify which commands the user is allowed to enter::
