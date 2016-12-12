@@ -11,11 +11,11 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   examples
    quickstart
    usagedetails
    optionsyntax
    maltsyntax
-   typestrings
    api
 
 Indices
