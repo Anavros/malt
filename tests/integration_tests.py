@@ -1,5 +1,7 @@
 
 import malt
+from malt.exceptions import MaltException
+from pytest import raises
 
 def test_read_empty_file():
     filestring = [
@@ -48,3 +50,12 @@ def test_load_external_file():
     assert lines[0].string == "\"cold\""
     assert lines[1].string == "\"pretty chilly\""
     assert lines[2].string == "\"not too bad\""
+
+
+def test_string_as_option_list():
+    """
+    Strings can be treated as lists even when they shouldn't. Passing a string
+    instead of an option list should throw an error.
+    """
+    with raises(ValueError):
+        malt.parse("input", "this should be a list")

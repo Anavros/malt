@@ -1,19 +1,15 @@
 
 Todo:
+- Formal option objects instead of just strings.
+- Built-in help functions.
 
 Bugs:
 - Comment chars can not be escaped with backslashes or single quotes.
 - Preprocessor can't handle nested lists and dicts.
 - Proprocessor iterates over files multiple times.
-    - Note: preprocessor needs to turn multi-line files into a list of lines.
-    - The syntaxparser can't handle things split over multiple lines.
-- Syntax hints no longer work.
-- List and dict types in option strings can not have default values.
-- Providing a string as an option list doesn't throw an error but still breaks.
 - Loading a file should halt on first error.
 - Strings in quotes containing spaces count as seperate arguments.
 - Strings in quotes are never stripped of their quotes.
-- Lines with extra spaces count as extra args.
 
 Feature Ideas:
 - Allow a default value for dict inputs, e.g. take salt -> {salt:1}
@@ -28,3 +24,6 @@ Feature Ideas:
     - "[]:list=[]" -> "list=[]"
     - "{}:dict={}" -> "dict={}"
     - "b:bool=True" -> ???
+    - But what if you want a string '100'?
+    - Probably just use 's:var=100' to be explicit
+- Reimplement syntax hints?

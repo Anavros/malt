@@ -17,6 +17,8 @@ def parse(text, options, silent=False):
     """
     Parse a single line of input.
     """
+    if type(options) is str:
+        raise ValueError("Options must be a list of strings.")
     try:
         available = parser.parse_options(options)
         userinput = parser.parse_user_input(text)
