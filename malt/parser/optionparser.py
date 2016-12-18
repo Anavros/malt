@@ -16,6 +16,22 @@ Signatures are easier to use when validating input.
 #    'keyword [s]:list_of_strings {s-i}:map_of_strings_to_ints',
 #]
 
+
+class Argument:
+    def __init__(self, key, default=None, cast=None, note=None):
+        self.key = key
+        self.default = default
+        self.cast = cast
+        self.note = note
+
+
+class Option:
+    def __init__(self, head, args=None, note=None):
+        self.head = head
+        self.args = args
+        self.note = note
+
+
 def parse_all(option_strings):
     """
     Convert a list of option strings to signatures. Returns a dictionary where

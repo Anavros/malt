@@ -13,6 +13,20 @@ def main():
         '/pow i:n i:e=2',  # Raise n to power e (default e=2).
         '+ i:i',
     ]
+    options = [
+        Option('/stuff'),
+        Option('/add', [
+            Argument('n1', cast=int),
+            Argument('n2', cast=int),
+        ]),
+        Option('/pow', [
+            Argument('n', cast=int),
+            Argument('e', cast=int, default=2)
+        ]),
+        Option('+', [
+            Argument('i', cast=int)
+        ]),
+    ]
     while True:
         response = malt.offer(options)
 
