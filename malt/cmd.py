@@ -13,12 +13,24 @@ from malt.exceptions import MaltException
 #logging.info("cmd.py loaded")
 
 
-def parse(text, options, silent=False):
+def convert(options):
+    """
+    Convert a list of strings into signature objects.
+    """
+    if type(options) is not list:
+        raise ValueError("Options must be a list of strings.")
+    return parser.parse_options(options)
+
+
+def parse(text, options, silent=False, convert=True):
     """
     Parse a single line of input.
     """
-    if type(options) is str:
-        raise ValueError("Options must be a list of strings.")
+    # Temporary measure to avoid breaking interface.
+    if convert:
+        signatures = convert(options)
+    else:
+        signatures = options
     try:
         # This takes a list of option strings and creates a list of signatures.
         # Add another function to accept option objects, not strings.
