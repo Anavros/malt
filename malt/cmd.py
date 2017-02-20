@@ -20,6 +20,8 @@ def parse(text, options, silent=False):
     if type(options) is str:
         raise ValueError("Options must be a list of strings.")
     try:
+        # This takes a list of option strings and creates a list of signatures.
+        # Add another function to accept option objects, not strings.
         available = parser.parse_options(options)
         userinput = parser.parse_user_input(text)
         expecting = parser.match_command(userinput, available)

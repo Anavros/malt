@@ -32,6 +32,8 @@ class Option:
         self.note = note
 
 
+# This is the function that gets called with the option strings.
+# Extract the string->option functionality and have this take an option object.
 def parse_all(option_strings):
     """
     Convert a list of option strings to signatures. Returns a dictionary where

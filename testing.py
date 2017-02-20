@@ -6,6 +6,29 @@ Testing ground for new malt features.
 import malt
 
 
+# Alternate method using function signatures.
+def stuff():
+    print("Correct!")
+
+
+def add(n1: int, n2: int):
+    print(n1 + n2)
+
+
+def pow(n: int, e: int):
+    print(n**e)
+
+
+def plus(i: int):
+    print("Adding", i)
+
+
+def main():
+    while True:
+        functions = [stuff, add, pow, plus]
+        malt.select_and_run(functions)
+
+
 def main():
     options = [
         '/stuff',          # Dummy placeholder.

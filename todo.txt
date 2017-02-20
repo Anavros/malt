@@ -27,3 +27,4 @@ Feature Ideas:
     - But what if you want a string '100'?
     - Probably just use 's:var=100' to be explicit
 - Reimplement syntax hints?
+- Alternative option specification using function signatures.
