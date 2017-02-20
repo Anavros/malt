@@ -17,19 +17,22 @@ Signatures are easier to use when validating input.
 #]
 
 
-class Argument:
-    def __init__(self, key, default=None, cast=None, note=None):
-        self.key = key
-        self.default = default
-        self.cast = cast
-        self.note = note
+# This overwrites imported Argument() type.
+# We'll move that in here eventually, but for now, this isn't being used.
+#class Argument:
+#    def __init__(self, key, default=None, cast=None, note=None):
+#        self.key = key
+#        self.default = default
+#        self.cast = cast
+#        self.note = note
 
 
-class Option:
-    def __init__(self, head, args=None, note=None):
-        self.head = head
-        self.args = args
-        self.note = note
+# Same deal here.
+#class Option:
+#    def __init__(self, head, args=None, note=None):
+#        self.head = head
+#        self.args = args
+#        self.note = note
 
 
 # This is the function that gets called with the option strings.

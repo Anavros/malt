@@ -13,7 +13,7 @@ from malt.exceptions import MaltException
 #logging.info("cmd.py loaded")
 
 
-def convert(options):
+def _convert_to_signatures(options):
     """
     Convert a list of strings into signature objects.
     """
@@ -28,7 +28,7 @@ def parse(text, options, silent=False, convert=True):
     """
     # Temporary measure to avoid breaking interface.
     if convert:
-        signatures = convert(options)
+        signatures = _convert_to_signatures(options)
     else:
         signatures = options
     try:
