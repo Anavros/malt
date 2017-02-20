@@ -1,7 +1,9 @@
 
 Todo:
-- Formal option objects instead of just strings.
-- Built-in help functions.
+- New public function that:
+    - accepts a list of functions with type annotations,
+    - parses the annotations into signature objects,
+    - calls malt.offer with the signatures and returns a response.
 
 Bugs:
 - Comment chars can not be escaped with backslashes or single quotes.
@@ -28,3 +30,4 @@ Feature Ideas:
     - Probably just use 's:var=100' to be explicit
 - Reimplement syntax hints?
 - Alternative option specification using function signatures.
+- Built-in help functions.
